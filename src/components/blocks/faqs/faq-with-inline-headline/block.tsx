@@ -3,10 +3,21 @@ import { Accordion, Button, Container, SimpleGrid, Span, Stack } from '@chakra-u
 import { useState } from 'react'
 import { LuSend } from 'react-icons/lu'
 import { SectionHeader } from './section-header'
-import { faqs } from './data'
 
-export const Block = () => {
+export interface FaqItem {
+  id: number
+  question: string
+  answer: string
+}
+
+interface BlockProps {
+  faqs: FaqItem[]
+}
+
+export const Block = ({ faqs }: BlockProps) => {
   const [showAll, setShowAll] = useState(false)
+
+  if (!faqs || faqs.length === 0) return null
 
   return (
     <Container py={{ base: '16', md: '24' }}>
@@ -19,7 +30,7 @@ export const Block = () => {
           maxW="lg"
         >
           <Button size="lg">
-            Contanct Us <LuSend />
+            Contact Us <LuSend />
           </Button>
         </SectionHeader>
 
@@ -37,16 +48,18 @@ export const Block = () => {
               </Accordion.Item>
             ))}
           </Accordion.Root>
-          <Button
-            size="xl"
-            alignSelf="center"
-            variant="outline"
-            colorPalette="gray"
-            onClick={() => setShowAll(true)}
-            display={showAll ? 'none' : 'flex'}
-          >
-            Show more FAQs
-          </Button>
+          {faqs.length > 5 && (
+            <Button
+              size="xl"
+              alignSelf="center"
+              variant="outline"
+              colorPalette="gray"
+              onClick={() => setShowAll(true)}
+              display={showAll ? 'none' : 'flex'}
+            >
+              Show more FAQs
+            </Button>
+          )}
         </Stack>
       </SimpleGrid>
     </Container>

@@ -1,20 +1,43 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
+import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
 import { Block as HeroWithFullImage } from "@/components/blocks/heroes/hero-with-full-image/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
-import { Block as MainProject } from "@/components/blocks/features/feature-08/block"
-import { Block as ProjectGrid } from "@/components/blocks/features/feature-bento-grid-01/block"
+import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
 import { Block as Faq } from "@/components/blocks/faqs/faq-with-inline-headline/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-links-centered/block"
 
-export default function Home() {
+export default async function Home() {
+  const { data: pageData } = await supabase
+    .from('pages')
+    .select('content')
+    .eq('slug', 'home')
+    .single()
+
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('*')
+    .order('id', { ascending: true })
+
+  const { data: allTestimonials } = await supabase
+    .from('testimonials')
+    .select('*')
+
+  const { data: faqs } = await supabase
+    .from('faqs')
+    .select('*')
+    .order('id', { ascending: true })
+
+  const featuredTestimonial = allTestimonials?.find(t => t.is_featured === true)
+  const gridTestimonials = allTestimonials?.filter(t => t.is_featured === false)
+  const featuredProject = projects?.find(p => p.is_featured === true)
+
+  const heroContent = pageData?.content?.hero
+
   return (
     <Box bg="bg.canvas" minH="100vh">
-      {/* Navbar Wrapper 
-         - Changed maxW to "7xl" to align with the rest of the page content.
-      */}
       <Box position="fixed" top="4" width="full" zIndex={20} px="4">
         <Container maxW="7xl">
           <NavbarIsland />
@@ -22,42 +45,36 @@ export default function Home() {
       </Box>
 
       <Stack gap="0">
-        {/* Hero Section */}
-        <Box pt={{ base: "24", md: "32" }}>
-            <HeroWithFullImage />
+        <Box pt={{ base: "16", md: "16" }}>
+            <HeroWithFullImage 
+              title={heroContent?.title || featuredProject?.title}
+              description={heroContent?.description || featuredProject?.description}
+              tagline={heroContent?.tagline} // Pass the tagline here
+              videoUrl={featuredProject?.video_url}
+              imageUrl={featuredProject?.image_url}
+            />
         </Box>
 
-        {/* Featured Testimonial */}
         <Box py={{ base: "16", md: "24" }}>
-          <FeaturedTestimonial />
+          {featuredTestimonial && <FeaturedTestimonial testimonial={featuredTestimonial} />}
         </Box>
 
-        {/* Main Project (Striped Background) */}
-        <Box bg="bg.subtle" py={{ base: "16", md: "24" }}>
-            <MainProject />
+        <Box id="projects" bg="bg.subtle" py={{ base: "16", md: "24" }}>
+            <CategoryGrid projects={projects || []} />
         </Box>
 
-        {/* Project Grid */}
         <Box py={{ base: "16", md: "24" }}>
-          <ProjectGrid />
+            <TestimonialGrid testimonials={gridTestimonials || []} />
         </Box>
 
-        {/* Testimonials Grid (Striped Background) */}
         <Box bg="bg.subtle" py={{ base: "16", md: "24" }}>
-            <TestimonialGrid />
+          <Faq faqs={faqs || []} />
         </Box>
 
-        {/* FAQ Section */}
         <Box py={{ base: "16", md: "24" }}>
-          <Faq />
-        </Box>
-
-        {/* CTA Section (Light Gray Background) */}
-        <Box bg="bg.subtle" py={{ base: "16", md: "24" }}>
             <Cta />
         </Box>
 
-        {/* Footer */}
         <Footer />
       </Stack>
     </Box>

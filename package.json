@@ -12,6 +12,7 @@
     "@chakra-ui/react": "^3.33.0",
     "@emotion/react": "^11.14.0",
     "@floating-ui/react": "^0.27.18",
+    "@supabase/supabase-js": "^2.97.0",
     "@tiptap/pm": "^3.20.0",
     "@tiptap/react": "^3.20.0",
     "framer-motion": "^12.34.2",

@@ -23,11 +23,12 @@ export const HeroHeader = (props: HeroHeaderProps) => {
       <Stack gap={{ base: '5', md: '6' }}>
         <Stack gap={{ base: '3', md: '4' }}>
           <Show when={tagline}>
-            <Text textStyle={{ base: 'sm', md: 'md' }} fontWeight="medium" color="colorPalette.fg">
-              {headline}
+            {/* FIX: Render {tagline} here, not {headline} */}
+            <Text textStyle={{ base: 'sm', md: 'md' }} fontWeight="medium" color="colorPalette.fg" asChild>
+              {tagline}
             </Text>
           </Show>
-          <Heading as="h1" textStyle={{ base: '4xl', md: '6xl' }} fontWeight="bold">
+          <Heading as="h1" textStyle={{ base: '4xl', md: '6xl' }} fontWeight="bold" lineHeight="1.2">
             {headline}
           </Heading>
         </Stack>
