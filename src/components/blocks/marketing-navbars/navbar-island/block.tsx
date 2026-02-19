@@ -7,6 +7,7 @@ import {
   HStack,
   Spacer,
 } from '@chakra-ui/react'
+import { ColorModeButton } from "@/components/ui/color-mode"
 import { Logo } from './logo'
 import { CollapsibleTrigger } from './collapsible-trigger'
 import { NavbarLinks } from './navbar-links'
@@ -27,6 +28,10 @@ export const Block = () => {
             <Logo />
             <Spacer hideFrom="md" />
             <NavbarLinks hideBelow="md" />
+            
+            {/* Added Theme Switcher here */}
+            <ColorModeButton />
+            
             <Button size={{ base: 'sm', md: 'md' }}>Buy Now</Button>
             <CollapsibleTrigger />
           </HStack>
