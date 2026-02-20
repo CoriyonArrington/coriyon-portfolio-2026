@@ -1,59 +1,100 @@
-import { Container, HStack, Icon, Link, Separator, Stack } from '@chakra-ui/react'
-import { SiFacebook, SiGithub, SiInstagram, SiLinkedin, SiX } from 'react-icons/si'
-import { ColorModeButton } from "@/components/ui/color-mode"
-import { Copyright } from './copyright'
-import { Logo } from './logo'
+import { Box, Container, HStack, Stack, Text, IconButton, Link as ChakraLink, Avatar } from '@chakra-ui/react'
+import { LuLinkedin, LuGithub, LuYoutube } from 'react-icons/lu'
+import { LanguageSwitcher } from '@/components/blocks/marketing-navbars/navbar-island/language-switcher'
+import { ColorModeButton } from '@/components/ui/color-mode'
+import NextLink from 'next/link'
 
-export const Block = () => (
-  <Container as="footer">
-    <Stack
-      gap="12"
-      alignItems="center"
-      justifyContent="space-between"
-      direction={{ base: 'column', md: 'row' }}
-      py={{ base: '12', md: '16' }}
-    >
-      <Logo height="32" />
-      <Stack gap="6" direction={{ base: 'column', md: 'row' }}>
-        {['Pricing', 'Product', 'About Us', 'Contact', 'Blog'].map((link, idx) => (
-          <Link key={idx} href={link} colorPalette="gray">
-            {link}
-          </Link>
-        ))}
-      </Stack>
-      <HStack gap={{ base: '4', md: '3' }}>
-        {/* Theme Switcher added here */}
-        <ColorModeButton />
-        {socialLinks.map(({ href, icon }, index) => (
-          <Link key={index} href={href} aria-label={href} color="fg.muted">
-            <Icon size="md">{icon}</Icon>
-          </Link>
-        ))}
-      </HStack>
-    </Stack>
-    <Separator />
-    <Stack
-      py="6"
-      gap={{ base: '4', md: '6' }}
-      direction={{ base: 'column-reverse', md: 'row' }}
-      justifyContent="center"
-    >
-      <Copyright />
-      <HStack gap="6">
-        {['Privacy Policy', 'Terms of Service', 'License Agreement'].map((link, idx) => (
-          <Link key={idx} href={link} textStyle="sm" variant="underline" colorPalette="gray">
-            {link}
-          </Link>
-        ))}
-      </HStack>
-    </Stack>
-  </Container>
-)
+interface FooterProps {
+  dict?: any;
+}
 
-const socialLinks = [
-  { href: 'https://facebook.com', icon: <SiFacebook /> },
-  { href: 'https://www.instagram.com', icon: <SiInstagram /> },
-  { href: 'https://www.linkedin.com', icon: <SiLinkedin /> },
-  { href: 'https://github.com', icon: <SiGithub /> },
-  { href: 'https://x.com', icon: <SiX /> },
-]
+export const Block = ({ dict }: FooterProps) => {
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <Box as="footer" bg="bg.panel" borderTopWidth="1px" borderColor="border.subtle">
+      <Container maxW="7xl" py={{ base: '12', md: '16' }} px={{ base: '4', md: '8' }}>
+        <Stack gap="10" align="center">
+          
+          <Stack 
+            direction={{ base: 'column', md: 'row' }} 
+            justify="space-between" 
+            align="center" 
+            w="full" 
+            gap="8"
+          >
+            {/* Logo Area with Avatar - Wrapped in a link to scroll to top */}
+            <ChakraLink href="#" variant="plain" _hover={{ textDecoration: "none" }}>
+              <HStack gap="3">
+                <Avatar.Root size="sm">
+                  {/* Updated with your specific Supabase avatar URL */}
+                  <Avatar.Image src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/avatars/coriyon-arrington.png" alt="Coriyon Arrington" />
+                  <Avatar.Fallback name="Coriyon Arrington" />
+                </Avatar.Root>
+                <Text fontWeight="bold" fontSize="xl" color="fg" letterSpacing="tight">
+                  {dict?.logo || "Coriyon"}
+                </Text>
+              </HStack>
+            </ChakraLink>
+
+            {/* Navigation Links with Smooth Scroll using native anchor behavior */}
+            <HStack 
+              gap={{ base: '6', md: '10' }} 
+              flexWrap="wrap" 
+              justify="center" 
+              color="fg.muted" 
+              fontWeight="medium"
+              fontSize="sm"
+            >
+              <ChakraLink href="#projects" variant="plain" _hover={{ color: "fg", textDecoration: "none" }}>
+                {dict?.projects || "Projects"}
+              </ChakraLink>
+              <ChakraLink href="#testimonials" variant="plain" _hover={{ color: "fg", textDecoration: "none" }}>
+                {dict?.testimonials || "Testimonials"}
+              </ChakraLink>
+              <ChakraLink href="#faqs" variant="plain" _hover={{ color: "fg", textDecoration: "none" }}>
+                {dict?.faqs || "FAQs"}
+              </ChakraLink>
+              <ChakraLink href="#contact" variant="plain" _hover={{ color: "fg", textDecoration: "none" }}>
+                {dict?.contact || "Contact"}
+              </ChakraLink>
+            </HStack>
+
+            {/* Controls & Socials */}
+            <HStack gap="4">
+              <HStack gap="2">
+                <IconButton variant="ghost" size="sm" aria-label="LinkedIn" asChild>
+                  <NextLink href="https://linkedin.com/in/coriyonarrington" target="_blank">
+                    <LuLinkedin />
+                  </NextLink>
+                </IconButton>
+                <IconButton variant="ghost" size="sm" aria-label="GitHub" asChild>
+                  <NextLink href="https://github.com/CoriyonArrington" target="_blank">
+                    <LuGithub />
+                  </NextLink>
+                </IconButton>
+                <IconButton variant="ghost" size="sm" aria-label="YouTube" asChild>
+                  <NextLink href="https://www.youtube.com/@uxcoriyon" target="_blank">
+                    <LuYoutube />
+                  </NextLink>
+                </IconButton>
+              </HStack>
+              <HStack gap="1" borderRightWidth="1px" borderColor="border.subtle" pe="4">
+                <LanguageSwitcher />
+                <ColorModeButton />
+              </HStack>
+            </HStack>
+          </Stack>
+          
+          {/* Copyright */}
+          <Box w="full" borderTopWidth="1px" borderColor="border.subtle" pt="8">
+            <Text color="fg.subtle" fontSize="xs" textAlign="center">
+              © {currentYear} Coriyon Arrington. {dict?.rights || "All rights reserved."}
+            </Text>
+          </Box>
+
+        </Stack>
+      </Container>
+    </Box>
+  )
+}
