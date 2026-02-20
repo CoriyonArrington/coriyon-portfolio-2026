@@ -1,6 +1,5 @@
 import {
   Box,
-  Container,
   Flex,
   HStack,
   Image,
@@ -30,25 +29,29 @@ export const Block = ({ testimonial }: BlockProps) => {
   if (!testimonial) return null
 
   return (
-    <Container maxW="5xl" py={{ base: '16', md: '24' }}>
-      <Flex gap={{ base: '12', md: '16' }} direction={{ base: 'column', md: 'row' }} align="center">
+    // Swapped Container for Box and added mx="auto" to center it without double padding
+    <Box maxW="5xl" mx="auto" py={{ base: '16', md: '24' }}>
+      <Flex gap={{ base: '8', md: '16' }} direction={{ base: 'column', md: 'row' }} align={{ base: 'flex-start', md: 'center' }}>
         <Image 
           src={testimonial.avatar_url} 
           alt={testimonial.name} 
-          boxSize="2xs" 
+          boxSize={{ base: '24', md: '2xs' }} 
           rounded="full" 
           objectFit="cover"
         />
-        <Stack gap={{ base: '6', md: '8' }} justify="center" flex="1">
+        
+        <Stack gap={{ base: '6', md: '8' }} justify="center" flex="1" alignItems="flex-start" textAlign="left">
           <RatingGroup.Root readOnly value={testimonial.rating} count={5}>
             <RatingGroup.HiddenInput />
             <RatingGroup.Control />
           </RatingGroup.Root>
-          <Text textStyle={{ base: 'lg', md: '2xl' }} fontWeight="medium">
+          
+          <Text textStyle={{ base: '2xl', md: '3xl' }} fontWeight="medium">
             "{testimonial.quote}"
           </Text>
-          <HStack gap="8">
-            <Stack gap="4" direction={{ base: 'column', md: 'row' }}>
+          
+          <HStack gap="8" justify="flex-start" w="full">
+            <Stack gap="4" direction={{ base: 'column', md: 'row' }} align="flex-start">
               <Box>
                 <Text fontWeight="semibold">{testimonial.name}</Text>
                 <Text color="fg.muted">{testimonial.role}, {testimonial.company}</Text>
@@ -61,7 +64,6 @@ export const Block = ({ testimonial }: BlockProps) => {
                 alt={`${testimonial.company} logo`} 
                 maxH="32px" 
                 objectFit="contain"
-                // This inverts the colors of the logo (black becomes white) in dark mode
                 _dark={{ filter: "invert(1)" }} 
               />
             ) : (
@@ -70,6 +72,6 @@ export const Block = ({ testimonial }: BlockProps) => {
           </HStack>
         </Stack>
       </Flex>
-    </Container>
+    </Box>
   )
 }

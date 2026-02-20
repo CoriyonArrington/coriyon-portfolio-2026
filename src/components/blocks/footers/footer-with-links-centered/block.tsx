@@ -1,8 +1,12 @@
+'use client'
+
 import { Box, Container, HStack, Stack, Text, IconButton, Link as ChakraLink, Avatar } from '@chakra-ui/react'
 import { LuLinkedin, LuGithub, LuYoutube } from 'react-icons/lu'
 import { LanguageSwitcher } from '@/components/blocks/marketing-navbars/navbar-island/language-switcher'
 import { ColorModeButton } from '@/components/ui/color-mode'
 import NextLink from 'next/link'
+import { SoundToggle } from '../../marketing-navbars/navbar-island/sound-toggle'
+import { useUiSounds } from '@/hooks/use-ui-sounds'
 
 interface FooterProps {
   dict?: any;
@@ -10,6 +14,40 @@ interface FooterProps {
 
 export const Block = ({ dict }: FooterProps) => {
   const currentYear = new Date().getFullYear();
+  const { playHover, playWhoosh, playClick } = useUiSounds()
+
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    playWhoosh()
+
+    if (href.startsWith('#')) {
+      e.preventDefault()
+      const targetId = href.replace('#', '')
+      const element = document.getElementById(targetId)
+      
+      if (element) {
+        // Match the 120px offset from the navbar so the scroll stops in the exact same spot
+        const offset = 120 
+        const elementPosition = element.getBoundingClientRect().top
+        const offsetPosition = elementPosition + window.scrollY - offset
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        })
+        
+        window.history.pushState(null, '', href)
+      }
+    }
+  }
+
+  const scrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    playClick()
+    if (window.location.pathname === '/' || window.location.pathname.match(/^\/[a-z]{2}(-[A-Z]{2})?$/)) {
+      e.preventDefault()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.history.pushState(null, '', window.location.pathname)
+    }
+  }
 
   return (
     <Box as="footer" bg="bg.panel" borderTopWidth="1px" borderColor="border.subtle">
@@ -23,11 +61,16 @@ export const Block = ({ dict }: FooterProps) => {
             w="full" 
             gap="8"
           >
-            {/* Logo Area with Avatar - Wrapped in a link to scroll to top */}
-            <ChakraLink href="#" variant="plain" _hover={{ textDecoration: "none" }}>
+            {/* Logo Area with Avatar */}
+            <ChakraLink 
+              href="#" 
+              variant="plain" 
+              _hover={{ textDecoration: "none" }}
+              onClick={scrollToTop}
+              onMouseEnter={playHover}
+            >
               <HStack gap="3">
                 <Avatar.Root size="sm">
-                  {/* Updated with your specific Supabase avatar URL */}
                   <Avatar.Image src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/avatars/coriyon-arrington.png" alt="Coriyon Arrington" />
                   <Avatar.Fallback name="Coriyon Arrington" />
                 </Avatar.Root>
@@ -37,7 +80,7 @@ export const Block = ({ dict }: FooterProps) => {
               </HStack>
             </ChakraLink>
 
-            {/* Navigation Links with Smooth Scroll using native anchor behavior */}
+            {/* Navigation Links */}
             <HStack 
               gap={{ base: '6', md: '10' }} 
               flexWrap="wrap" 
@@ -46,16 +89,16 @@ export const Block = ({ dict }: FooterProps) => {
               fontWeight="medium"
               fontSize="sm"
             >
-              <ChakraLink href="#projects" variant="plain" _hover={{ color: "fg", textDecoration: "none" }}>
+              <ChakraLink href="#projects" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#projects')} onMouseEnter={playHover}>
                 {dict?.projects || "Projects"}
               </ChakraLink>
-              <ChakraLink href="#testimonials" variant="plain" _hover={{ color: "fg", textDecoration: "none" }}>
+              <ChakraLink href="#testimonials" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#testimonials')} onMouseEnter={playHover}>
                 {dict?.testimonials || "Testimonials"}
               </ChakraLink>
-              <ChakraLink href="#faqs" variant="plain" _hover={{ color: "fg", textDecoration: "none" }}>
+              <ChakraLink href="#faqs" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#faqs')} onMouseEnter={playHover}>
                 {dict?.faqs || "FAQs"}
               </ChakraLink>
-              <ChakraLink href="#contact" variant="plain" _hover={{ color: "fg", textDecoration: "none" }}>
+              <ChakraLink href="#contact" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#contact')} onMouseEnter={playHover}>
                 {dict?.contact || "Contact"}
               </ChakraLink>
             </HStack>
@@ -63,25 +106,26 @@ export const Block = ({ dict }: FooterProps) => {
             {/* Controls & Socials */}
             <HStack gap="4">
               <HStack gap="2">
-                <IconButton variant="ghost" size="sm" aria-label="LinkedIn" asChild>
+                <IconButton variant="ghost" size="sm" aria-label="LinkedIn" asChild onMouseEnter={playHover} onClick={playClick}>
                   <NextLink href="https://linkedin.com/in/coriyonarrington" target="_blank">
                     <LuLinkedin />
                   </NextLink>
                 </IconButton>
-                <IconButton variant="ghost" size="sm" aria-label="GitHub" asChild>
+                <IconButton variant="ghost" size="sm" aria-label="GitHub" asChild onMouseEnter={playHover} onClick={playClick}>
                   <NextLink href="https://github.com/CoriyonArrington" target="_blank">
                     <LuGithub />
                   </NextLink>
                 </IconButton>
-                <IconButton variant="ghost" size="sm" aria-label="YouTube" asChild>
+                <IconButton variant="ghost" size="sm" aria-label="YouTube" asChild onMouseEnter={playHover} onClick={playClick}>
                   <NextLink href="https://www.youtube.com/@uxcoriyon" target="_blank">
                     <LuYoutube />
                   </NextLink>
                 </IconButton>
               </HStack>
               <HStack gap="1" borderRightWidth="1px" borderColor="border.subtle" pe="4">
-                <LanguageSwitcher />
+                <SoundToggle />
                 <ColorModeButton />
+                <LanguageSwitcher />
               </HStack>
             </HStack>
           </Stack>
