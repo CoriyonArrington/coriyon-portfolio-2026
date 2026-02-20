@@ -7,6 +7,16 @@ body {
   padding: 0;
 }
 
+/* Enable smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure sections have clear breathing room when scrolled to */
+:target {
+  scroll-margin-top: 100px;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -20,4 +30,17 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+video {
+  /* Forces GPU acceleration for smoother playback */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  
+  /* Prevents flickering on scroll */
+  -webkit-transform: translate3d(0, 0, 0);
+  
+  /* Ensures the video covers the mockup screen area immediately */
+  object-fit: cover;
 }

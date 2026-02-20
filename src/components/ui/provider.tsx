@@ -17,7 +17,8 @@ const system = createSystem(defaultConfig, {
   theme: {
     tokens: {
       fonts: {
-        body: { value: 'var(--font-bricolage-grotesque)' },
+        heading: { value: 'var(--font-heading)' },
+        body: { value: 'var(--font-body)' },
       },
     },
     semanticTokens: {
