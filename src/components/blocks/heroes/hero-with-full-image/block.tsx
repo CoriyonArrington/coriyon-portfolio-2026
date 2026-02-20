@@ -13,7 +13,7 @@ import {
   Highlight 
 } from '@chakra-ui/react'
 import { LuDownload, LuArrowDown, LuMapPin } from 'react-icons/lu'
-import { HeroHeader } from './hero-header' // Re-importing the fixed component
+import { HeroHeader } from './hero-header'
 import { ImagePlaceholder } from './image-placeholder'
 import { DownloadTrigger } from '@/components/ui/download-trigger'
 import Link from 'next/link'
@@ -50,6 +50,7 @@ const PhoneFrame = ({ children }: { children: React.ReactNode }) => (
 )
 
 interface BlockProps {
+  dict?: any
   title?: string
   description?: string
   tagline?: string 
@@ -58,6 +59,7 @@ interface BlockProps {
 }
 
 export const Block = ({ 
+  dict,
   title = "Design Better Products",
   description = "I help early-stage founders and small business owners design better products, services, and customer experiences.",
   tagline = "Senior Product Designer in Minneapolis", 
@@ -68,7 +70,14 @@ export const Block = ({
   const scrollToProjects = () => {
     const element = document.getElementById('projects')
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
+      const offset = 120 
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.scrollY - offset
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
     }
   }
 
@@ -77,47 +86,48 @@ export const Block = ({
       <Flex
         align="center"
         justify="center"
-        ps={{ base: '4', md: '6', lg: '8' }}
-        pe={{ base: '4', md: '16' }}
-        py={{ base: '16', md: '24' }}
+        pe={{ base: '0', lg: '12' }} 
+        pt={{ base: '8', md: '8' }}
+        pb={{ base: '16', md: '24' }}
       >
         <HeroHeader
           tagline={
-            <Link href="/about">
-              <Badge 
-                size="lg" 
-                colorPalette="gray" 
-                variant="subtle" 
-                px="3" 
-                py="1" 
-                borderRadius="full"
-                cursor="pointer"
-                transition="all 0.2s"
-                _hover={{ bg: "bg.emphasized", transform: "translateY(-1px)" }}
-              >
-                <Icon size="sm" mr="1">
-                  <LuMapPin />
-                </Icon>
-                {tagline}
-              </Badge>
-            </Link>
+            <Box width="fit-content">
+              <Link href="/about">
+                <Badge 
+                  size="lg" 
+                  colorPalette="gray" 
+                  variant="subtle" 
+                  px="3" 
+                  py="1" 
+                  borderRadius="full"
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  _hover={{ bg: "bg.emphasized", transform: "translateY(-1px)" }}
+                >
+                  <Icon size="sm" mr="1">
+                    <LuMapPin />
+                  </Icon>
+                  {tagline}
+                </Badge>
+              </Link>
+            </Box>
           }
           headline={
             <Highlight 
-              query={["Better Products", "Experiences", "Digital Solutions", " drive results"]} 
+              query={["Better Products", "Experiences", "Digital Solutions", " drive results", "Mejores Productos", "experiencias", "resultados"]} 
               styles={{ color: "green.600" }}
             >
               {title}
             </Highlight>
           }
           description={description}
-          // Control alignment here
           alignItems={{ base: "center", lg: "flex-start" }}
           textAlign={{ base: "center", lg: "start" }}
         >
           <Stack direction={{ base: 'column', md: 'row' }} gap="4" mt="2">
             <Button size="2xl" onClick={scrollToProjects}>
-              <LuArrowDown /> Explore work
+              {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
             </Button>
             
             <DownloadTrigger 
@@ -125,7 +135,7 @@ export const Block = ({
               fileName="Coriyon_Arrington_Resume.pdf"
             >
               <Button variant="outline" size="2xl" colorPalette="gray" borderColor="border.strong">
-                <LuDownload /> Download Resume
+                {dict?.downloadResume || "Download Resume"} <LuDownload />
               </Button>
             </DownloadTrigger>
           </Stack>

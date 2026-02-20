@@ -272,6 +272,6 @@ export {
   createBooleanControl,
   createSelectControl,
   createSwatchControl,
-} from "compositions/ui/rich-text-editor-control"
+} from "./rich-text-editor-control"
 
-export { useRichTextEditorContext } from "compositions/ui/rich-text-editor-context"
+export { useRichTextEditorContext } from "./rich-text-editor-context"

@@ -28,7 +28,7 @@ export const HeroHeader = (props: HeroHeaderProps) => {
               {tagline}
             </Text>
           </Show>
-          <Heading as="h1" textStyle={{ base: '4xl', md: '6xl' }} fontWeight="bold" lineHeight="1.2">
+          <Heading as="h1" textStyle={{ base: '5xl', md: '7xl' }} fontWeight="bold" lineHeight="1.2" letterSpacing="tight">
             {headline}
           </Heading>
         </Stack>

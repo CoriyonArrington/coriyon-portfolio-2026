@@ -1,67 +1,43 @@
-'use client'
-import { Accordion, Button, Container, SimpleGrid, Span, Stack } from '@chakra-ui/react'
-import { useState } from 'react'
-import { LuSend } from 'react-icons/lu'
+import { Box, SimpleGrid } from '@chakra-ui/react'
 import { SectionHeader } from './section-header'
+import {
+  AccordionItem,
+  AccordionItemContent,
+  AccordionItemTrigger,
+  AccordionRoot,
+} from '@/components/ui/accordion'
 
-export interface FaqItem {
-  id: number
-  question: string
-  answer: string
+interface FaqProps {
+  dict?: any;
+  faqs: { id: number; question: string; answer: string }[];
 }
 
-interface BlockProps {
-  faqs: FaqItem[]
-}
-
-export const Block = ({ faqs }: BlockProps) => {
-  const [showAll, setShowAll] = useState(false)
-
+export const Block = ({ dict, faqs }: FaqProps) => {
   if (!faqs || faqs.length === 0) return null
 
-  return (
-    <Container py={{ base: '16', md: '24' }}>
-      <SimpleGrid columns={{ base: 1, md: 2 }} gap={{ base: '12', lg: '24' }}>
-        <SectionHeader
-          headline="Got Questions? We've Got Answers!"
-          description="We've gathered all the answers you're looking for, neatly organized just for you."
-          tagline="Support"
-          alignItems="start"
-          maxW="lg"
-        >
-          <Button size="lg">
-            Contact Us <LuSend />
-          </Button>
-        </SectionHeader>
+  // Generate an array containing every item's value so they all mount open
+  const allItemValues = faqs.map((_, index) => `item-${index}`)
 
-        <Stack gap="8" flex="1">
-          <Accordion.Root multiple defaultValue={[faqs[0].question]}>
-            {faqs.slice(0, showAll ? faqs.length : 5).map(({ question, answer }) => (
-              <Accordion.Item key={question} value={question}>
-                <Accordion.ItemTrigger textStyle="lg" py="4">
-                  <Span flex="1">{question}</Span>
-                  <Accordion.ItemIndicator />
-                </Accordion.ItemTrigger>
-                <Accordion.ItemContent color="fg.muted">
-                  <Accordion.ItemBody>{answer}</Accordion.ItemBody>
-                </Accordion.ItemContent>
-              </Accordion.Item>
-            ))}
-          </Accordion.Root>
-          {faqs.length > 5 && (
-            <Button
-              size="xl"
-              alignSelf="center"
-              variant="outline"
-              colorPalette="gray"
-              onClick={() => setShowAll(true)}
-              display={showAll ? 'none' : 'flex'}
-            >
-              Show more FAQs
-            </Button>
-          )}
-        </Stack>
-      </SimpleGrid>
-    </Container>
+  return (
+    <SimpleGrid columns={{ base: 1, md: 2 }} gap={{ base: 8, md: 12 }}>
+      <SectionHeader dict={dict} />
+      
+      <AccordionRoot 
+        collapsible 
+        multiple 
+        defaultValue={allItemValues}
+      >
+        {faqs.map((item, index) => (
+          <AccordionItem key={index} value={`item-${index}`}>
+            <AccordionItemTrigger fontSize="lg" fontWeight="semibold">
+              {item.question}
+            </AccordionItemTrigger>
+            <AccordionItemContent color="fg.muted">
+              {item.answer}
+            </AccordionItemContent>
+          </AccordionItem>
+        ))}
+      </AccordionRoot>
+    </SimpleGrid>
   )
 }
