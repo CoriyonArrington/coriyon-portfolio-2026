@@ -44,3 +44,30 @@ video {
   /* Ensures the video covers the mockup screen area immediately */
   object-fit: cover;
 }
+
+/* 1. Define the Light Mode opacities (Subtle and faint) */
+:root {
+  --dot-color: rgba(100, 116, 139, 0.12);
+  --grid-color: rgba(100, 116, 139, 0.08);
+}
+
+/* 2. Define the Dark Mode opacities (Richer and more visible) */
+:root[data-theme="dark"], .dark {
+  --dot-color: rgba(100, 116, 139, 0.35);
+  --grid-color: rgba(100, 116, 139, 0.15);
+}
+
+/* FigJam-style Dotted Canvas */
+.pattern-dots {
+  background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}
+
+/* Engineering Paper Grid */
+.pattern-grid {
+  background-image: 
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
