@@ -19,6 +19,7 @@ export interface TestimonialData {
   quote: string
   avatar_url: string
   rating: number
+  logo_url?: string
 }
 
 interface BlockProps {
@@ -54,7 +55,18 @@ export const Block = ({ testimonial }: BlockProps) => {
               </Box>
             </Stack>
             <Separator orientation="vertical" height="10" />
-            <Logo />
+            {testimonial.logo_url ? (
+              <Image 
+                src={testimonial.logo_url} 
+                alt={`${testimonial.company} logo`} 
+                maxH="32px" 
+                objectFit="contain"
+                // This inverts the colors of the logo (black becomes white) in dark mode
+                _dark={{ filter: "invert(1)" }} 
+              />
+            ) : (
+              <Logo />
+            )}
           </HStack>
         </Stack>
       </Flex>
