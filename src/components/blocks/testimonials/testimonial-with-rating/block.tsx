@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react'
 import { Logo } from './logo'
 
-export interface TestimonialData {
+interface TestimonialData {
   id: number
   name: string
   role: string

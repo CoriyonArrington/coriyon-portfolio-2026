@@ -1,14 +1,17 @@
 import { Box, Button, Heading, Stack, Text, Center } from '@chakra-ui/react'
 import Image from 'next/image'
-import type { CategoryItemData } from './data'
 import NextLink from 'next/link'
 
 interface CategoryItemProps {
   dict?: any
-  data: CategoryItemData & { 
+  data: { 
+    title: string;
+    description?: string;
+    src?: string | null;
+    url?: string | null;
     videoUrl?: string | null; 
     bgColor?: string; 
-    mockupType?: string | null 
+    mockupType?: string | null;
   }
   minH?: any
   priority?: boolean

@@ -1,7 +1,7 @@
 import { Badge, Heading, Stack, type StackProps, Text } from '@chakra-ui/react'
 import type React from 'react'
 
-export interface SectionHeaderProps extends StackProps {
+interface SectionHeaderProps extends StackProps {
   tagline?: React.ReactNode
   headline: React.ReactNode
   description?: React.ReactNode

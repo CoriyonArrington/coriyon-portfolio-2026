@@ -1,7 +1,7 @@
 import { Container, Grid, Stack, Heading, Text, Badge } from '@chakra-ui/react'
 import { CategoryItem } from './category-item'
 
-export interface Project {
+interface Project {
   id: string | number 
   title: string
   description: string

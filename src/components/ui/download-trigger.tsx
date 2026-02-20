@@ -1,7 +1,7 @@
 import { chakra, HTMLChakraProps } from '@chakra-ui/react'
 import * as React from 'react'
 
-export interface DownloadTriggerProps extends HTMLChakraProps<'a'> {
+interface DownloadTriggerProps extends HTMLChakraProps<'a'> {
   /** The URL of the file to download */
   value?: string
   /** The name of the file when downloaded */

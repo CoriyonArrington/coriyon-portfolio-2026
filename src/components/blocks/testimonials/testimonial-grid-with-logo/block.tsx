@@ -3,7 +3,7 @@
 import { Box, Container, Stack, Heading, Text, Badge, Marquee } from '@chakra-ui/react'
 import { TestimonialCard } from './testimonial-card'
 
-export interface Testimonial {
+interface Testimonial {
   id: string | number
   quote: string
   name: string

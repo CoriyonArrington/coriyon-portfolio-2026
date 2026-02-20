@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
  * Props for the HeroHeader component.
  * @extends StackProps from Chakra UI
  */
-export interface HeroHeaderProps extends StackProps {
+interface HeroHeaderProps extends StackProps {
   /** The text to display above the main heading */
   tagline?: ReactNode
   /** The main heading text */
