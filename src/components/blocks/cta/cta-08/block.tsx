@@ -1,67 +1,129 @@
+'use client'
+
 import { Button, Card, Heading, SimpleGrid, Stack, Text, Icon } from '@chakra-ui/react'
-import { LuCalendar, LuMail, LuLinkedin } from 'react-icons/lu'
-import NextLink from 'next/link'
+import { LuCalendar, LuMail, LuLinkedin, LuCheck } from 'react-icons/lu'
+import { useState } from 'react'
 import { SectionHeader } from './section-header'
+import { CalendlyPopup } from '@/components/ui/calendly-popup'
+import { useUiSounds } from '@/hooks/use-ui-sounds'
 
 interface CtaProps {
   dict?: any;
 }
 
 export const Block = ({ dict }: CtaProps) => {
+  const { playHover, playClick } = useUiSounds()
+  const [isCalendlyOpen, setIsCalendlyOpen] = useState(false)
+  const [hasCopied, setHasCopied] = useState(false)
+
+  const emailAddress = "coriyonarrington@gmail.com"
+
+  const handleCopyEmail = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    playClick()
+    navigator.clipboard.writeText(emailAddress)
+    setHasCopied(true)
+    setTimeout(() => setHasCopied(false), 2000)
+  }
+
+  const handleCalendlyOpen = () => {
+    playClick()
+    setIsCalendlyOpen(true)
+  }
+
+  const handleLinkedInOpen = () => {
+    playClick()
+    window.open("https://linkedin.com/in/coriyon", "_blank")
+  }
+
+  // Helper to ensure we get the right card data from the nested dict
+  const cards = dict?.cards || {}
+
   return (
     <Stack gap={{ base: '8', md: '12' }}>
+      <CalendlyPopup 
+        isOpen={isCalendlyOpen} 
+        onClose={() => setIsCalendlyOpen(false)} 
+      />
+
       <SectionHeader 
-        tagline={dict?.badge || "Let's connect"}
-        headline={dict?.title || "Get in touch"}
+        tagline={dict?.badge}
+        headline={dict?.title}
         description={dict?.description}
       />
 
       <SimpleGrid columns={{ base: 1, md: 3 }} gap="8">
         
         {/* Card 1: Calendly */}
-        <Card.Root variant="outline" p="6" borderRadius="l3">
+        <Card.Root 
+          variant="outline" 
+          p="6" 
+          borderRadius="l3" 
+          cursor="pointer"
+          onClick={handleCalendlyOpen}
+          onMouseEnter={playHover}
+          transition="all 0.2s"
+          _hover={{ borderColor: 'green.500', transform: 'translateY(-4px)', bg: 'bg.muted/50' }}
+        >
           <Card.Body gap="4" alignItems="center" textAlign="center" p="0">
             <Icon size="2xl" color="green.600" mb="2">
               <LuCalendar />
             </Icon>
-            <Heading size="md" fontWeight="bold">{dict?.card1?.title || "Book a call"}</Heading>
-            <Text color="fg.muted">{dict?.card1?.description || "Schedule a free 30-minute intro call to discuss your next big project."}</Text>
-            <Button variant="ghost" color="fg" mt="4" asChild>
-              <NextLink href="https://calendly.com/coriyonarrington/intro-call" target="_blank">
-                {dict?.card1?.button || "Schedule a call"} &gt;
-              </NextLink>
+            <Heading size="md" fontWeight="bold">{cards.call?.title}</Heading>
+            <Text color="fg.muted">{cards.call?.description}</Text>
+            <Button variant="ghost" color="fg" mt="4" pointerEvents="none">
+              {cards.call?.linkText}
             </Button>
           </Card.Body>
         </Card.Root>
 
-        {/* Card 2: Email */}
-        <Card.Root variant="outline" p="6" borderRadius="l3">
+        {/* Card 2: Email Copy to Clipboard */}
+        <Card.Root 
+          variant="outline" 
+          p="6" 
+          borderRadius="l3" 
+          cursor="pointer"
+          onClick={handleCopyEmail}
+          onMouseEnter={playHover}
+          transition="all 0.2s"
+          _hover={{ borderColor: 'green.500', transform: 'translateY(-4px)', bg: 'bg.muted/50' }}
+        >
           <Card.Body gap="4" alignItems="center" textAlign="center" p="0">
-            <Icon size="2xl" color="green.600" mb="2">
-              <LuMail />
+            <Icon size="2xl" color={hasCopied ? "green.500" : "green.600"} mb="2" transition="color 0.2s">
+              {hasCopied ? <LuCheck /> : <LuMail />}
             </Icon>
-            <Heading size="md" fontWeight="bold">{dict?.card2?.title || "Email me"}</Heading>
-            <Text color="fg.muted">{dict?.card2?.description || "Drop me a line directly. I usually reply within 24 hours."}</Text>
-            <Button variant="ghost" color="fg" mt="4" asChild>
-              <NextLink href="mailto:coriyonarrington@gmail.com">
-                {dict?.card2?.button || "Send an email"} &gt;
-              </NextLink>
+            <Heading size="md" fontWeight="bold">{cards.email?.title}</Heading>
+            <Text color="fg.muted">{cards.email?.description}</Text>
+            <Button 
+              variant="ghost" 
+              color={hasCopied ? "green.600" : "fg"} 
+              mt="4" 
+              pointerEvents="none"
+            >
+              {hasCopied ? (dict?.badge === "Conectemos" ? "¡Correo copiado!" : "Email copied!") : cards.email?.linkText}
             </Button>
           </Card.Body>
         </Card.Root>
 
         {/* Card 3: LinkedIn */}
-        <Card.Root variant="outline" p="6" borderRadius="l3">
+        <Card.Root 
+          variant="outline" 
+          p="6" 
+          borderRadius="l3" 
+          cursor="pointer"
+          onClick={handleLinkedInOpen}
+          onMouseEnter={playHover}
+          transition="all 0.2s"
+          _hover={{ borderColor: 'green.500', transform: 'translateY(-4px)', bg: 'bg.muted/50' }}
+        >
           <Card.Body gap="4" alignItems="center" textAlign="center" p="0">
             <Icon size="2xl" color="green.600" mb="2">
               <LuLinkedin />
             </Icon>
-            <Heading size="md" fontWeight="bold">{dict?.card3?.title || "LinkedIn"}</Heading>
-            <Text color="fg.muted">{dict?.card3?.description || "Connect with me professionally and see my latest updates."}</Text>
-            <Button variant="ghost" color="fg" mt="4" asChild>
-              <NextLink href="https://linkedin.com/in/coriyon" target="_blank">
-                {dict?.card3?.button || "View profile"} &gt;
-              </NextLink>
+            <Heading size="md" fontWeight="bold">{cards.linkedin?.title}</Heading>
+            <Text color="fg.muted">{cards.linkedin?.description}</Text>
+            <Button variant="ghost" color="fg" mt="4" pointerEvents="none">
+              {cards.linkedin?.linkText}
             </Button>
           </Card.Body>
         </Card.Root>

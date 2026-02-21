@@ -8,6 +8,7 @@ import { Block as CategoryGrid } from "@/components/blocks/product-categories/ca
 import { Block as ServicesBlock } from "@/components/blocks/features/feature-10/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
 import { Block as AboutFeatures } from "@/components/blocks/features/feature-07/block"
+import { Block as ProcessTimeline } from "@/components/blocks/process/timeline-section"
 import { Block as BlogBlock } from "@/components/blocks/blogs/blog-with-hero-image/block"
 import { Block as Faq } from "@/components/blocks/faqs/faq-with-inline-headline/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
@@ -83,9 +84,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     <Box bg="bg.canvas" minH="100vh">
       <NavbarIsland dict={content.navbar} />
       <Stack gap="0">
-        {/* --- NEW BANNER SECTION --- */}
         <BannerBlock dict={content.banner} />
-        {/* -------------------------- */}
 
         <Box pt={{ base: "12", md: "12" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
@@ -140,6 +139,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <AboutFeatures dict={content.about} />
             </FadeIn>
           </Container>
+        </Box>
+
+        <Box id="process" w="full">
+            <ProcessTimeline dict={content.process} />
         </Box>
 
         <Box id="blog" w="full">

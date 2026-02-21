@@ -76,55 +76,74 @@ export const CategoryItem = (props: CategoryItemProps) => {
       display="flex"
       bg={data.bgColor || "bg.muted"}
       minH={minH}
+      cursor="pointer"
     >
-      <motion.div
-        layout
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        whileHover={{ y: -8 }}
-        transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
-        style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
-      >
-        {showMockup ? (
-          <Center position="absolute" inset="0" p={{ base: '6', md: '10' }} pb={{ base: '32', md: '40' }} zIndex="0">
-            <Box position="relative" h="full" w="full" maxH={isTablet ? "360px" : "480px"} display="flex" justifyContent="center" alignItems="center">
-              <Box position="relative" h="full" aspectRatio={isTablet ? '1106/814' : '422/862'}>
-                <Box position="absolute" inset={isTablet ? "4.8% 4.2%" : "2.2% 5.2% 2.2% 5.2%"} borderRadius={isTablet ? "sm" : "3xl"} overflow="hidden" bg="black" zIndex="0">
-                  <DoubleLayerMedia />
-                </Box>
-                <Box position="relative" h="full" w="auto" aspectRatio={isTablet ? '1106/814' : '422/862'} zIndex="1">
-                  <Image
-                    src={isTablet 
-                      ? "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/ipad-mockup-optimized.png"
-                      : "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup-optimized.png"
-                    }
-                    alt={`${data.mockupType} mockup`}
-                    fill
-                    priority={priority}
-                    unoptimized={true}
-                    style={{ objectFit: 'contain', pointerEvents: 'none' }}
-                  />
+      {/* FIX: Wrapped the entire motion.div in NextLink.
+          This makes the whole card surface clickable while maintaining your animations.
+      */}
+      <NextLink href={data.url || '#'}>
+        <motion.div
+          layout
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          whileHover={{ y: -8 }}
+          transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+          style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden', width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+        >
+          {showMockup ? (
+            <Center position="absolute" inset="0" p={{ base: '6', md: '10' }} pb={{ base: '32', md: '40' }} zIndex="0">
+              <Box position="relative" h="full" w="full" maxH={isTablet ? "360px" : "480px"} display="flex" justifyContent="center" alignItems="center">
+                <Box position="relative" h="full" aspectRatio={isTablet ? '1106/814' : '422/862'}>
+                  <Box position="absolute" inset={isTablet ? "4.8% 4.2%" : "2.2% 5.2% 2.2% 5.2%"} borderRadius={isTablet ? "sm" : "3xl"} overflow="hidden" bg="black" zIndex="0">
+                    <DoubleLayerMedia />
+                  </Box>
+                  <Box position="relative" h="full" w="auto" aspectRatio={isTablet ? '1106/814' : '422/862'} zIndex="1">
+                    <Image
+                      src={isTablet 
+                        ? "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/ipad-mockup-optimized.png"
+                        : "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup-optimized.png"
+                      }
+                      alt={`${data.mockupType} mockup`}
+                      fill
+                      priority={priority}
+                      unoptimized={true}
+                      style={{ objectFit: 'contain', pointerEvents: 'none' }}
+                    />
+                  </Box>
                 </Box>
               </Box>
+            </Center>
+          ) : (
+            <Box position="absolute" inset="0" zIndex="0">
+               <DoubleLayerMedia />
             </Box>
-          </Center>
-        ) : (
-          <Box position="absolute" inset="0" zIndex="0">
-             <DoubleLayerMedia />
-          </Box>
-        )}
+          )}
 
-        <Box position="relative" mt="auto" width="full" zIndex="2" background="linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)" px={{ base: '6', md: '10' }} py={{ base: '8', md: '10' }} display="flex" flexDirection="column" justifyContent="flex-end">
-          <Stack gap="3">
-            <Heading size={{ base: "xl", md: "2xl" }} color="white">{data.title}</Heading>
-            {data.description && <Text color="whiteAlpha.900" maxW="lg" fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{data.description}</Text>}
-            <Button variant="solid" bg="white" color="black" _hover={{ bg: "gray.100" }} alignSelf="start" asChild mt="2">
-              <NextLink href={data.url || '#'}>{dict?.viewProject || "View Project"}</NextLink>
-            </Button>
-          </Stack>
-        </Box>
-      </motion.div>
+          <Box position="relative" mt="auto" width="full" zIndex="2" background="linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)" px={{ base: '6', md: '10' }} py={{ base: '8', md: '10' }} display="flex" flexDirection="column" justifyContent="flex-end">
+            <Stack gap="3">
+              <Heading size={{ base: "xl", md: "2xl" }} color="white">{data.title}</Heading>
+              {data.description && <Text color="whiteAlpha.900" maxW="lg" fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{data.description}</Text>}
+              
+              {/* FIX: Removed 'asChild' and 'NextLink' from here. 
+                  The button is now a visual part of the parent link. 
+                  Adding pointerEvents="none" ensures it doesn't intercept clicks.
+              */}
+              <Button 
+                variant="solid" 
+                bg="white" 
+                color="black" 
+                _hover={{ bg: "gray.100" }} 
+                alignSelf="start" 
+                mt="2"
+                pointerEvents="none"
+              >
+                {dict?.viewProject || "View Project"}
+              </Button>
+            </Stack>
+          </Box>
+        </motion.div>
+      </NextLink>
     </Box>
   )
 }
