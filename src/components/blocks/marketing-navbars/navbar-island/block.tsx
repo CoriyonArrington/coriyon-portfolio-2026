@@ -13,13 +13,13 @@ import {
 } from '@chakra-ui/react'
 import { ColorModeButton } from "@/components/ui/color-mode"
 import { LuCalendar, LuMenu, LuX } from 'react-icons/lu'
-import Script from 'next/script'
 import { useState } from 'react'
 import { Logo } from './logo'
 import { NavbarLinks } from './navbar-links'
 import { LanguageSwitcher } from './language-switcher'
 import { SoundToggle } from './sound-toggle'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
+import { CalendlyPopup } from '@/components/ui/calendly-popup'
 
 interface NavbarBlockProps {
   dict?: {
@@ -34,17 +34,12 @@ interface NavbarBlockProps {
 export const Block = ({ dict }: NavbarBlockProps) => {
   const { playHover, playClick } = useUiSounds()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [isCalendlyOpen, setIsCalendlyOpen] = useState(false)
 
   const openCalendly = (e: React.MouseEvent) => {
     playClick()
     e.preventDefault()
-    // @ts-ignore
-    if (window.Calendly) {
-      // @ts-ignore
-      window.Calendly.initPopupWidget({ 
-        url: 'https://calendly.com/coriyonarrington/intro-call' 
-      })
-    }
+    setIsCalendlyOpen(true)
   }
 
   const bookCallText = dict?.bookCall || "Book an intro call"
@@ -56,13 +51,33 @@ export const Block = ({ dict }: NavbarBlockProps) => {
 
   return (
     <>
-      <Box position="fixed" top="0" left="0" right="0" height="24px" bg="bg.canvas/40" backdropFilter="blur(4px)" style={{ maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)' }} zIndex={99} pointerEvents="none" />
+      <Box 
+        position="fixed" 
+        top="0" 
+        left="0" 
+        right="0" 
+        height="24px" 
+        bg="bg.canvas/40" 
+        backdropFilter="blur(4px)" 
+        style={{ maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)' }} 
+        zIndex={99} 
+        pointerEvents="none" 
+      />
       <Box position="fixed" bottom="0" left="0" right="0" height="24px" bg="bg.canvas/40" backdropFilter="blur(4px)" style={{ maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)' }} zIndex={99} pointerEvents="none" />
 
-      <Center position="fixed" zIndex={100} top="4" left="4" right="4">
-        <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
-        <Script src="https://assets.calendly.com/assets/external/widget.js" strategy="lazyOnload" />
+      {/* The new dynamically imported Calendly component */}
+      <CalendlyPopup 
+        isOpen={isCalendlyOpen} 
+        onClose={() => setIsCalendlyOpen(false)} 
+      />
 
+      <Center 
+        position="fixed" 
+        zIndex={100} 
+        top="4" 
+        left="4" 
+        right="4"
+      >
         <Container
           bg="bg.panel/60" 
           backdropFilter="blur(24px) saturate(180%)"
@@ -118,10 +133,8 @@ export const Block = ({ dict }: NavbarBlockProps) => {
                 <Logo />
                 <Drawer.CloseTrigger asChild>
                   <IconButton 
-                    // Forces the button back into the Flex layout
                     position="relative" 
                     inset="auto"
-                    // Creates the prominent rounded square you asked for
                     variant="subtle"
                     bg="bg.muted"
                     colorPalette="gray"
