@@ -12,7 +12,7 @@ import { Block as ProcessTimeline } from "@/components/blocks/process/timeline-s
 import { Block as BlogBlock } from "@/components/blocks/blogs/blog-with-hero-image/block"
 import { Block as Faq } from "@/components/blocks/faqs/faq-with-inline-headline/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
-import { Block as Footer } from "@/components/blocks/footers/footer-with-links-centered/block"
+import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
 export const revalidate = 0 
