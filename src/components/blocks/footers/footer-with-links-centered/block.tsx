@@ -16,7 +16,7 @@ export const Block = ({ dict }: FooterProps) => {
   const currentYear = new Date().getFullYear();
   const { playHover, playWhoosh, playClick } = useUiSounds()
 
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
     playWhoosh()
 
     if (href.startsWith('#')) {
@@ -25,7 +25,6 @@ export const Block = ({ dict }: FooterProps) => {
       const element = document.getElementById(targetId)
       
       if (element) {
-        // Match the 120px offset from the navbar so the scroll stops in the exact same spot
         const offset = 120 
         const elementPosition = element.getBoundingClientRect().top
         const offsetPosition = elementPosition + window.scrollY - offset
@@ -61,7 +60,6 @@ export const Block = ({ dict }: FooterProps) => {
             w="full" 
             gap="8"
           >
-            {/* Logo Area with Avatar */}
             <ChakraLink 
               href="#" 
               variant="plain" 
@@ -80,7 +78,6 @@ export const Block = ({ dict }: FooterProps) => {
               </HStack>
             </ChakraLink>
 
-            {/* Navigation Links */}
             <HStack 
               gap={{ base: '6', md: '10' }} 
               flexWrap="wrap" 
@@ -91,6 +88,15 @@ export const Block = ({ dict }: FooterProps) => {
             >
               <ChakraLink href="#projects" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#projects')} onMouseEnter={playHover}>
                 {dict?.projects || "Projects"}
+              </ChakraLink>
+              <ChakraLink href="#services" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#services')} onMouseEnter={playHover}>
+                {dict?.services || "Services"}
+              </ChakraLink>
+              <ChakraLink href="#about" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#about')} onMouseEnter={playHover}>
+                {dict?.about || "About"}
+              </ChakraLink>
+              <ChakraLink href="#blog" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#blog')} onMouseEnter={playHover}>
+                {dict?.blog || "Blog"}
               </ChakraLink>
               <ChakraLink href="#testimonials" variant="plain" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#testimonials')} onMouseEnter={playHover}>
                 {dict?.testimonials || "Testimonials"}
@@ -103,11 +109,10 @@ export const Block = ({ dict }: FooterProps) => {
               </ChakraLink>
             </HStack>
 
-            {/* Controls & Socials */}
             <HStack gap="4">
               <HStack gap="2">
                 <IconButton variant="ghost" size="sm" aria-label="LinkedIn" asChild onMouseEnter={playHover} onClick={playClick}>
-                  <NextLink href="https://linkedin.com/in/coriyonarrington" target="_blank">
+                  <NextLink href="https://linkedin.com/in/coriyon" target="_blank">
                     <LuLinkedin />
                   </NextLink>
                 </IconButton>
@@ -130,7 +135,6 @@ export const Block = ({ dict }: FooterProps) => {
             </HStack>
           </Stack>
           
-          {/* Copyright */}
           <Box w="full" borderTopWidth="1px" borderColor="border.subtle" pt="8">
             <Text color="fg.subtle" fontSize="xs" textAlign="center">
               © {currentYear} Coriyon Arrington. {dict?.rights || "All rights reserved."}

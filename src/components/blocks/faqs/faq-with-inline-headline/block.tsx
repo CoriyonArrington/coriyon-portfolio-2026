@@ -8,7 +8,7 @@ import {
   AccordionItemTrigger,
   AccordionRoot,
 } from '@/components/ui/accordion'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 interface FaqProps {
   dict?: any;
@@ -16,15 +16,8 @@ interface FaqProps {
 }
 
 export const Block = ({ dict, faqs }: FaqProps) => {
-  const [value, setValue] = useState<string[]>([])
-
-  useEffect(() => {
-    if (faqs && faqs.length > 0) {
-      if (window.innerWidth >= 768) {
-        setValue(faqs.map((_, index) => `item-${index}`))
-      }
-    }
-  }, [faqs])
+  // Initialize state with 'item-0' so the first accordion item is open by default
+  const [value, setValue] = useState<string[]>(['item-0'])
 
   if (!faqs || faqs.length === 0) return null
 

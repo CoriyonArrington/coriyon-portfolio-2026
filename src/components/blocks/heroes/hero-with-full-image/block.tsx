@@ -12,7 +12,7 @@ import {
   chakra, 
   Highlight 
 } from '@chakra-ui/react'
-import { LuDownload, LuArrowDown, LuMapPin } from 'react-icons/lu'
+import { LuDownload, LuArrowDown, LuUser } from 'react-icons/lu'
 import { HeroHeader } from './hero-header'
 import { ImagePlaceholder } from './image-placeholder'
 import { DownloadTrigger } from '@/components/ui/download-trigger'
@@ -84,6 +84,23 @@ export const Block = ({
     }
   }
 
+  const scrollToAbout = (e: React.MouseEvent) => {
+    e.preventDefault()
+    playClick()
+    const element = document.getElementById('about')
+    if (element) {
+      const offset = 120 
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.scrollY - offset
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
+      window.history.pushState(null, '', '#about')
+    }
+  }
+
   return (
     // Slightly increased the base gap to ensure the mockup stays lower
     <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 8, lg: 0 }}>
@@ -99,7 +116,7 @@ export const Block = ({
         <HeroHeader
           tagline={
             <Box width="fit-content" mx={{ base: 'auto', lg: '0' }}>
-              <Link href="/about" onClick={playClick} onMouseEnter={playHover}>
+              <Link href="#about" onClick={scrollToAbout} onMouseEnter={playHover}>
                 <Badge 
                   size="lg" 
                   colorPalette="gray" 
@@ -112,7 +129,7 @@ export const Block = ({
                   _hover={{ bg: "bg.emphasized", transform: "translateY(-1px)" }}
                 >
                   <Icon size="sm" mr="1">
-                    <LuMapPin />
+                    <LuUser />
                   </Icon>
                   {tagline}
                 </Badge>
