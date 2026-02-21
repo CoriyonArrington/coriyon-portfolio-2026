@@ -30,6 +30,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
 
   // Secondary links tucked into the "More" dropdown on desktop
   const moreLinks = [
+    { label: dict?.process || 'Process', href: '#process' },
     { label: dict?.blog || 'Blog', href: '#blog' },
     { label: dict?.testimonials || 'Testimonials', href: '#testimonials' },
     { label: dict?.faqs || 'FAQs', href: '#faqs' },
