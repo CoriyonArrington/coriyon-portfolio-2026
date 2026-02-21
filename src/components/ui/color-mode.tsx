@@ -6,6 +6,7 @@ import { ThemeProvider, useTheme } from "next-themes"
 import type { ThemeProviderProps } from "next-themes"
 import * as React from "react"
 import { LuMoon, LuSun } from "react-icons/lu"
+import { useUiSounds } from '@/hooks/use-ui-sounds'
 
 interface ColorModeProviderProps extends ThemeProviderProps {}
 
@@ -15,15 +16,15 @@ export function ColorModeProvider(props: ColorModeProviderProps) {
   )
 }
 
-type ColorMode = "light" | "dark"
+export type ColorMode = "light" | "dark"
 
-interface UseColorModeReturn {
+export interface UseColorModeReturn {
   colorMode: ColorMode
   setColorMode: (colorMode: ColorMode) => void
   toggleColorMode: () => void
 }
 
-function useColorMode(): UseColorModeReturn {
+export function useColorMode(): UseColorModeReturn {
   const { resolvedTheme, setTheme, forcedTheme } = useTheme()
   const colorMode = forcedTheme || resolvedTheme
   const toggleColorMode = () => {
@@ -36,12 +37,12 @@ function useColorMode(): UseColorModeReturn {
   }
 }
 
-function useColorModeValue<T>(light: T, dark: T) {
+export function useColorModeValue<T>(light: T, dark: T) {
   const { colorMode } = useColorMode()
   return colorMode === "dark" ? dark : light
 }
 
-function ColorModeIcon() {
+export function ColorModeIcon() {
   const { colorMode } = useColorMode()
   return colorMode === "dark" ? <LuMoon /> : <LuSun />
 }
@@ -53,10 +54,21 @@ export const ColorModeButton = React.forwardRef<
   ColorModeButtonProps
 >(function ColorModeButton(props, ref) {
   const { toggleColorMode } = useColorMode()
+  const { playClick, playHover } = useUiSounds()
+
+  const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    playClick()
+    toggleColorMode()
+    if (props.onClick) {
+      props.onClick(e)
+    }
+  }
+
   return (
     <ClientOnly fallback={<Skeleton boxSize="9" />}>
       <IconButton
-        onClick={toggleColorMode}
+        onClick={handleToggle}
+        onMouseEnter={playHover}
         variant="ghost"
         aria-label="Toggle color mode"
         size="sm"
@@ -75,7 +87,7 @@ export const ColorModeButton = React.forwardRef<
   )
 })
 
-const LightMode = React.forwardRef<HTMLSpanElement, SpanProps>(
+export const LightMode = React.forwardRef<HTMLSpanElement, SpanProps>(
   function LightMode(props, ref) {
     return (
       <Span
@@ -91,7 +103,7 @@ const LightMode = React.forwardRef<HTMLSpanElement, SpanProps>(
   },
 )
 
-const DarkMode = React.forwardRef<HTMLSpanElement, SpanProps>(
+export const DarkMode = React.forwardRef<HTMLSpanElement, SpanProps>(
   function DarkMode(props, ref) {
     return (
       <Span

@@ -15,10 +15,12 @@ if (typeof window !== 'undefined') {
     whoosh: new Howl({ src: ['/sounds/whoosh.mp3'], volume: 0.3, preload: true }),
     soundtoggle: new Howl({ src: ['/sounds/soundtoggle.mp3'], volume: 0.5, preload: true })
   }
+  // Explicitly tell the audio engine to start muted to match our UI state
+  Howler.mute(true)
 }
 
 // Global state to sync the mute button across all components immediately
-let globalMuted = false
+let globalMuted = true
 const listeners = new Set<Function>()
 
 const setGlobalMuted = (muted: boolean) => {
