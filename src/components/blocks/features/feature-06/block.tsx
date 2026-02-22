@@ -1,6 +1,6 @@
 'use client'
 
-import { Accordion, Box, Flex, HStack, Icon, Stack, Center } from '@chakra-ui/react'
+import { Accordion, Box, Flex, HStack, Icon, Stack } from '@chakra-ui/react'
 import { useState, ReactNode } from 'react'
 import { SectionHeader } from './section-header'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
@@ -70,35 +70,9 @@ export const Block = ({ badge, title, description, features, mockupType }: Featu
                   <Accordion.ItemBody>
                     <Stack gap="5">
                       {feature.description}
-                      
-                      {/* Mobile Image Display */}
-                      {feature.imageSrc && (
-                        <Box flex="1" w="full" hideFrom="md" mt="2">
-                          {showMockup ? (
-                            <Center w="full" py="4">
-                              <Box position="relative" w="full" maxW={isTablet ? "5xl" : "280px"} aspectRatio={isTablet ? '1106/814' : '1/2'}>
-                                <Box position="absolute" inset={isTablet ? "4.8% 4.2%" : "1.8% 5%"} borderRadius={isTablet ? "md" : "3rem"} overflow="hidden" bg="black" zIndex="0">
-                                  <Image src={feature.imageSrc} alt={feature.title} fill style={{ objectFit: 'cover' }} />
-                                </Box>
-                                <Box position="relative" h="full" w="full" zIndex="1" pointerEvents="none">
-                                  <Image
-                                    src={isTablet ? "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/ipad-mockup-optimized.png" : "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup.png"}
-                                    alt={`${normalizedMockupType} mockup`}
-                                    fill
-                                    unoptimized={true}
-                                    style={{ objectFit: 'contain' }}
-                                  />
-                                </Box>
-                              </Box>
-                            </Center>
-                          ) : (
-                            <Box borderRadius="xl" overflow="hidden" bg="bg.muted" borderWidth="1px" borderColor="border.subtle" position="relative" aspectRatio="16/9">
-                              <Image src={feature.imageSrc} alt={feature.title} fill style={{ objectFit: 'cover' }} />
-                            </Box>
-                          )}
-                        </Box>
-                      )}
-
+                      {/* The massive mobile image block that used to be rendered inside 
+                        this accordion body has been removed to prevent the layout collapse jump! 
+                      */}
                     </Stack>
                   </Accordion.ItemBody>
                 </Accordion.ItemContent>
@@ -107,8 +81,8 @@ export const Block = ({ badge, title, description, features, mockupType }: Featu
           </Accordion.Root>
         </Stack>
 
-        {/* Desktop Image Display */}
-        <Box flex="1" w="full" hideBelow="md" position="relative" display="flex" justifyContent="center" alignItems="center">
+        {/* Shared Image Display (Now handles both Desktop & Mobile perfectly) */}
+        <Box flex="1" w="full" position="relative" display="flex" justifyContent="center" alignItems="center">
           {showMockup ? (
             <Box position="relative" w="full" maxW={isTablet ? "100%" : "320px"} aspectRatio={isTablet ? '1106/814' : '1/2'}>
               {/* Inner screen crossfade container */}
@@ -140,7 +114,7 @@ export const Block = ({ badge, title, description, features, mockupType }: Featu
               </Box>
             </Box>
           ) : (
-            <Box w="full" h="full" minH="md" borderRadius="2xl" overflow="hidden" bg="bg.muted" borderWidth="1px" borderColor="border.subtle" shadow="sm" position="relative">
+            <Box w="full" h="full" minH={{ base: 'sm', md: 'md' }} borderRadius="2xl" overflow="hidden" bg="bg.muted" borderWidth="1px" borderColor="border.subtle" shadow="sm" position="relative">
               {features.map((feature) => (
                 <Box
                   key={feature.value}
