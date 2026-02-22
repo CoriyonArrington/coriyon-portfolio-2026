@@ -79,7 +79,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
   }
 
   return (
-    <Stack direction={props.direction || { base: 'column', md: 'row' }} gap={{ base: '6', md: '8' }} {...props}>
+    <Stack direction={props.direction || { base: 'column', md: 'row' }} alignItems="center" gap={{ base: '6', md: '8' }} {...props}>
       {/* High priority links */}
       {mainLinks.map((item) => (
         <Link
