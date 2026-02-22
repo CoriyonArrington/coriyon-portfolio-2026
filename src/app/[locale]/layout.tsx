@@ -16,8 +16,31 @@ const nunitoSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Coriyon Arrington | Product Designer",
-  description: "Portfolio of Coriyon Arrington, Senior Product Designer.",
+  metadataBase: new URL('https://coriyonarrington.com'), 
+  title: {
+    template: '%s | Coriyon Arrington',
+    default: 'Coriyon Arrington | Senior Product Designer',
+  },
+  description: 'Portfolio of Coriyon Arrington, a Senior Product Designer based in Minneapolis helping early-stage founders and small business owners design better products.',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'Coriyon Arrington Portfolio',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Coriyon Arrington - Senior Product Designer',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Coriyon Arrington | Senior Product Designer',
+    description: 'Portfolio of Coriyon Arrington, a Senior Product Designer based in Minneapolis.',
+    images: ['/og-image.png'],
+  },
 };
 
 export default async function RootLayout({

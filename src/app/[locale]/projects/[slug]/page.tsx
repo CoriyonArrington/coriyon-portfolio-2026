@@ -1,4 +1,5 @@
 import { Box, Container, Stack, Badge } from "@chakra-ui/react"
+import type { Metadata, ResolvingMetadata } from 'next'
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
@@ -6,18 +7,56 @@ import { Block as HeroWithImageBottomCentered } from "@/components/blocks/heroes
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as CaseStudyAccordion } from "@/components/blocks/features/feature-06/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
-import { Block as InterstitialNav } from "@/components/blocks/marketing-navbars/interstitial-nav/block" // <-- Import the new block
+import { Block as InterstitialNav } from "@/components/blocks/marketing-navbars/interstitial-nav/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 import { LuTarget, LuLightbulb, LuTrendingUp } from "react-icons/lu"
 
 export const revalidate = 0 
 
+export async function generateMetadata(
+  { params }: { params: Promise<{ locale: string, slug: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const currentLocale = locale || 'en'
+
+  const { data: project } = await supabase
+    .from('projects')
+    .select('title, title_en, title_es, description, description_en, description_es, featured_image_url')
+    .eq('slug', slug)
+    .single()
+
+  if (!project) {
+    return { title: 'Project Not Found' }
+  }
+
+  // FIX: Cast project to 'any' to allow dynamic string indexing without TS errors
+  const title = (project as any)[`title_${currentLocale}`] || project.title_en || project.title
+  const description = (project as any)[`description_${currentLocale}`] || project.description_en || project.description
+  const imageUrl = project.featured_image_url 
+
+  return {
+    title: title,
+    description: description,
+    openGraph: {
+      title: title,
+      description: description,
+      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: title }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: title,
+      description: description,
+      images: imageUrl ? [imageUrl] : [],
+    },
+  }
+}
+
 export default async function ProjectDetailPage({ params }: { params: Promise<{ locale: string, slug: string }> }) {
   const { locale, slug } = await params;
   const currentLocale = locale || 'en'
 
-  // Fetch all projects ordered by sort_order so we can compute Next/Previous!
   const { data: allProjectsData } = await supabase
     .from('projects')
     .select('*')
@@ -29,27 +68,26 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   if (!project) notFound()
 
-  // Extract Prev / Next data
   let prevProject = null
   let nextProject = null
 
   if (currentIndex > 0) {
     const p = allProjects[currentIndex - 1]
-    prevProject = { slug: p.slug, title: p[`title_${currentLocale}`] || p.title_en || p.title }
+    // FIX: TS casting
+    prevProject = { slug: p.slug, title: (p as any)[`title_${currentLocale}`] || p.title_en || p.title }
   }
 
   if (currentIndex < allProjects.length - 1 && currentIndex !== -1) {
     const n = allProjects[currentIndex + 1]
-    nextProject = { slug: n.slug, title: n[`title_${currentLocale}`] || n.title_en || n.title }
+    // FIX: TS casting
+    nextProject = { slug: n.slug, title: (n as any)[`title_${currentLocale}`] || n.title_en || n.title }
   }
 
-  // Fetch global page dictionaries
   const { data: pageData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
 
   const { data: allTestimonials } = await supabase.from('testimonials').select('*')
   
-  // Testimonial Logic
   const companyTestimonials = allTestimonials?.filter(t => project.company && t.company === project.company) || []
   
   let rawFeaturedTestimonial = project.testimonial_id 
@@ -64,25 +102,27 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const localizedFeaturedTestimonial = rawFeaturedTestimonial ? {
     ...rawFeaturedTestimonial,
-    quote: rawFeaturedTestimonial[`quote_${currentLocale}`] || rawFeaturedTestimonial.quote_en || rawFeaturedTestimonial.quote,
-    role: rawFeaturedTestimonial[`role_${currentLocale}`] || rawFeaturedTestimonial.role_en || rawFeaturedTestimonial.role
+    // FIX: TS casting
+    quote: (rawFeaturedTestimonial as any)[`quote_${currentLocale}`] || rawFeaturedTestimonial.quote_en || rawFeaturedTestimonial.quote,
+    role: (rawFeaturedTestimonial as any)[`role_${currentLocale}`] || rawFeaturedTestimonial.role_en || rawFeaturedTestimonial.role
   } : null
 
   const localizedRemainingTestimonials = remainingTestimonials.map(t => ({
     ...t,
-    quote: t[`quote_${currentLocale}`] || t.quote_en || t.quote,
-    role: t[`role_${currentLocale}`] || t.role_en || t.role
+    // FIX: TS casting
+    quote: (t as any)[`quote_${currentLocale}`] || t.quote_en || t.quote,
+    role: (t as any)[`role_${currentLocale}`] || t.role_en || t.role
   }))
 
-  const title = project[`title_${currentLocale}`] || project.title_en || project.title
-  const description = project[`description_${currentLocale}`] || project.description_en || project.description
+  const title = (project as any)[`title_${currentLocale}`] || project.title_en || project.title
+  const description = (project as any)[`description_${currentLocale}`] || project.description_en || project.description
   const category = project.project_category || "Case Study"
   const videoUrl = project.featured_video_url
   const imageUrl = project.featured_image_url
   const mockupType = project.mockup_type 
   const bgColor = project.bg_color 
 
-  const projectContentJson = project[`content_${currentLocale}`] || project.content_en || {}
+  const projectContentJson = (project as any)[`content_${currentLocale}`] || project.content_en || {}
   
   const overviewData = projectContentJson.overview || {}
   const projectMeta = projectContentJson.project_meta || {}
@@ -132,8 +172,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <Box className="pattern-dots" pt={{ base: "8", md: "12" }} pb={{ base: "16", md: "24" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
+              {/* FIX: Dynamically override the 'exploreWork' key just for this hero instance! */}
               <HeroWithImageBottomCentered 
-                dict={content.hero}
+                dict={{ ...content.hero, exploreWork: content.project?.readCaseStudy || "Read case study" }}
                 title={title}
                 description={description}
                 tagline={category}
@@ -195,7 +236,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         )}
 
-        {/* INTERSTITIAL NAVIGATION BLOCK */}
         <Box py={{ base: "12", md: "20" }} bg="bg.canvas">
           <Container maxW="5xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
