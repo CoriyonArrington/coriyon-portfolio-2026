@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import { Box, Container, HStack, Stack, Text, IconButton, Link as ChakraLink, Avatar, SimpleGrid, Separator } from '@chakra-ui/react'
-import { LuLinkedin, LuGithub, LuYoutube, LuCopy, LuCheck } from 'react-icons/lu'
+import { LuLinkedin, LuGithub, LuYoutube, LuCopy, LuCheck, LuDownload } from 'react-icons/lu'
 import { LanguageSwitcher } from '@/components/blocks/marketing-navbars/navbar-island/language-switcher'
 import { ColorModeButton } from '@/components/ui/color-mode'
 import NextLink from 'next/link'
+import { usePathname } from 'next/navigation'
 import { SoundToggle } from '../../marketing-navbars/navbar-island/sound-toggle'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
+import { DownloadTrigger } from '@/components/ui/download-trigger'
 
 interface FooterProps {
   dict?: any;
@@ -15,8 +17,9 @@ interface FooterProps {
 
 export const Block = ({ dict }: FooterProps) => {
   const currentYear = new Date().getFullYear();
-  const { playHover, playWhoosh, playClick } = useUiSounds()
+  const { playHover, playWhoosh, playClick, playSuccess } = useUiSounds()
   const [hasCopied, setHasCopied] = useState(false)
+  const pathname = usePathname() || ''
 
   const emailAddress = "coriyonarrington@gmail.com"
 
@@ -28,9 +31,18 @@ export const Block = ({ dict }: FooterProps) => {
     setTimeout(() => setHasCopied(false), 2000)
   }
 
+  // Determine if we are on the home page and get the base path (handles locales like /en, /es)
+  const segments = pathname.split('/').filter(Boolean)
+  const isHome = segments.length === 0 || (segments.length === 1 && segments[0].length === 2)
+  const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
+
+  // Dynamic href generator: uses just the hash on the home page, or appends the root path on subpages
+  const getHref = (hash: string) => isHome ? hash : `${homePath}${hash}`
+
   const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
     playWhoosh()
 
+    // Only intercept and smooth scroll if it's a direct hash link (meaning we are on the home page)
     if (href.startsWith('#')) {
       e.preventDefault()
       const targetId = href.replace('#', '')
@@ -51,9 +63,10 @@ export const Block = ({ dict }: FooterProps) => {
     }
   }
 
-  const scrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const scrollToTop = (e: React.MouseEvent<HTMLElement>) => {
     playClick()
-    if (window.location.pathname === '/' || window.location.pathname.match(/^\/[a-z]{2}(-[A-Z]{2})?$/)) {
+    // If we are already on the home page, smoothly scroll to top
+    if (isHome) {
       e.preventDefault()
       window.scrollTo({ top: 0, behavior: 'smooth' })
       window.history.pushState(null, '', window.location.pathname)
@@ -72,21 +85,23 @@ export const Block = ({ dict }: FooterProps) => {
           {/* Left Side: Logo & Address/Contact */}
           <Stack alignItems="start" gap="8">
             <ChakraLink 
-              href="#" 
+              asChild
               variant="plain" 
               _hover={{ textDecoration: "none" }}
               onClick={scrollToTop}
               onMouseEnter={playHover}
             >
-              <HStack gap="3">
-                <Avatar.Root size="sm">
-                  <Avatar.Image src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/avatars/coriyon-arrington.png" alt="Coriyon Arrington" />
-                  <Avatar.Fallback name="Coriyon Arrington" />
-                </Avatar.Root>
-                <Text fontWeight="bold" fontSize="xl" color="fg" letterSpacing="tight">
-                  {dict?.logo || "Coriyon"}
-                </Text>
-              </HStack>
+              <NextLink href={homePath}>
+                <HStack gap="3">
+                  <Avatar.Root size="sm">
+                    <Avatar.Image src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/avatars/coriyon-arrington.png" alt="Coriyon Arrington" />
+                    <Avatar.Fallback name="Coriyon Arrington" />
+                  </Avatar.Root>
+                  <Text fontWeight="bold" fontSize="xl" color="fg" letterSpacing="tight">
+                    {dict?.logo || "Coriyon"}
+                  </Text>
+                </HStack>
+              </NextLink>
             </ChakraLink>
 
             <Stack gap="5">
@@ -96,7 +111,10 @@ export const Block = ({ dict }: FooterProps) => {
               </Stack>
               <Stack gap="1">
                 <Text fontWeight="medium" color="fg">{dict?.contactHeading || "Contact"}</Text>
-                <Stack gap="0" alignItems="flex-start">
+                {/* Wrapped the links in a stack with gap="2" for nice spacing */}
+                <Stack gap="2" alignItems="flex-start">
+                  
+                  {/* Email Copy Link */}
                   <HStack 
                     as="button"
                     onClick={handleCopyEmail}
@@ -107,9 +125,31 @@ export const Block = ({ dict }: FooterProps) => {
                     cursor="pointer"
                     gap="2"
                   >
-                    <Text>{hasCopied ? (dict?.emailCopied || "Email copied!") : emailAddress}</Text>
+                    {/* Replaced the raw email address with "Copy Email" text */}
+                    <Text>{hasCopied ? (dict?.emailCopied || "Email copied!") : (dict?.copyEmail || "Copy Email")}</Text>
                     {hasCopied ? <LuCheck size="16" /> : <LuCopy size="16" />}
                   </HStack>
+
+                  {/* Seamless Resume Download Link */}
+                  <DownloadTrigger 
+                    value="/Resume-Coriyon Arrington-Senior Product Designer.pdf"
+                    fileName="Coriyon_Arrington_Resume.pdf"
+                  >
+                    <HStack 
+                      as="button"
+                      color="fg.muted"
+                      _hover={{ color: "fg" }}
+                      onClick={playSuccess}
+                      onMouseEnter={playHover}
+                      transition="all 0.2s"
+                      cursor="pointer"
+                      gap="2"
+                    >
+                      <Text>{dict?.downloadResume || "Download Resume"}</Text>
+                      <LuDownload size="16" />
+                    </HStack>
+                  </DownloadTrigger>
+
                 </Stack>
               </Stack>
             </Stack>
@@ -120,17 +160,17 @@ export const Block = ({ dict }: FooterProps) => {
             <Stack gap="4" minW={{ md: '40' }}>
               <Text fontWeight="medium" color="fg">{dict?.sitemap || "Sitemap"}</Text>
               <Stack gap="3" alignItems="start">
-                <ChakraLink href="#projects" color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#projects')} onMouseEnter={playHover}>
-                  {dict?.projects || "Projects"}
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#projects'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('#projects')}>{dict?.projects || "Projects"}</NextLink>
                 </ChakraLink>
-                <ChakraLink href="#services" color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#services')} onMouseEnter={playHover}>
-                  {dict?.services || "Services"}
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#services'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('#services')}>{dict?.services || "Services"}</NextLink>
                 </ChakraLink>
-                <ChakraLink href="#about" color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#about')} onMouseEnter={playHover}>
-                  {dict?.about || "About"}
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#about'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('#about')}>{dict?.about || "About"}</NextLink>
                 </ChakraLink>
-                <ChakraLink href="#process" color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#process')} onMouseEnter={playHover}>
-                  {dict?.process || "Process"}
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#process'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('#process')}>{dict?.process || "Process"}</NextLink>
                 </ChakraLink>
               </Stack>
             </Stack>
@@ -138,17 +178,17 @@ export const Block = ({ dict }: FooterProps) => {
             <Stack gap="4" minW={{ md: '40' }}>
               <Text fontWeight="medium" color="fg">{dict?.moreLinks || "More"}</Text>
               <Stack gap="3" alignItems="start">
-                <ChakraLink href="#blog" color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#blog')} onMouseEnter={playHover}>
-                  {dict?.blog || "Blog"}
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#blog'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('#blog')}>{dict?.blog || "Blog"}</NextLink>
                 </ChakraLink>
-                <ChakraLink href="#testimonials" color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#testimonials')} onMouseEnter={playHover}>
-                  {dict?.testimonials || "Testimonials"}
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#testimonials'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('#testimonials')}>{dict?.testimonials || "Testimonials"}</NextLink>
                 </ChakraLink>
-                <ChakraLink href="#faqs" color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#faqs')} onMouseEnter={playHover}>
-                  {dict?.faqs || "FAQs"}
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#faqs'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('#faqs')}>{dict?.faqs || "FAQs"}</NextLink>
                 </ChakraLink>
-                <ChakraLink href="#contact" color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, '#contact')} onMouseEnter={playHover}>
-                  {dict?.contact || "Contact"}
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#contact'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('#contact')}>{dict?.contact || "Contact"}</NextLink>
                 </ChakraLink>
               </Stack>
             </Stack>
@@ -163,7 +203,7 @@ export const Block = ({ dict }: FooterProps) => {
           alignItems="center"
           justify="space-between"
           pt="6"
-          pb={{ base: '28', md: '20' }} // Added extra bottom padding to account for the fixed banner
+          pb={{ base: '28', md: '20' }} 
           gap={{ base: '6', lg: '8' }}
         >
           {/* Copyright */}

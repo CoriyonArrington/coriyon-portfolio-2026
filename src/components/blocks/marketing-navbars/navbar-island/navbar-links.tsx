@@ -2,6 +2,7 @@
 
 import { Link, Stack, type StackProps } from '@chakra-ui/react'
 import NextLink from 'next/link'
+import { usePathname } from 'next/navigation'
 import { LuChevronDown } from 'react-icons/lu'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import {
@@ -18,28 +19,38 @@ interface NavbarLinksProps extends StackProps {
 
 export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) => {
   const { playHover, playWhoosh } = useUiSounds()
+  const pathname = usePathname() || ''
   
   const isMobile = props.direction === 'column'
 
+  // Determine if we are on the home page and get the base path (handles locales like /en, /es)
+  const segments = pathname.split('/').filter(Boolean)
+  const isHome = segments.length === 0 || (segments.length === 1 && segments[0].length === 2)
+  const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
+
+  // Dynamic href generator: uses just the hash on the home page, or appends the root path on subpages
+  const getHref = (hash: string) => isHome ? hash : `${homePath}${hash}`
+
   // Prioritized links for the main desktop view
   const mainLinks = [
-    { label: dict?.projects || 'Projects', href: '#projects' },
-    { label: dict?.services || 'Services', href: '#services' },
-    { label: dict?.about || 'About', href: '#about' },
+    { label: dict?.projects || 'Projects', href: getHref('#projects') },
+    { label: dict?.services || 'Services', href: getHref('#services') },
+    { label: dict?.about || 'About', href: getHref('#about') },
   ]
 
   // Secondary links tucked into the "More" dropdown on desktop
   const moreLinks = [
-    { label: dict?.process || 'Process', href: '#process' },
-    { label: dict?.blog || 'Blog', href: '#blog' },
-    { label: dict?.testimonials || 'Testimonials', href: '#testimonials' },
-    { label: dict?.faqs || 'FAQs', href: '#faqs' },
-    { label: dict?.contact || 'Contact', href: '#contact' },
+    { label: dict?.process || 'Process', href: getHref('#process') },
+    { label: dict?.blog || 'Blog', href: getHref('#blog') },
+    { label: dict?.testimonials || 'Testimonials', href: getHref('#testimonials') },
+    { label: dict?.faqs || 'FAQs', href: getHref('#faqs') },
+    { label: dict?.contact || 'Contact', href: getHref('#contact') },
   ]
 
   const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
     playWhoosh()
 
+    // Only intercept and smooth scroll if it's a direct hash link (meaning we are on the home page)
     if (href.startsWith('#')) {
       e.preventDefault()
       const targetId = href.replace('#', '')
@@ -62,6 +73,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
         }, 150)
       }
     } else {
+      // If it doesn't start with '#', let NextLink handle the native navigation back to the home page!
       onLinkClick?.()
     }
   }
