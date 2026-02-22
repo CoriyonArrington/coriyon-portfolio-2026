@@ -10,12 +10,14 @@ import {
   SimpleGrid, 
   Stack, 
   chakra, 
-  Highlight 
+  Highlight,
+  Dialog,
+  Portal,
+  IconButton
 } from '@chakra-ui/react'
-import { LuDownload, LuArrowDown, LuUser } from 'react-icons/lu'
+import { LuPlay, LuArrowDown, LuUser, LuX } from 'react-icons/lu'
 import { HeroHeader } from './hero-header'
 import { ImagePlaceholder } from './image-placeholder'
-import { DownloadTrigger } from '@/components/ui/download-trigger'
 import Link from 'next/link'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 
@@ -57,6 +59,7 @@ interface BlockProps {
   tagline?: string 
   videoUrl?: string
   imageUrl?: string
+  introVideoUrl?: string
 }
 
 export const Block = ({ 
@@ -65,9 +68,13 @@ export const Block = ({
   description = "I help early-stage founders and small business owners design better products, services, and customer experiences.",
   tagline = "Senior Product Designer in Minneapolis", 
   videoUrl, 
-  imageUrl 
+  imageUrl,
+  introVideoUrl
 }: BlockProps) => {
-  const { playHover, playClick, playSuccess } = useUiSounds()
+  const { playHover, playClick } = useUiSounds()
+
+  // Pull the video URL from the database dict, fallback to the default if not present
+  const finalIntroVideoUrl = introVideoUrl || dict?.introVideoUrl || "https://www.youtube.com/embed/fnK-KIB3H44"
   
   const scrollToProjects = () => {
     playClick()
@@ -102,15 +109,12 @@ export const Block = ({
   }
 
   return (
-    // Slightly increased the base gap to ensure the mockup stays lower
     <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 8, lg: 0 }}>
       <Flex
         align="center"
         justify="center"
         pe={{ base: '0', lg: '12' }} 
-        // Reduced from '28' to '20' to pull the badge up
         pt={{ base: '20', lg: '8' }}
-        // Increased from '4' to '8' to push the mockup down away from the buttons
         pb={{ base: '8', lg: '24' }} 
       >
         <HeroHeader
@@ -149,24 +153,63 @@ export const Block = ({
           textAlign={{ base: "center", lg: "start" }}
         >
           <Stack direction={{ base: 'column', md: 'row' }} gap="4" mt="2">
+            {/* Primary Button */}
             <Button size="2xl" onClick={scrollToProjects} onMouseEnter={playHover}>
               {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
             </Button>
             
-            <DownloadTrigger 
-              value="/Resume-Coriyon Arrington-Senior Product Designer.pdf"
-              fileName="Coriyon_Arrington_Resume.pdf"
-            >
-              <Button 
-                variant="solid" 
-                size="2xl" 
-                colorPalette="gray" 
-                onClick={playSuccess}
-                onMouseEnter={playHover}
-              >
-                {dict?.downloadResume || "Download Resume"} <LuDownload />
-              </Button>
-            </DownloadTrigger>
+            {/* Cinematic YouTube Modal Button */}
+            <Dialog.Root placement="center" motionPreset="slide-in-bottom">
+              <Dialog.Trigger asChild>
+                <Button 
+                  variant="solid" 
+                  size="2xl" 
+                  colorPalette="gray" 
+                  onClick={playClick}
+                  onMouseEnter={playHover}
+                >
+                  {dict?.watchIntro || "Watch Intro"} <LuPlay />
+                </Button>
+              </Dialog.Trigger>
+              
+              <Portal>
+                <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
+                <Dialog.Positioner>
+                  <Dialog.Content bg="transparent" shadow="none" maxW="4xl" w="full" mx="4">
+                    
+                    {/* Floating Close Button */}
+                    <Dialog.CloseTrigger asChild position="absolute" top={{ base: "-12", md: "-12" }} right="0">
+                      <IconButton 
+                        aria-label="Close video" 
+                        variant="ghost" 
+                        color="white" 
+                        _hover={{ bg: "whiteAlpha.200" }}
+                        rounded="full"
+                        onClick={playClick}
+                      >
+                        <LuX />
+                      </IconButton>
+                    </Dialog.CloseTrigger>
+                    
+                    {/* Video Container */}
+                    <Dialog.Body p="0" rounded="2xl" overflow="hidden" bg="black" shadow="2xl">
+                      <Box aspectRatio={16 / 9} w="full">
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={finalIntroVideoUrl}
+                          title="Introduction Video"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </Box>
+                    </Dialog.Body>
+                  </Dialog.Content>
+                </Dialog.Positioner>
+              </Portal>
+            </Dialog.Root>
+
           </Stack>
         </HeroHeader>
       </Flex>
@@ -175,7 +218,6 @@ export const Block = ({
         align="center" 
         justify="center" 
         minH={{ base: 'auto', lg: '3xl' }} 
-        // Increased from '4' to '8' to further push the mockup down
         pt={{ base: 8, lg: 0 }}
         pb={{ base: 12, lg: 0 }}
       >
