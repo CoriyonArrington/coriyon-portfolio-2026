@@ -7,7 +7,7 @@ import { system } from './theme'
 
 export const Provider = (props: PropsWithChildren) => (
   <ChakraProvider value={system}>
-    <ColorModeProvider>
+    <ColorModeProvider defaultTheme="system" enableSystem>
       {props.children}
     </ColorModeProvider>
   </ChakraProvider>
