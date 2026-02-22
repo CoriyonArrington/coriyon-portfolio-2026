@@ -78,14 +78,7 @@ export const CategoryItem = (props: CategoryItemProps) => {
       minH={minH}
       cursor="pointer"
     >
-      <NextLink 
-        href={data.url || '#'}
-        onClick={() => {
-          // This absolutely forces the browser to snap to the top instantly, 
-          // ignoring any global smooth scrolling CSS before Next.js loads the page.
-          window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-        }}
-      >
+      <NextLink href={data.url || '#'}>
         <motion.div
           layout
           initial={{ opacity: 0, scale: 0.9 }}
