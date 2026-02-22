@@ -6,6 +6,7 @@ import { Block as HeroWithImageBottomCentered } from "@/components/blocks/heroes
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as CaseStudyAccordion } from "@/components/blocks/features/feature-06/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
+import { Block as InterstitialNav } from "@/components/blocks/marketing-navbars/interstitial-nav/block" // <-- Import the new block
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 import { LuTarget, LuLightbulb, LuTrendingUp } from "react-icons/lu"
@@ -16,14 +17,33 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const { locale, slug } = await params;
   const currentLocale = locale || 'en'
 
-  const { data: project } = await supabase
+  // Fetch all projects ordered by sort_order so we can compute Next/Previous!
+  const { data: allProjectsData } = await supabase
     .from('projects')
     .select('*')
-    .eq('slug', slug)
-    .single()
+    .order('sort_order', { ascending: true })
+
+  const allProjects = allProjectsData || []
+  const currentIndex = allProjects.findIndex(p => p.slug === slug)
+  const project = allProjects[currentIndex]
 
   if (!project) notFound()
 
+  // Extract Prev / Next data
+  let prevProject = null
+  let nextProject = null
+
+  if (currentIndex > 0) {
+    const p = allProjects[currentIndex - 1]
+    prevProject = { slug: p.slug, title: p[`title_${currentLocale}`] || p.title_en || p.title }
+  }
+
+  if (currentIndex < allProjects.length - 1 && currentIndex !== -1) {
+    const n = allProjects[currentIndex + 1]
+    nextProject = { slug: n.slug, title: n[`title_${currentLocale}`] || n.title_en || n.title }
+  }
+
+  // Fetch global page dictionaries
   const { data: pageData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
 
@@ -31,9 +51,14 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   
   // Testimonial Logic
   const companyTestimonials = allTestimonials?.filter(t => project.company && t.company === project.company) || []
-  let rawFeaturedTestimonial = companyTestimonials.find(t => project.testimonial_id && t.id === project.testimonial_id)
-  if (!rawFeaturedTestimonial && companyTestimonials.length > 0) rawFeaturedTestimonial = companyTestimonials[0]
-  if (!rawFeaturedTestimonial) rawFeaturedTestimonial = allTestimonials?.find(t => t.is_featured === true)
+  
+  let rawFeaturedTestimonial = project.testimonial_id 
+    ? allTestimonials?.find(t => t.id === project.testimonial_id) 
+    : null
+
+  if (!rawFeaturedTestimonial && companyTestimonials.length > 0) {
+    rawFeaturedTestimonial = companyTestimonials[0]
+  }
   
   const remainingTestimonials = companyTestimonials.filter(t => t.id !== rawFeaturedTestimonial?.id)
 
@@ -57,10 +82,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const mockupType = project.mockup_type 
   const bgColor = project.bg_color 
 
-  // Safely extract JSONB content
   const projectContentJson = project[`content_${currentLocale}`] || project.content_en || {}
   
-  // Overview Data 
   const overviewData = projectContentJson.overview || {}
   const projectMeta = projectContentJson.project_meta || {}
   
@@ -71,7 +94,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const deliverables = overviewData.deliverables || (Array.isArray(projectMeta.deliverables) ? projectMeta.deliverables.join(', ') : projectMeta.deliverables)
   const summary = overviewData.summary || description
 
-  // Case Study Data mapped for the Accordion
   const caseStudyData = projectContentJson.case_study || {}
   const resultData = caseStudyData.results || caseStudyData.result || {}
   
@@ -107,7 +129,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       
       <Stack gap="0" pt="24">
         
-        <Box className="pattern-dots" pt={{ base: "8", md: "12" }}>
+        <Box className="pattern-dots" pt={{ base: "8", md: "12" }} pb={{ base: "16", md: "24" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <HeroWithImageBottomCentered 
@@ -140,7 +162,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         )}
 
-        {/* Case Study Feature Accordion with pattern-dots */}
         <Box id="projects" minH="30vh" py={{ base: "16", md: "24" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
              {hasCaseStudy && (
@@ -154,14 +175,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                    title="Behind the process"
                    description={null} 
                    features={caseStudyFeatures}
-                   mockupType={mockupType} // Passing the mockup type down!
+                   mockupType={mockupType}
                  />
                </FadeIn>
              )}
           </Container>
         </Box>
 
-        {/* Testimonial Grid with pattern-dots (Removed bg="bg.muted" so dots show) */}
         {localizedRemainingTestimonials.length > 0 && (
           <Box py={{ base: "16", md: "24" }} borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
@@ -174,6 +194,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             </Container>
           </Box>
         )}
+
+        {/* INTERSTITIAL NAVIGATION BLOCK */}
+        <Box py={{ base: "12", md: "20" }} bg="bg.canvas">
+          <Container maxW="5xl" px={{ base: "4", md: "8" }}>
+            <FadeIn>
+              <InterstitialNav prev={prevProject} next={nextProject} dict={content.interstitial} />
+            </FadeIn>
+          </Container>
+        </Box>
         
         <FadeIn>
           <Footer dict={content.footer} />
