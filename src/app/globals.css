@@ -7,11 +7,6 @@ body {
   padding: 0;
 }
 
-/* Enable smooth scrolling for anchor links */
-html {
-  scroll-behavior: smooth;
-}
-
 /* Ensure sections have clear breathing room when scrolled to */
 :target {
   scroll-margin-top: 100px;

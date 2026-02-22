@@ -78,7 +78,14 @@ export const CategoryItem = (props: CategoryItemProps) => {
       minH={minH}
       cursor="pointer"
     >
-      <NextLink href={data.url || '#'}>
+      <NextLink 
+        href={data.url || '#'}
+        onClick={() => {
+          // This absolutely forces the browser to snap to the top instantly, 
+          // ignoring any global smooth scrolling CSS before Next.js loads the page.
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+        }}
+      >
         <motion.div
           layout
           initial={{ opacity: 0, scale: 0.9 }}
@@ -117,7 +124,6 @@ export const CategoryItem = (props: CategoryItemProps) => {
             </Box>
           )}
 
-          {/* FIX: Darkened the gradient, and changed `py` to `pb` + `pt` to stretch the gradient higher up the card */}
           <Box 
             position="relative" 
             mt="auto" 
