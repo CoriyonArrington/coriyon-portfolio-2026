@@ -1,9 +1,10 @@
 'use client'
 
-import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Dialog, SimpleGrid, Portal } from '@chakra-ui/react'
-import { LuChevronDown, LuInfo } from 'react-icons/lu'
+import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Dialog, SimpleGrid, Portal, IconButton } from '@chakra-ui/react'
+import { LuChevronDown, LuEye, LuX } from 'react-icons/lu'
 import Image from 'next/image'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
+import { useEffect } from 'react'
 
 interface HeroProps {
   dict?: any;
@@ -13,7 +14,7 @@ interface HeroProps {
   imageUrl?: string | null;
   videoUrl?: string | null;
   mockupType?: string | null;
-  bgColor?: string | null; // <-- Added this prop
+  bgColor?: string | null; 
   
   // Case Study Overview Data
   role?: string | null;
@@ -29,6 +30,10 @@ export const Block = ({
   role, duration, year, teamRoles, deliverables, summary 
 }: HeroProps) => {
   const { playClick, playHover } = useUiSounds()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [])
 
   const handleScroll = () => {
     playClick()
@@ -109,7 +114,7 @@ export const Block = ({
         </Text>
 
         <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="2">
-          {/* Primary Button (Themed with the project's bg_color) */}
+          {/* Primary Button */}
           <Button 
             size="xl" 
             bg={bgColor || "green.600"} 
@@ -131,7 +136,7 @@ export const Block = ({
                 onClick={playClick} 
                 onMouseEnter={playHover}
               >
-                <LuInfo /> {dict?.showOverview || "Show overview"}
+                {dict?.showOverview || "Show overview"} <LuEye />
               </Button>
             </Dialog.Trigger>
             
@@ -139,10 +144,22 @@ export const Block = ({
               <Dialog.Backdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
               <Dialog.Positioner>
                 <Dialog.Content p={{ base: "6", md: "8" }} rounded="2xl" shadow="2xl" bg="bg.panel" color="fg.default" maxW="2xl" w="full" mx="4">
-                  <Dialog.CloseTrigger position="absolute" top="4" right="4" onClick={playClick} />
                   
-                  <Dialog.Header pb="6">
+                  {/* Flex header ensures vertical centering and perfect right-alignment */}
+                  <Dialog.Header pb="6" display="flex" justifyContent="space-between" alignItems="center">
                     <Dialog.Title textStyle="2xl" fontWeight="bold">Project Overview</Dialog.Title>
+                    {/* position="static" removes the default absolute positioning! */}
+                    <Dialog.CloseTrigger asChild position="static" inset="auto">
+                      <IconButton 
+                        aria-label="Close dialog"
+                        variant="ghost" 
+                        rounded="full" 
+                        size="sm" 
+                        onClick={playClick}
+                      >
+                        <LuX />
+                      </IconButton>
+                    </Dialog.CloseTrigger>
                   </Dialog.Header>
                   
                   <Dialog.Body>
@@ -154,40 +171,38 @@ export const Block = ({
                         </Box>
                       )}
                       
-                      <Box borderWidth="1px" borderColor="border.subtle" rounded="xl" p="6" bg="bg.muted">
-                        <SimpleGrid columns={{ base: 1, md: 2 }} gap="6">
-                          {role && (
-                            <Box>
-                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">My Role</Text>
-                              <Text fontWeight="medium">{role}</Text>
-                            </Box>
-                          )}
-                          {duration && (
-                            <Box>
-                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Duration</Text>
-                              <Text fontWeight="medium">{duration}</Text>
-                            </Box>
-                          )}
-                          {year && (
-                            <Box>
-                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Year</Text>
-                              <Text fontWeight="medium">{year}</Text>
-                            </Box>
-                          )}
-                          {teamRoles && (
-                            <Box>
-                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team Roles</Text>
-                              <Text fontWeight="medium">{teamRoles}</Text>
-                            </Box>
-                          )}
-                          {deliverables && (
-                            <Box gridColumn={{ md: "span 2" }}>
-                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Deliverables</Text>
-                              <Text fontWeight="medium">{deliverables}</Text>
-                            </Box>
-                          )}
-                        </SimpleGrid>
-                      </Box>
+                      <SimpleGrid columns={{ base: 1, md: 2 }} gap="8">
+                        {role && (
+                          <Box>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">My Role</Text>
+                            <Text fontWeight="medium">{role}</Text>
+                          </Box>
+                        )}
+                        {duration && (
+                          <Box>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Duration</Text>
+                            <Text fontWeight="medium">{duration}</Text>
+                          </Box>
+                        )}
+                        {year && (
+                          <Box>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Year</Text>
+                            <Text fontWeight="medium">{year}</Text>
+                          </Box>
+                        )}
+                        {teamRoles && (
+                          <Box>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team Roles</Text>
+                            <Text fontWeight="medium">{teamRoles}</Text>
+                          </Box>
+                        )}
+                        {deliverables && (
+                          <Box gridColumn={{ md: "span 2" }}>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Deliverables</Text>
+                            <Text fontWeight="medium">{deliverables}</Text>
+                          </Box>
+                        )}
+                      </SimpleGrid>
                     </Stack>
                   </Dialog.Body>
                 </Dialog.Content>
