@@ -78,9 +78,6 @@ export const CategoryItem = (props: CategoryItemProps) => {
       minH={minH}
       cursor="pointer"
     >
-      {/* FIX: Wrapped the entire motion.div in NextLink.
-          This makes the whole card surface clickable while maintaining your animations.
-      */}
       <NextLink href={data.url || '#'}>
         <motion.div
           layout
@@ -120,15 +117,24 @@ export const CategoryItem = (props: CategoryItemProps) => {
             </Box>
           )}
 
-          <Box position="relative" mt="auto" width="full" zIndex="2" background="linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)" px={{ base: '6', md: '10' }} py={{ base: '8', md: '10' }} display="flex" flexDirection="column" justifyContent="flex-end">
+          {/* FIX: Darkened the gradient, and changed `py` to `pb` + `pt` to stretch the gradient higher up the card */}
+          <Box 
+            position="relative" 
+            mt="auto" 
+            width="full" 
+            zIndex="2" 
+            background="linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.4) 75%, transparent 100%)" 
+            px={{ base: '6', md: '10' }} 
+            pb={{ base: '8', md: '10' }} 
+            pt={{ base: '32', md: '48' }} 
+            display="flex" 
+            flexDirection="column" 
+            justifyContent="flex-end"
+          >
             <Stack gap="3">
               <Heading size={{ base: "xl", md: "2xl" }} color="white">{data.title}</Heading>
               {data.description && <Text color="whiteAlpha.900" maxW="lg" fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{data.description}</Text>}
               
-              {/* FIX: Removed 'asChild' and 'NextLink' from here. 
-                  The button is now a visual part of the parent link. 
-                  Adding pointerEvents="none" ensures it doesn't intercept clicks.
-              */}
               <Button 
                 variant="solid" 
                 bg="white" 

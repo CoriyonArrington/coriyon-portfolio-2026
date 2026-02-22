@@ -1,9 +1,10 @@
 'use client'
 
-import { Box, Grid, Stack, Heading, Text, Badge, HStack, Button } from '@chakra-ui/react'
+import { Box, Grid, Stack, Heading, Text, Badge, HStack, Button, Center } from '@chakra-ui/react'
 import { CategoryItem } from './category-item'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { AnimatePresence } from 'motion/react'
+import { useUiSounds } from '@/hooks/use-ui-sounds'
 
 interface Project {
   id: string | number 
@@ -24,6 +25,23 @@ interface BlockProps {
 
 export const Block = ({ dict, projects }: BlockProps) => {
   const [activeFilter, setActiveFilter] = useState('All')
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const { playHover, playClick } = useUiSounds()
+
+  // Detect mobile viewport to safely apply progressive disclosure
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile() // Check immediately on mount
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  const handleFilterChange = (filterName: string) => {
+    playClick()
+    setActiveFilter(filterName)
+    setIsExpanded(false) // Reset progressive disclosure when switching tabs
+  }
 
   const categories = useMemo(() => {
     if (!projects) return ['All']
@@ -52,8 +70,12 @@ export const Block = ({ dict, projects }: BlockProps) => {
     return projectTags.includes(activeFilter)
   })
 
+  // Apply progressive disclosure rule: show only 2 items on mobile if not expanded
+  const displayedProjects = (isMobile && !isExpanded) 
+    ? filteredProjects.slice(0, 2) 
+    : filteredProjects
+
   return (
-    // Swapped Container for Box to prevent double-padding from page.tsx
     <Box py={{ base: '8', lg: '16' }}>
       {(dict?.badge || dict?.tagline || dict?.title || dict?.description) && (
         <Stack gap={{ base: '4', md: '6' }} align="flex-start" mb={{ base: '10', md: '16' }}>
@@ -86,7 +108,8 @@ export const Block = ({ dict, projects }: BlockProps) => {
                   variant={activeFilter === filterName ? "solid" : "subtle"}
                   colorPalette="green"
                   rounded="full"
-                  onClick={() => setActiveFilter(filterName)}
+                  onClick={() => handleFilterChange(filterName)}
+                  onMouseEnter={playHover}
                   transition="all 0.2s"
                 >
                   {filterName}
@@ -102,7 +125,7 @@ export const Block = ({ dict, projects }: BlockProps) => {
         templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }}
       >
         <AnimatePresence mode="popLayout">
-          {filteredProjects.map((item, index) => (
+          {displayedProjects.map((item, index) => (
             <CategoryItem
               key={item.id}
               dict={dict} 
@@ -121,6 +144,24 @@ export const Block = ({ dict, projects }: BlockProps) => {
           ))}
         </AnimatePresence>
       </Grid>
+
+      {/* Progressive Disclosure Button (Only renders on mobile when there are hidden items) */}
+      {isMobile && !isExpanded && filteredProjects.length > 2 && (
+        <Center mt="10">
+          <Button
+            variant="outline"
+            colorPalette="gray"
+            size="xl"
+            onClick={() => {
+              playClick()
+              setIsExpanded(true)
+            }}
+            onMouseEnter={playHover}
+          >
+            {dict?.viewMore || "View more projects"}
+          </Button>
+        </Center>
+      )}
     </Box>
   )
 }
