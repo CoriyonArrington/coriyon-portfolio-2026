@@ -16,7 +16,8 @@ const nunitoSans = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://coriyonarrington.com'), 
+  // Updated to your new primary production domain!
+  metadataBase: new URL('https://www.coriyon.com'), 
   title: {
     template: '%s | Coriyon Arrington',
     default: 'Coriyon Arrington | Senior Product Designer',
