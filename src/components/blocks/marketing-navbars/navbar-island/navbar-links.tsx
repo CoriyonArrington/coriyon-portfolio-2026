@@ -14,20 +14,21 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
   const { playHover, playWhoosh } = useUiSounds()
   const pathname = usePathname() || ''
 
-  // Determine if we are on the home page and get the base path (handles locales like /en, /es)
   const segments = pathname.split('/').filter(Boolean)
-  const isHome = segments.length === 0 || (segments.length === 1 && segments[0].length === 2)
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
 
-  // Dynamic href generator: uses just the hash on the home page, or appends the root path on subpages
-  const getHref = (hash: string) => isHome ? hash : `${homePath}${hash}`
+  const getHref = (path: string) => {
+    if (path.startsWith('#')) return path;
+    if (path === '/') return homePath;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return homePath === '/' ? cleanPath : `${homePath}${cleanPath}`;
+  }
 
-  // Map the links directly from your JSON payload, with a safety fallback
+  // Updated fallback links to point Work to /projects
   const fallbackLinks = [
-    { href: '#projects', label: 'Projects' },
-    { href: '#testimonials', label: 'Testimonials' },
-    { href: '#faqs', label: 'FAQs' },
-    { href: '#contact', label: 'Contact' }
+    { href: '/projects', label: 'Work' },
+    { href: '/about', label: 'About' },
+    { href: '/blog', label: 'Videos' }
   ]
   
   const rawLinks = Array.isArray(dict?.links) ? dict.links : fallbackLinks
@@ -39,11 +40,12 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
   const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
     playWhoosh()
 
-    // Only intercept and smooth scroll if it's a direct hash link (meaning we are on the home page)
-    if (href.startsWith('#')) {
+    const [pathPart, hashPart] = href.split('#')
+    const isCurrentPage = pathPart === '' || pathPart === pathname || pathPart === `${pathname}/`
+
+    if (hashPart && isCurrentPage) {
       e.preventDefault()
-      const targetId = href.replace('#', '')
-      const element = document.getElementById(targetId)
+      const element = document.getElementById(hashPart)
       
       if (element) {
         onLinkClick?.()
@@ -58,7 +60,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
             behavior: 'smooth'
           })
           
-          window.history.pushState(null, '', href)
+          window.history.pushState(null, '', `#${hashPart}`)
         }, 150)
       }
     } else {
@@ -68,19 +70,26 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
 
   return (
     <Stack direction={props.direction || { base: 'column', md: 'row' }} alignItems="center" gap={{ base: '6', md: '8' }} {...props}>
-      {navLinks.map((item: any) => (
-        <Link
-          key={item.href}
-          asChild
-          fontWeight="medium"
-          color="fg.muted"
-          _hover={{ color: 'colorPalette.fg', textDecoration: 'none' }}
-          onClick={(e) => handleScroll(e, item.href)}
-          onMouseEnter={playHover}
-        >
-          <NextLink href={item.href}>{item.label}</NextLink>
-        </Link>
-      ))}
+      {navLinks.map((item: any) => {
+        // Simple active state check: does the current pathname include the link's path?
+        const isActive = item.href !== homePath 
+          ? pathname.includes(item.href) 
+          : pathname === homePath
+
+        return (
+          <Link
+            key={item.href}
+            asChild
+            fontWeight={isActive ? "bold" : "medium"}
+            color={isActive ? "colorPalette.fg" : "fg.muted"}
+            _hover={{ color: 'colorPalette.fg', textDecoration: 'none' }}
+            onClick={(e) => handleScroll(e, item.href)}
+            onMouseEnter={playHover}
+          >
+            <NextLink href={item.href}>{item.label}</NextLink>
+          </Link>
+        )
+      })}
     </Stack>
   )
 }

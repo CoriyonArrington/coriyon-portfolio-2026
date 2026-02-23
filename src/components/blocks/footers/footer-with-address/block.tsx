@@ -32,18 +32,24 @@ export const Block = ({ dict }: FooterProps) => {
   }
 
   const segments = pathname.split('/').filter(Boolean)
-  const isHome = segments.length === 0 || (segments.length === 1 && segments[0].length === 2)
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
 
-  const getHref = (hash: string) => isHome ? hash : `${homePath}${hash}`
+  const getHref = (path: string) => {
+    if (path.startsWith('#')) return path;
+    if (path === '/') return homePath;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return homePath === '/' ? cleanPath : `${homePath}${cleanPath}`;
+  }
 
   const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
     playWhoosh()
 
-    if (href.startsWith('#')) {
+    const [pathPart, hashPart] = href.split('#')
+    const isCurrentPage = pathPart === '' || pathPart === pathname || pathPart === `${pathname}/`
+
+    if (hashPart && isCurrentPage) {
       e.preventDefault()
-      const targetId = href.replace('#', '')
-      const element = document.getElementById(targetId)
+      const element = document.getElementById(hashPart)
       
       if (element) {
         const offset = 120 
@@ -55,18 +61,16 @@ export const Block = ({ dict }: FooterProps) => {
           behavior: 'smooth'
         })
         
-        window.history.pushState(null, '', href)
+        window.history.pushState(null, '', `#${hashPart}`)
       }
     }
   }
 
   const scrollToTop = (e: React.MouseEvent<HTMLElement>) => {
     playClick()
-    if (isHome) {
-      e.preventDefault()
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      window.history.pushState(null, '', window.location.pathname)
-    }
+    e.preventDefault()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.history.pushState(null, '', window.location.pathname)
   }
 
   return (
@@ -145,38 +149,40 @@ export const Block = ({ dict }: FooterProps) => {
           </Stack>
 
           <SimpleGrid columns={2} gap="8" width={{ base: 'full', md: 'auto' }}>
+            {/* Main Menu Column */}
             <Stack gap="4" minW={{ md: '40' }}>
-              <Text fontWeight="medium" color="fg">{dict?.sitemap || "Sitemap"}</Text>
+              <Text fontWeight="medium" color="fg">{dict?.mainMenu || "Main Menu"}</Text>
               <Stack gap="3" alignItems="start">
-                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#projects'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('#projects')}>{dict?.projects || "Projects"}</NextLink>
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('/')}>{dict?.homeLink || "Home"}</NextLink>
                 </ChakraLink>
-                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#services'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('#services')}>{dict?.services || "Services"}</NextLink>
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/projects'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('/projects')}>{dict?.projectsLink || "Projects"}</NextLink>
                 </ChakraLink>
-                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#about'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('#about')}>{dict?.about || "About"}</NextLink>
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/about'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('/about')}>{dict?.aboutLink || "About"}</NextLink>
                 </ChakraLink>
-                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#process'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('#process')}>{dict?.process || "Process"}</NextLink>
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/blog'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('/blog')}>{dict?.blogLink || "Videos"}</NextLink>
                 </ChakraLink>
               </Stack>
             </Stack>
 
+            {/* Explore Deep Links Column */}
             <Stack gap="4" minW={{ md: '40' }}>
-              <Text fontWeight="medium" color="fg">{dict?.moreLinks || "More"}</Text>
+              <Text fontWeight="medium" color="fg">{dict?.explore || "Explore"}</Text>
               <Stack gap="3" alignItems="start">
-                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#blog'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('#blog')}>{dict?.blog || "Blog"}</NextLink>
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/about#services'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('/about#services')}>{dict?.servicesLink || "Services"}</NextLink>
                 </ChakraLink>
-                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#testimonials'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('#testimonials')}>{dict?.testimonials || "Testimonials"}</NextLink>
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/#process'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('/#process')}>{dict?.processLink || "Process"}</NextLink>
                 </ChakraLink>
-                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#faqs'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('#faqs')}>{dict?.faqs || "FAQs"}</NextLink>
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/about#testimonials'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('/about#testimonials')}>{dict?.testimonialsLink || "Testimonials"}</NextLink>
                 </ChakraLink>
-                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('#contact'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('#contact')}>{dict?.contact || "Contact"}</NextLink>
+                <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/about#faqs'))} onMouseEnter={playHover}>
+                  <NextLink href={getHref('/about#faqs')}>{dict?.faqsLink || "FAQs"}</NextLink>
                 </ChakraLink>
               </Stack>
             </Stack>
