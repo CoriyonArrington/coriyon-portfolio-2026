@@ -1,4 +1,4 @@
-import { Heading, Show, Stack, type StackProps, Text } from '@chakra-ui/react'
+import { Heading, Show, Stack, type StackProps, Text, Box } from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 
 /**
@@ -23,10 +23,10 @@ export const HeroHeader = (props: HeroHeaderProps) => {
       <Stack gap={{ base: '5', md: '6' }}>
         <Stack gap={{ base: '3', md: '4' }}>
           <Show when={tagline}>
-            {/* FIX: Render {tagline} here, not {headline} */}
-            <Text textStyle={{ base: 'sm', md: 'md' }} fontWeight="medium" color="colorPalette.fg" asChild>
+            {/* FIX: Using Box instead of Text prevents the p > div hydration error */}
+            <Box textStyle={{ base: 'sm', md: 'md' }} fontWeight="medium" color="colorPalette.fg">
               {tagline}
-            </Text>
+            </Box>
           </Show>
           <Heading as="h1" textStyle={{ base: '5xl', md: '7xl' }} fontWeight="bold" lineHeight="1.2" letterSpacing="tight">
             {headline}

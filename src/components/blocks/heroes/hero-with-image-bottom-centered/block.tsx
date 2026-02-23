@@ -1,10 +1,10 @@
 'use client'
 
-import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Dialog, SimpleGrid, Portal, IconButton } from '@chakra-ui/react'
+import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Dialog, SimpleGrid, Portal, IconButton, Highlight } from '@chakra-ui/react'
 import { LuChevronDown, LuEye, LuX } from 'react-icons/lu'
 import Image from 'next/image'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
 interface HeroProps {
   dict?: any;
@@ -45,6 +45,15 @@ export const Block = ({
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
     }
   }
+
+  // Handle Asterisk Highlighting for the Title
+  const rawTitle = title || dict?.title || 'Project Title'
+  const { displayTitle, highlightQueries } = useMemo(() => {
+    const matches = rawTitle.match(/\*(.*?)\*/g)
+    const queries = matches ? matches.map((m: string) => m.replace(/\*/g, '')) : []
+    const cleanText = rawTitle.replace(/\*/g, '')
+    return { displayTitle: cleanText, highlightQueries: queries }
+  }, [rawTitle])
 
   const normalizedMockupType = mockupType?.toString().toLowerCase().trim()
   const isTablet = normalizedMockupType === 'tablet' || normalizedMockupType === 'ipad'
@@ -106,7 +115,9 @@ export const Block = ({
           fontWeight="bold"
           letterSpacing="tight"
         >
-          {title || 'Project Title'}
+          <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
+            {displayTitle}
+          </Highlight>
         </Heading>
         
         <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} maxW="2xl" mx="auto">
