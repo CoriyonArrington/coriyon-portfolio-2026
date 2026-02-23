@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Provider } from "@/components/ui/provider";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ClarityAnalytics } from "@/components/ui/clarity";
 import "../globals.css";
 
 const montserrat = localFont({
@@ -62,6 +65,9 @@ export default async function RootLayout({
         <Provider>
           {children}
         </Provider>
+        <Analytics />
+        <SpeedInsights />
+        <ClarityAnalytics />
       </body>
     </html>
   );
