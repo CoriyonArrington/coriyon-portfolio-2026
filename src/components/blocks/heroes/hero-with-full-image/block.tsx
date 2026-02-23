@@ -24,7 +24,7 @@ import { HeroHeader } from './hero-header'
 import { ImagePlaceholder } from './image-placeholder'
 import Link from 'next/link'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 
 const Video = chakra('video')
@@ -70,7 +70,7 @@ interface BlockProps {
 
 export const Block = ({ 
   dict,
-  title = "Design Better Products",
+  title = "Design *Better Products*",
   description = "I help early-stage founders and small business owners design better products, services, and customer experiences.",
   tagline = "Senior Product Designer in Minneapolis", 
   videoUrl, 
@@ -80,7 +80,16 @@ export const Block = ({
   const { playHover, playClick } = useUiSounds()
   const [avatars, setAvatars] = useState<string[]>([])
 
-  // Fetch the first 5 avatars directly from the testimonials table
+  // Helper to extract highlighted text from markers like *text*
+  // This makes it so you don't have to manage a list of strings in code
+  const { displayTitle, highlightQueries } = useMemo(() => {
+    const rawTitle = title || ""
+    const matches = rawTitle.match(/\*(.*?)\*/g)
+    const queries = matches ? matches.map(m => m.replace(/\*/g, '')) : []
+    const cleanText = rawTitle.replace(/\*/g, '')
+    return { displayTitle: cleanText, highlightQueries: queries }
+  }, [title])
+
   useEffect(() => {
     const fetchAvatars = async () => {
       const { data } = await supabase
@@ -93,7 +102,6 @@ export const Block = ({
         setAvatars(data.map(t => t.avatar_url).filter(Boolean) as string[])
       }
     }
-    
     fetchAvatars()
   }, [])
 
@@ -106,11 +114,7 @@ export const Block = ({
       const offset = 120 
       const elementPosition = element.getBoundingClientRect().top
       const offsetPosition = elementPosition + window.scrollY - offset
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
     }
   }
 
@@ -122,11 +126,7 @@ export const Block = ({
       const offset = 120 
       const elementPosition = element.getBoundingClientRect().top
       const offsetPosition = elementPosition + window.scrollY - offset
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
       window.history.pushState(null, '', '#about')
     }
   }
@@ -138,11 +138,7 @@ export const Block = ({
       const offset = 120 
       const elementPosition = element.getBoundingClientRect().top
       const offsetPosition = elementPosition + window.scrollY - offset
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
     }
   }
 
@@ -180,10 +176,10 @@ export const Block = ({
           }
           headline={
             <Highlight 
-              query={["Better Products", "Experiences", "Digital Solutions", " drive results.", "Mejores Productos", "experiencias.", "resultados."]} 
+              query={highlightQueries} 
               styles={{ color: "green.600" }}
             >
-              {title}
+              {displayTitle}
             </Highlight>
           }
           description={description}
@@ -191,8 +187,6 @@ export const Block = ({
           textAlign={{ base: "center", lg: "start" }}
         >
           <Stack gap="6" mt="2" alignItems={{ base: "center", lg: "flex-start" }}>
-            
-            {/* Button Group */}
             <Stack direction={{ base: 'column', md: 'row' }} gap="4" w={{ base: "full", md: "auto" }}>
               <Button size="2xl" onClick={scrollToProjects} onMouseEnter={playHover} w={{ base: "full", md: "auto" }}>
                 {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
@@ -216,22 +210,11 @@ export const Block = ({
                   <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
                   <Dialog.Positioner>
                     <Dialog.Content bg="transparent" shadow="none" maxW="4xl" w="full" mx="4">
-                      
-                      {/* Floating Close Button */}
                       <Dialog.CloseTrigger asChild position="absolute" top={{ base: "-12", md: "-12" }} right="0">
-                        <IconButton 
-                          aria-label="Close video" 
-                          variant="ghost" 
-                          color="white" 
-                          _hover={{ bg: "whiteAlpha.200" }}
-                          rounded="full"
-                          onClick={playClick}
-                        >
+                        <IconButton aria-label="Close video" variant="ghost" color="white" _hover={{ bg: "whiteAlpha.200" }} rounded="full" onClick={playClick}>
                           <LuX />
                         </IconButton>
                       </Dialog.CloseTrigger>
-                      
-                      {/* Video Container */}
                       <Dialog.Body p="0" rounded="2xl" overflow="hidden" bg="black" shadow="2xl">
                         <Box aspectRatio={16 / 9} w="full">
                           <iframe
@@ -249,10 +232,8 @@ export const Block = ({
                   </Dialog.Positioner>
                 </Portal>
               </Dialog.Root>
-
             </Stack>
 
-            {/* Social Proof Cluster */}
             <HStack 
               gap="3" 
               onClick={scrollToTestimonials}
@@ -263,7 +244,6 @@ export const Block = ({
             >
               {avatars.length > 0 && (
                 <HStack gap="-2" me="1">
-                  {/* Render the dynamically fetched avatars */}
                   {avatars.map((src, i) => (
                     <Box 
                       key={i} 
@@ -281,7 +261,6 @@ export const Block = ({
                   ))}
                 </HStack>
               )}
-              
               <Stack gap="0" pt="1">
                 <HStack gap="0.5" color="yellow.400">
                   <FaStar size="12px" />
@@ -290,13 +269,11 @@ export const Block = ({
                   <FaStar size="12px" />
                   <FaStar size="12px" />
                 </HStack>
-                {/* Fallback to generic text so you aren't displaying a fake count */}
                 <Text fontSize="sm" color="fg.muted" fontWeight="medium">
                   {dict?.socialProof || "Trusted by product teams"}
                 </Text>
               </Stack>
             </HStack>
-
           </Stack>
         </HeroHeader>
       </Flex>
@@ -311,18 +288,7 @@ export const Block = ({
         {videoUrl || imageUrl ? (
           <PhoneFrame>
             {videoUrl ? (
-              <Video
-                src={videoUrl}
-                poster={imageUrl}
-                autoPlay
-                muted
-                loop
-                controls
-                playsInline
-                objectFit="cover"
-                width="100%"
-                height="100%"
-              />
+              <Video src={videoUrl} poster={imageUrl} autoPlay muted loop controls playsInline objectFit="cover" width="100%" height="100%" />
             ) : (
               <Image src={imageUrl} alt="App Screen" objectFit="cover" width="100%" height="100%" />
             )}
