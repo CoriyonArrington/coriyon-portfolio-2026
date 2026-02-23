@@ -6,6 +6,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ClarityAnalytics } from "@/components/ui/clarity";
 import "../globals.css";
 
+// IMPORT THE NEW COMPONENT
+import { FloatingContact } from "@/components/ui/floating-contact";
+
 const montserrat = localFont({
   src: "../../fonts/Montserrat/Montserrat-VariableFont_wght.ttf",
   variable: "--font-heading",
@@ -19,7 +22,6 @@ const nunitoSans = localFont({
 });
 
 export const metadata: Metadata = {
-  // Updated to your new primary production domain!
   metadataBase: new URL('https://www.coriyon.com'), 
   title: {
     template: '%s | Coriyon Arrington',
@@ -39,13 +41,11 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     siteName: 'Coriyon Arrington Portfolio',
-    // Next.js automatically injects the image from src/app/opengraph-image.png!
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Coriyon Arrington | Senior Product Designer',
     description: 'Portfolio of Coriyon Arrington, a Senior Product Designer based in Minneapolis.',
-    // Next.js automatically falls back to opengraph-image.png here as well!
   },
 };
 
@@ -56,7 +56,6 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
-  // FIX: Await the params Promise before accessing locale
   const { locale } = await params;
 
   return (
@@ -64,6 +63,10 @@ export default async function RootLayout({
       <body className={`${montserrat.variable} ${nunitoSans.variable}`}>
         <Provider>
           {children}
+          
+          {/* INJECT IT HERE GLOBALLY */}
+          <FloatingContact />
+          
         </Provider>
         <Analytics />
         <SpeedInsights />
