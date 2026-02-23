@@ -13,13 +13,19 @@ import {
   Highlight,
   Dialog,
   Portal,
-  IconButton
+  IconButton,
+  HStack,
+  Text,
+  Avatar
 } from '@chakra-ui/react'
 import { LuPlay, LuArrowDown, LuUser, LuX } from 'react-icons/lu'
+import { FaStar } from 'react-icons/fa' 
 import { HeroHeader } from './hero-header'
 import { ImagePlaceholder } from './image-placeholder'
 import Link from 'next/link'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
 const Video = chakra('video')
 
@@ -72,8 +78,25 @@ export const Block = ({
   introVideoUrl
 }: BlockProps) => {
   const { playHover, playClick } = useUiSounds()
+  const [avatars, setAvatars] = useState<string[]>([])
 
-  // Pull the video URL from the database dict, fallback to the default if not present
+  // Fetch the first 5 avatars directly from the testimonials table
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      const { data } = await supabase
+        .from('testimonials')
+        .select('avatar_url')
+        .not('avatar_url', 'is', null)
+        .limit(5)
+      
+      if (data) {
+        setAvatars(data.map(t => t.avatar_url).filter(Boolean) as string[])
+      }
+    }
+    
+    fetchAvatars()
+  }, [])
+
   const finalIntroVideoUrl = introVideoUrl || dict?.introVideoUrl || "https://www.youtube.com/embed/fnK-KIB3H44"
   
   const scrollToProjects = () => {
@@ -105,6 +128,21 @@ export const Block = ({
         behavior: 'smooth'
       })
       window.history.pushState(null, '', '#about')
+    }
+  }
+
+  const scrollToTestimonials = () => {
+    playClick()
+    const element = document.getElementById('testimonials')
+    if (element) {
+      const offset = 120 
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.scrollY - offset
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
     }
   }
 
@@ -152,63 +190,112 @@ export const Block = ({
           alignItems={{ base: "center", lg: "flex-start" }}
           textAlign={{ base: "center", lg: "start" }}
         >
-          <Stack direction={{ base: 'column', md: 'row' }} gap="4" mt="2">
-            {/* Primary Button */}
-            <Button size="2xl" onClick={scrollToProjects} onMouseEnter={playHover}>
-              {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
-            </Button>
+          <Stack gap="6" mt="2" alignItems={{ base: "center", lg: "flex-start" }}>
             
-            {/* Cinematic YouTube Modal Button */}
-            <Dialog.Root placement="center" motionPreset="slide-in-bottom">
-              <Dialog.Trigger asChild>
-                <Button 
-                  variant="solid" 
-                  size="2xl" 
-                  colorPalette="gray" 
-                  onClick={playClick}
-                  onMouseEnter={playHover}
-                >
-                  {dict?.watchIntro || "Watch Intro"} <LuPlay />
-                </Button>
-              </Dialog.Trigger>
+            {/* Button Group */}
+            <Stack direction={{ base: 'column', md: 'row' }} gap="4" w={{ base: "full", md: "auto" }}>
+              <Button size="2xl" onClick={scrollToProjects} onMouseEnter={playHover} w={{ base: "full", md: "auto" }}>
+                {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
+              </Button>
               
-              <Portal>
-                <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
-                <Dialog.Positioner>
-                  <Dialog.Content bg="transparent" shadow="none" maxW="4xl" w="full" mx="4">
-                    
-                    {/* Floating Close Button */}
-                    <Dialog.CloseTrigger asChild position="absolute" top={{ base: "-12", md: "-12" }} right="0">
-                      <IconButton 
-                        aria-label="Close video" 
-                        variant="ghost" 
-                        color="white" 
-                        _hover={{ bg: "whiteAlpha.200" }}
-                        rounded="full"
-                        onClick={playClick}
-                      >
-                        <LuX />
-                      </IconButton>
-                    </Dialog.CloseTrigger>
-                    
-                    {/* Video Container */}
-                    <Dialog.Body p="0" rounded="2xl" overflow="hidden" bg="black" shadow="2xl">
-                      <Box aspectRatio={16 / 9} w="full">
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          src={finalIntroVideoUrl}
-                          title="Introduction Video"
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </Box>
-                    </Dialog.Body>
-                  </Dialog.Content>
-                </Dialog.Positioner>
-              </Portal>
-            </Dialog.Root>
+              <Dialog.Root placement="center" motionPreset="slide-in-bottom">
+                <Dialog.Trigger asChild>
+                  <Button 
+                    variant="solid" 
+                    size="2xl" 
+                    colorPalette="gray" 
+                    onClick={playClick}
+                    onMouseEnter={playHover}
+                    w={{ base: "full", md: "auto" }}
+                  >
+                    {dict?.watchIntro || "Watch Intro"} <LuPlay />
+                  </Button>
+                </Dialog.Trigger>
+                
+                <Portal>
+                  <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
+                  <Dialog.Positioner>
+                    <Dialog.Content bg="transparent" shadow="none" maxW="4xl" w="full" mx="4">
+                      
+                      {/* Floating Close Button */}
+                      <Dialog.CloseTrigger asChild position="absolute" top={{ base: "-12", md: "-12" }} right="0">
+                        <IconButton 
+                          aria-label="Close video" 
+                          variant="ghost" 
+                          color="white" 
+                          _hover={{ bg: "whiteAlpha.200" }}
+                          rounded="full"
+                          onClick={playClick}
+                        >
+                          <LuX />
+                        </IconButton>
+                      </Dialog.CloseTrigger>
+                      
+                      {/* Video Container */}
+                      <Dialog.Body p="0" rounded="2xl" overflow="hidden" bg="black" shadow="2xl">
+                        <Box aspectRatio={16 / 9} w="full">
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            src={finalIntroVideoUrl}
+                            title="Introduction Video"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </Box>
+                      </Dialog.Body>
+                    </Dialog.Content>
+                  </Dialog.Positioner>
+                </Portal>
+              </Dialog.Root>
+
+            </Stack>
+
+            {/* Social Proof Cluster */}
+            <HStack 
+              gap="3" 
+              onClick={scrollToTestimonials}
+              onMouseEnter={playHover}
+              cursor="pointer"
+              transition="all 0.2s"
+              _hover={{ opacity: 0.8 }}
+            >
+              {avatars.length > 0 && (
+                <HStack gap="-2" me="1">
+                  {/* Render the dynamically fetched avatars */}
+                  {avatars.map((src, i) => (
+                    <Box 
+                      key={i} 
+                      borderWidth="2px" 
+                      borderColor="bg.panel" 
+                      rounded="full"
+                      transition="all 0.2s"
+                      _hover={{ transform: "translateY(-4px)", zIndex: 10 }}
+                    >
+                      <Avatar.Root size="sm">
+                        <Avatar.Image src={src} />
+                        <Avatar.Fallback name={`User ${i + 1}`} />
+                      </Avatar.Root>
+                    </Box>
+                  ))}
+                </HStack>
+              )}
+              
+              <Stack gap="0" pt="1">
+                <HStack gap="0.5" color="yellow.400">
+                  <FaStar size="12px" />
+                  <FaStar size="12px" />
+                  <FaStar size="12px" />
+                  <FaStar size="12px" />
+                  <FaStar size="12px" />
+                </HStack>
+                {/* Fallback to generic text so you aren't displaying a fake count */}
+                <Text fontSize="sm" color="fg.muted" fontWeight="medium">
+                  {dict?.socialProof || "Trusted by product teams"}
+                </Text>
+              </Stack>
+            </HStack>
 
           </Stack>
         </HeroHeader>
