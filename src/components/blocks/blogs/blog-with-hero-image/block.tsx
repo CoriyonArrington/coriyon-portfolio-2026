@@ -43,8 +43,10 @@ export const Block = ({ dict, posts, locale = 'en' }: BlogProps) => {
   }
 
   return (
-    <Box w="full" id="blog">
-      {/* Increased top padding (pt) to perfectly clear the fixed navbar */}
+    // Added className="pattern-dots" here
+    <Box w="full" id="blog" className="pattern-dots">
+      
+      {/* Top Hero Section (Solid background covers the dots here) */}
       <Box bg="colorPalette.solid" pt={{ base: '32', md: '40' }} pb={{ base: '32', md: '48' }}>
         <Container maxW="7xl" px={{ base: '4', md: '8' }}>
           <Stack gap={{ base: '6', md: '8' }} align="flex-start" textAlign="left" maxW="3xl">
@@ -63,7 +65,6 @@ export const Block = ({ dict, posts, locale = 'en' }: BlogProps) => {
             </Text>
 
             <Stack direction={{ base: 'column', md: 'row' }} gap="4" mt="2" w={{ base: 'full', md: 'auto' }}>
-              {/* Primary High-Contrast Button */}
               <Button 
                 size="xl" 
                 bg="white" 
@@ -77,7 +78,6 @@ export const Block = ({ dict, posts, locale = 'en' }: BlogProps) => {
                 {locale === 'es' ? 'Ver Videos' : 'Watch Videos'} <LuChevronDown />
               </Button>
 
-              {/* Secondary High-Contrast Solid Button */}
               <Button 
                 size="xl" 
                 bg="gray.900" 
@@ -98,6 +98,7 @@ export const Block = ({ dict, posts, locale = 'en' }: BlogProps) => {
         </Container>
       </Box>
       
+      {/* Video Grid Section (Dots will perfectly show through here) */}
       <Container id="featured-video" maxW="7xl" px={{ base: '4', md: '8' }} pb={{ base: '16', md: '24' }} mt={{ base: '-16', md: '-24' }}>
         <Stack gap={{ base: '16', md: '24' }}>
           <ArticlePreview post={heroPost} hero />

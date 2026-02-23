@@ -124,7 +124,7 @@ export const Block = ({
           {description || 'Project description goes here.'}
         </Text>
 
-        <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="2">
+        <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="2" w={{ base: 'full', md: 'auto' }}>
           {/* Primary Button */}
           <Button 
             size="xl" 
@@ -133,6 +133,7 @@ export const Block = ({
             _hover={{ opacity: 0.85 }} 
             onClick={handleScroll} 
             onMouseEnter={playHover}
+            w={{ base: 'full', md: 'auto' }}
           >
             {dict?.exploreWork || "Read Case Study"} <LuChevronDown />
           </Button>
@@ -146,6 +147,7 @@ export const Block = ({
                 variant="solid" 
                 onClick={playClick} 
                 onMouseEnter={playHover}
+                w={{ base: 'full', md: 'auto' }}
               >
                 {dict?.showOverview || "Show overview"} <LuEye />
               </Button>
