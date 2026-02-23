@@ -25,6 +25,8 @@ export const CategoryItem = (props: CategoryItemProps) => {
   
   const showMockup = data.mockupType === 'phone' || data.mockupType === 'tablet'
   const isTablet = data.mockupType === 'tablet'
+  // NEW: Specifically check if we should use the padded layout
+  const isPadded = data.mockupType === 'padded'
   const hasVideo = !!data.videoUrl
 
   const validSrc = data.src && data.src.trim() !== "" ? data.src : null
@@ -38,7 +40,8 @@ export const CategoryItem = (props: CategoryItemProps) => {
             alt={data.title}
             fill
             priority={priority}
-            style={{ objectFit: 'cover' }}
+            // Use contain only if it's explicitly set to padded
+            style={{ objectFit: isPadded ? 'contain' : 'cover' }}
             sizes="(max-width: 768px) 100vw, 50vw"
           />
         </Box>
@@ -58,7 +61,7 @@ export const CategoryItem = (props: CategoryItemProps) => {
             inset: 0, 
             width: '100%', 
             height: '100%', 
-            objectFit: 'cover', 
+            objectFit: isPadded ? 'contain' : 'cover', 
             zIndex: 1 
           }}
         />
@@ -111,7 +114,20 @@ export const CategoryItem = (props: CategoryItemProps) => {
                 </Box>
               </Box>
             </Center>
+          ) : isPadded ? (
+            <Box 
+              position="absolute" 
+              inset="0" 
+              zIndex="0" 
+              p={{ base: '8', md: '12' }} 
+              pb={{ base: '36', md: '48' }}
+            >
+               <Box position="relative" w="full" h="full">
+                 <DoubleLayerMedia />
+               </Box>
+            </Box>
           ) : (
+            // Full bleed fallback for standard web projects
             <Box position="absolute" inset="0" zIndex="0">
                <DoubleLayerMedia />
             </Box>
