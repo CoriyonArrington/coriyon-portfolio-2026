@@ -12,16 +12,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, created_at')
 
   const locales = ['en', 'es']
+  
+  // Define all the new top-level pages we created
+  const staticPages = ['', '/projects', '/about', '/blog']
 
-  // 1. Generate URLs for the Home page in both languages
-  const homeRoutes = locales.map((locale) => ({
-    url: `${baseUrl}/${locale}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 1.0,
-  }))
+  // 1. Generate URLs for core static pages in both languages
+  const staticRoutes = locales.flatMap((locale) => 
+    staticPages.map((page) => ({
+      url: `${baseUrl}/${locale}${page}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      // Give the home page top priority, and the other main pages slightly less
+      priority: page === '' ? 1.0 : 0.9,
+    }))
+  )
 
-  // 2. Generate URLs for every project in both languages
+  // 2. Generate URLs for every individual project case study in both languages
   const projectRoutes = (projects || []).flatMap((project) => 
     locales.map((locale) => ({
       url: `${baseUrl}/${locale}/projects/${project.slug}`,
@@ -31,5 +37,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   )
 
-  return [...homeRoutes, ...projectRoutes]
+  return [...staticRoutes, ...projectRoutes]
 }
