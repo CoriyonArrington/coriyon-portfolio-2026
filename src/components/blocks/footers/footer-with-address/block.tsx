@@ -157,7 +157,7 @@ export const Block = ({ dict }: FooterProps) => {
                   <NextLink href={getHref('/')}>{dict?.homeLink || "Home"}</NextLink>
                 </ChakraLink>
                 <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/projects'))} onMouseEnter={playHover}>
-                  <NextLink href={getHref('/projects')}>{dict?.projectsLink || "Projects"}</NextLink>
+                  <NextLink href={getHref('/projects')}>{dict?.projectsLink || "Work"}</NextLink>
                 </ChakraLink>
                 <ChakraLink asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, getHref('/about'))} onMouseEnter={playHover}>
                   <NextLink href={getHref('/about')}>{dict?.aboutLink || "About"}</NextLink>
