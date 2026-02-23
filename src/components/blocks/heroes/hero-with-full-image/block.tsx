@@ -148,12 +148,11 @@ export const Block = ({
     setIsCalendlyOpen(true)
   }
 
-  // Programmatically trigger the download so we don't need an <a> tag messing up the CSS
   const handleDownload = () => {
     playSuccess()
     const link = document.createElement('a')
-    link.href = '/resume.pdf'
-    link.download = 'resume.pdf'
+    link.href = '/Resume-Coriyon Arrington-Senior Product Designer.pdf'
+    link.download = 'Coriyon_Arrington_Resume.pdf'
     link.target = '_blank'
     document.body.appendChild(link)
     link.click()
@@ -261,7 +260,6 @@ export const Block = ({
                       {dict?.primaryCta || "Book an intro call"} <LuCalendar /> 
                     </Button>
                     
-                    {/* Reverted to a pure Button matching the Home page structure */}
                     <Button 
                       variant="solid" 
                       size="2xl" 
