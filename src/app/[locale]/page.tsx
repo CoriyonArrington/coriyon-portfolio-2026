@@ -5,12 +5,7 @@ import { Block as BannerBlock } from "@/components/blocks/banners/banner-with-li
 import { Block as HeroWithFullImage } from "@/components/blocks/heroes/hero-with-full-image/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
-import { Block as ServicesBlock } from "@/components/blocks/features/feature-10/block"
-import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
-import { Block as AboutFeatures } from "@/components/blocks/features/feature-07/block"
 import { Block as ProcessTimeline } from "@/components/blocks/process/timeline-section"
-import { Block as BlogBlock } from "@/components/blocks/blogs/blog-with-hero-image/block"
-import { Block as Faq } from "@/components/blocks/faqs/faq-with-inline-headline/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
@@ -21,12 +16,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
+  // We only fetch the data we actually need for the streamlined Home page
   const { data: pageData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
   const { data: projects } = await supabase.from('projects').select('*').order('sort_order', { ascending: true })
-  const { data: services } = await supabase.from('services').select('*').order('sort_order', { ascending: true })
-  const { data: allTestimonials } = await supabase.from('testimonials').select('*')
-  const { data: faqs } = await supabase.from('faqs').select('*').order('id', { ascending: true })
-  const { data: videos } = await supabase.from('videos').select('*').order('sort_order', { ascending: true })
+  
+  // Only fetch the single featured testimonial to save load time!
+  const { data: featuredTestimonials } = await supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
 
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
 
@@ -42,43 +37,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     category: p.project_category 
   }))
   
+  // Split projects based on the 'Playground' category
+  const regularProjects = localizedProjects?.filter(p => !p.category?.includes('Playground'))
+  const playgroundProjects = localizedProjects?.filter(p => p.category?.includes('Playground'))
+  
   const featuredProject = projects?.find(p => p.featured === true)
 
-  const localizedServices = services?.map(s => ({
-    id: s.id,
-    title: s[`title_${currentLocale}`] || s.title_en || s.title,
-    description: s[`description_${currentLocale}`] || s.description_en || s.description,
-    icon_name: s.icon_name,
-    url: s.url
-  }))
-
-  const localizedTestimonials = allTestimonials?.map(t => ({
-    ...t,
-    quote: t[`quote_${currentLocale}`] || t.quote_en || t.quote,
-    role: t[`role_${currentLocale}`] || t.role_en || t.role
-  }))
-  const featuredTestimonial = localizedTestimonials?.find(t => t.is_featured === true)
-  const gridTestimonials = localizedTestimonials?.filter(t => t.is_featured === false)
-
-  const localizedFaqs = faqs?.map(faq => ({
-    id: faq.id,
-    question: faq[`question_${currentLocale}`] || faq.question_en || faq.question,
-    answer: faq[`answer_${currentLocale}`] || faq.answer_en || faq.answer
-  }))
-
-  const localizedVideos = videos?.map(v => ({
-    id: v.id,
-    title: v[`title_${currentLocale}`] || v.title_en || v.title,
-    excerpt: v[`excerpt_${currentLocale}`] || v.excerpt_en || v.excerpt,
-    youtubeId: v.youtube_id,
-    category: v[`category_${currentLocale}`] || v.category_en || v.category,
-    publishedAt: v[`published_at_${currentLocale}`] || v.published_at_en || v.published_at,
-    isFeatured: v.is_featured,
-    author: {
-      name: 'Coriyon Arrington',
-      avatarUrl: 'https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/avatars/coriyon-arrington.png'
-    }
-  }))
+  const featuredTestimonial = featuredTestimonials?.[0] ? {
+    ...featuredTestimonials[0],
+    quote: featuredTestimonials[0][`quote_${currentLocale}`] || featuredTestimonials[0].quote_en || featuredTestimonials[0].quote,
+    role: featuredTestimonials[0][`role_${currentLocale}`] || featuredTestimonials[0].role_en || featuredTestimonials[0].role
+  } : null;
 
   return (
     <Box bg="bg.canvas" minH="100vh">
@@ -101,6 +70,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
+        {/* Immediate Social Proof */}
         <Box py={{ base: "16", md: "24" }} bg="bg.emphasized">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
@@ -109,57 +79,31 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
+        {/* The Meat: Case Studies */}
         <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <CategoryGrid dict={content.project} projects={localizedProjects || []} />
+              <CategoryGrid dict={content.project} projects={regularProjects || []} />
             </FadeIn>
           </Container>
         </Box>
 
-        <Box id="services" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
+        {/* Proof of Innovation: The Lab */}
+        <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <ServicesBlock dict={content.services} services={localizedServices || []} />
+              <CategoryGrid dict={content.playground} projects={playgroundProjects || []} />
             </FadeIn>
           </Container>
         </Box>
 
-        <Box id="testimonials" py={{ base: "16", md: "24" }} className="pattern-dots">
-          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <FadeIn>
-              <TestimonialGrid dict={content.testimonial} testimonials={gridTestimonials || []} />
-            </FadeIn>
-          </Container>
-        </Box>
-
-        <Box id="about" py={{ base: "16", md: "24" }}>
-          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <FadeIn>
-              <AboutFeatures dict={content.about} />
-            </FadeIn>
-          </Container>
-        </Box>
-
-        <Box id="process" w="full">
+        {/* Proof of Workflow: The Process */}
+        <Box id="process" w="full" pt={{ base: "16", md: "24" }}>
             <ProcessTimeline dict={content.process} />
         </Box>
 
-        <Box id="blog" w="full">
-          <FadeIn>
-            <BlogBlock dict={content.blog} posts={localizedVideos || []} />
-          </FadeIn>
-        </Box>
-
-        <Box id="faqs" bg="bg.subtle" py={{ base: "16", md: "24" }} className="pattern-grid">
-          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <FadeIn>
-              <Faq dict={content.faq} faqs={localizedFaqs || []} />
-            </FadeIn>
-          </Container>
-        </Box>
-
-        <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots">
+        {/* The Ask: Contact */}
+        <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <Cta dict={content.contact} />
