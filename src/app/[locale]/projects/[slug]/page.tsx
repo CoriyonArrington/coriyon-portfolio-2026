@@ -21,15 +21,14 @@ export async function generateMetadata(
   const { locale, slug } = await params;
   const currentLocale = locale || 'en'
 
-  // FIX: Using select('*') prevents silent errors if a specific column name doesn't exist
-  const { data: project, error } = await supabase
+  // FIX: Swapped .single() to .maybeSingle() to prevent console errors on 404s
+  const { data: project } = await supabase
     .from('projects')
     .select('*')
     .eq('slug', slug)
-    .single()
+    .maybeSingle()
 
-  if (error || !project) {
-    console.error("Error fetching metadata:", error)
+  if (!project) {
     return { title: 'Project Not Found' }
   }
 

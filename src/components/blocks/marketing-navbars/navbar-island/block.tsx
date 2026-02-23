@@ -23,11 +23,9 @@ import { CalendlyPopup } from '@/components/ui/calendly-popup'
 
 interface NavbarBlockProps {
   dict?: {
-    projects?: string;
-    testimonials?: string;
-    faqs?: string;
-    contact?: string;
-    bookCall?: string;
+    links?: Array<{ href: string, label: string }>;
+    cta?: string;
+    logoText?: string;
   }
 }
 
@@ -42,7 +40,8 @@ export const Block = ({ dict }: NavbarBlockProps) => {
     setIsCalendlyOpen(true)
   }
 
-  const bookCallText = dict?.bookCall || "Book an intro call"
+  // Updated to use 'cta' key from Supabase JSON
+  const bookCallText = dict?.cta || "Book an intro call"
 
   const handleOpenDrawer = () => {
     playClick()
@@ -65,7 +64,6 @@ export const Block = ({ dict }: NavbarBlockProps) => {
       />
       <Box position="fixed" bottom="0" left="0" right="0" height="24px" bg="bg.canvas/40" backdropFilter="blur(4px)" style={{ maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)' }} zIndex={99} pointerEvents="none" />
 
-      {/* The new dynamically imported Calendly component */}
       <CalendlyPopup 
         isOpen={isCalendlyOpen} 
         onClose={() => setIsCalendlyOpen(false)} 

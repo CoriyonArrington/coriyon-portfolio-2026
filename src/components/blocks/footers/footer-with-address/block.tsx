@@ -31,18 +31,15 @@ export const Block = ({ dict }: FooterProps) => {
     setTimeout(() => setHasCopied(false), 2000)
   }
 
-  // Determine if we are on the home page and get the base path (handles locales like /en, /es)
   const segments = pathname.split('/').filter(Boolean)
   const isHome = segments.length === 0 || (segments.length === 1 && segments[0].length === 2)
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
 
-  // Dynamic href generator: uses just the hash on the home page, or appends the root path on subpages
   const getHref = (hash: string) => isHome ? hash : `${homePath}${hash}`
 
   const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
     playWhoosh()
 
-    // Only intercept and smooth scroll if it's a direct hash link (meaning we are on the home page)
     if (href.startsWith('#')) {
       e.preventDefault()
       const targetId = href.replace('#', '')
@@ -65,7 +62,6 @@ export const Block = ({ dict }: FooterProps) => {
 
   const scrollToTop = (e: React.MouseEvent<HTMLElement>) => {
     playClick()
-    // If we are already on the home page, smoothly scroll to top
     if (isHome) {
       e.preventDefault()
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -82,7 +78,6 @@ export const Block = ({ dict }: FooterProps) => {
           justify="space-between"
           py={{ base: '10', md: '12' }}
         >
-          {/* Left Side: Logo & Address/Contact */}
           <Stack alignItems="start" gap="8">
             <ChakraLink 
               asChild
@@ -111,10 +106,7 @@ export const Block = ({ dict }: FooterProps) => {
               </Stack>
               <Stack gap="1">
                 <Text fontWeight="medium" color="fg">{dict?.contactHeading || "Contact"}</Text>
-                {/* Wrapped the links in a stack with gap="2" for nice spacing */}
                 <Stack gap="2" alignItems="flex-start">
-                  
-                  {/* Email Copy Link */}
                   <HStack 
                     as="button"
                     onClick={handleCopyEmail}
@@ -125,12 +117,10 @@ export const Block = ({ dict }: FooterProps) => {
                     cursor="pointer"
                     gap="2"
                   >
-                    {/* Replaced the raw email address with "Copy Email" text */}
                     <Text>{hasCopied ? (dict?.emailCopied || "Email copied!") : (dict?.copyEmail || "Copy Email")}</Text>
                     {hasCopied ? <LuCheck size="16" /> : <LuCopy size="16" />}
                   </HStack>
 
-                  {/* Seamless Resume Download Link */}
                   <DownloadTrigger 
                     value="/Resume-Coriyon Arrington-Senior Product Designer.pdf"
                     fileName="Coriyon_Arrington_Resume.pdf"
@@ -149,13 +139,11 @@ export const Block = ({ dict }: FooterProps) => {
                       <LuDownload size="16" />
                     </HStack>
                   </DownloadTrigger>
-
                 </Stack>
               </Stack>
             </Stack>
           </Stack>
 
-          {/* Right Side: 2-Column Links Grid */}
           <SimpleGrid columns={2} gap="8" width={{ base: 'full', md: 'auto' }}>
             <Stack gap="4" minW={{ md: '40' }}>
               <Text fontWeight="medium" color="fg">{dict?.sitemap || "Sitemap"}</Text>
@@ -197,31 +185,27 @@ export const Block = ({ dict }: FooterProps) => {
 
         <Separator borderColor="border.subtle" />
 
-        {/* Bottom Row */}
         <Stack
           direction={{ base: 'column-reverse', lg: 'row' }}
           alignItems="center"
           justify="space-between"
           pt="6"
-          pb={{ base: '28', md: '20' }} 
+          pb="4" 
           gap={{ base: '6', lg: '8' }}
         >
-          {/* Copyright */}
-          <Box flex={{ lg: 1 }} textAlign={{ base: "center", lg: "left" }} w="full">
+          <Box flex={{ lg: 1 }} textAlign="left" w="full">
             <Text fontSize="sm" color="fg.subtle">
-              © {currentYear} Coriyon Arrington. {dict?.rights || "All rights reserved."}
+              {dict?.copyright || `© ${currentYear} Coriyon Arrington. Based in Minneapolis.`}
             </Text>
           </Box>
 
-          {/* Built With Love */}
-          <Box flex={{ lg: 1 }} textAlign="center" w="full">
-            <Text fontSize="sm" color="fg.subtle" fontWeight="medium">
-              Designed with intention. Built with love 💚
+          <Box flex={{ lg: 1 }} textAlign={{ base: "left", lg: "center" }} w="full">
+            <Text fontSize="sm" color="fg.subtle">
+              {dict?.builtWithLove || "Designed with intention. Built with love 💚"}
             </Text>
           </Box>
 
-          {/* Socials & Toggles */}
-          <Stack direction={{ base: 'column', md: 'row' }} gap={{ base: '4', md: '6' }} alignItems="center" flex={{ lg: 1 }} justify={{ lg: "flex-end" }} w="full">
+          <Stack direction={{ base: 'column', md: 'row' }} gap={{ base: '4', md: '6' }} alignItems={{ base: "flex-start", lg: "center" }} flex={{ lg: 1 }} justify={{ lg: "flex-end" }} w="full">
             <HStack gap="2">
               <IconButton variant="ghost" size="sm" aria-label="LinkedIn" asChild onMouseEnter={playHover} onClick={playClick}>
                 <NextLink href="https://linkedin.com/in/coriyon" target="_blank">
@@ -240,7 +224,6 @@ export const Block = ({ dict }: FooterProps) => {
               </IconButton>
             </HStack>
             
-            {/* Utility Toggles */}
             <HStack gap="1" borderLeftWidth={{ md: "1px" }} borderColor="border.subtle" ps={{ md: "4" }}>
               <SoundToggle />
               <ColorModeButton />
@@ -248,6 +231,17 @@ export const Block = ({ dict }: FooterProps) => {
             </HStack>
           </Stack>
         </Stack>
+
+        <Box pb={{ base: '28', md: '20' }} textAlign="left" w="full">
+          <Text fontSize="sm" color="fg.subtle" maxW="4xl">
+            {dict?.clarityDisclosure || "I partner with Microsoft Clarity to capture how you use and interact with my website through behavioral metrics, heatmaps, and session replay to improve the user experience. By using this site, you agree that I and Microsoft can collect and use this data. "}
+            <ChakraLink asChild color="fg.muted" textDecoration="underline" _hover={{ color: "fg" }}>
+              <a href="https://privacy.microsoft.com/en-US/privacystatement" target="_blank" rel="noopener noreferrer">
+                {dict?.microsoftPrivacy || "Microsoft Privacy Statement"}
+              </a>
+            </ChakraLink>.
+          </Text>
+        </Box>
       </Container>
     </Box>
   )
