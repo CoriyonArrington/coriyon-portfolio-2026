@@ -41,7 +41,6 @@ export function FloatingContact() {
     message: ''
   })
 
-  // Fetch services from Supabase when the component mounts
   useEffect(() => {
     const fetchServices = async () => {
       const { data, error } = await supabase
@@ -94,7 +93,7 @@ export function FloatingContact() {
       placement="center" 
       motionPreset="slide-in-bottom"
     >
-      <Box position="fixed" bottom={{ base: '6', md: '8' }} right={{ base: '6', md: '8' }} zIndex="popover">
+      <Box position="fixed" bottom={{ base: '20', md: '24' }} right={{ base: '6', md: '8' }} zIndex="popover">
         <Dialog.Trigger asChild>
           <IconButton
             aria-label="Contact Us"
@@ -156,20 +155,20 @@ export function FloatingContact() {
                           <Text fontWeight="medium" fontSize="sm" mb="2">
                             Name <Text as="span" color="red.500">*</Text>
                           </Text>
-                          <Input name="name" value={formData.name} onChange={handleChange} placeholder="Jane Doe" required bg="bg.muted" />
+                          <Input fontSize="16px" name="name" value={formData.name} onChange={handleChange} placeholder="Jane Doe" required bg="bg.muted" />
                         </Box>
                         
                         <Box flex="1">
                           <Text fontWeight="medium" fontSize="sm" mb="2">
                             Email <Text as="span" color="red.500">*</Text>
                           </Text>
-                          <Input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="jane@company.com" required bg="bg.muted" />
+                          <Input fontSize="16px" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="jane@company.com" required bg="bg.muted" />
                         </Box>
                       </Stack>
 
                       <Box>
                         <Text fontWeight="medium" fontSize="sm" mb="2">Service Needed</Text>
-                        <StyledSelect name="service_needed" value={formData.service_needed} onChange={handleChange} w="full" h="10" px="3" rounded="md" bg="bg.muted" border="1px solid" borderColor="border.subtle" outline="none" _focus={{ borderColor: "green.500" }}>
+                        <StyledSelect fontSize="16px" name="service_needed" value={formData.service_needed} onChange={handleChange} w="full" h="10" px="3" rounded="md" bg="bg.muted" border="1px solid" borderColor="border.subtle" outline="none" _focus={{ borderColor: "green.500" }}>
                           <option value="">Select a service...</option>
                           {services.map((service) => (
                             <option key={service.id} value={service.title_en}>
@@ -183,7 +182,7 @@ export function FloatingContact() {
                       <Stack direction={{ base: "column", md: "row" }} gap="4">
                         <Box flex="1">
                           <Text fontWeight="medium" fontSize="sm" mb="2">Budget</Text>
-                          <StyledSelect name="budget" value={formData.budget} onChange={handleChange} w="full" h="10" px="3" rounded="md" bg="bg.muted" border="1px solid" borderColor="border.subtle" outline="none" _focus={{ borderColor: "green.500" }}>
+                          <StyledSelect fontSize="16px" name="budget" value={formData.budget} onChange={handleChange} w="full" h="10" px="3" rounded="md" bg="bg.muted" border="1px solid" borderColor="border.subtle" outline="none" _focus={{ borderColor: "green.500" }}>
                             <option value="">Select range...</option>
                             <option value="< $5k">Under $5k</option>
                             <option value="$5k - $10k">$5k - $10k</option>
@@ -193,7 +192,7 @@ export function FloatingContact() {
                         
                         <Box flex="1">
                           <Text fontWeight="medium" fontSize="sm" mb="2">Timeline</Text>
-                          <StyledSelect name="timeline" value={formData.timeline} onChange={handleChange} w="full" h="10" px="3" rounded="md" bg="bg.muted" border="1px solid" borderColor="border.subtle" outline="none" _focus={{ borderColor: "green.500" }}>
+                          <StyledSelect fontSize="16px" name="timeline" value={formData.timeline} onChange={handleChange} w="full" h="10" px="3" rounded="md" bg="bg.muted" border="1px solid" borderColor="border.subtle" outline="none" _focus={{ borderColor: "green.500" }}>
                             <option value="">Select timeline...</option>
                             <option value="ASAP">ASAP</option>
                             <option value="1-3 months">1-3 Months</option>
@@ -206,7 +205,7 @@ export function FloatingContact() {
                         <Text fontWeight="medium" fontSize="sm" mb="2">
                           Message <Text as="span" color="red.500">*</Text>
                         </Text>
-                        <Textarea name="message" value={formData.message} onChange={handleChange} placeholder="Tell me a bit about your project..." rows={4} required bg="bg.muted" />
+                        <Textarea fontSize="16px" name="message" value={formData.message} onChange={handleChange} placeholder="Tell me a bit about your project..." rows={4} required bg="bg.muted" />
                       </Box>
 
                       <Stack direction="row" justify="flex-end" gap="3" mt="2">
