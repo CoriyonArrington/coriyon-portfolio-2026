@@ -50,7 +50,6 @@ export const Block = ({ dict }: Props) => {
         <Flex
           align="center"
           justify={{ base: "center", lg: "flex-end" }} 
-          /* FIX: Symmetric padding on mobile (base/md), offset on desktop (lg) */
           ps={{ base: '6', md: '8', lg: '0' }} 
           pe={{ base: '6', md: '8', lg: '12' }}
           pt={{ base: '32', lg: '0' }}
@@ -81,7 +80,10 @@ export const Block = ({ dict }: Props) => {
           >
             <Stack direction={{ base: 'column', md: 'row' }} gap="4" mt="2" w={{ base: "full", md: "auto" }}>
               <Button 
-                size="2xl" 
+                size="xl" 
+                h={{ base: 14, md: 16 }}
+                px={{ base: 6, md: 8 }}
+                fontSize="lg"
                 colorPalette="green" 
                 onClick={scrollToProjects} 
                 onMouseEnter={playHover}
@@ -106,31 +108,37 @@ export const Block = ({ dict }: Props) => {
           }}
           zIndex={1}
         >
-           <Box pos="absolute" inset="0" pointerEvents={{ base: 'none', lg: 'auto' }}>
+           {/* Shift the entire scene left by 15% to fix the offset */}
+           <Box 
+             pos="absolute" 
+             inset="0" 
+             pointerEvents={{ base: 'none', lg: 'auto' }}
+             transform="translateX(-15%)"
+           >
               {/* @ts-ignore */}
               <spline-viewer 
                 url={splineUrl} 
-                hint="false"
                 loading-reveal="true"
               />
+              
+              <Badge 
+                pos="absolute" 
+                bottom={{ base: 6, lg: 10 }} 
+                left={{ base: "50%", lg: "54%" }} 
+                transform="translateX(-50%)"
+                colorPalette="gray"
+                variant="solid"
+                rounded="full"
+                px={4}
+                py={1.5}
+                pointerEvents="none"
+                zIndex={2}
+                shadow="md"
+                display={{ base: 'none', lg: 'block' }} // Hide hint on mobile
+              >
+                {dict?.dragText || "Press and drag to orbit"}
+              </Badge>
            </Box>
-           
-          <Badge 
-            pos="absolute" 
-            bottom={{ base: 6, lg: 10 }} 
-            left={{ base: "50%", lg: "54%" }} 
-            transform="translateX(-50%)"
-            colorPalette="gray"
-            variant="solid"
-            rounded="full"
-            px={4}
-            py={1.5}
-            pointerEvents="none"
-            zIndex={2}
-            shadow="md"
-          >
-            {dict?.dragText || "Press and drag to orbit"}
-          </Badge>
         </Box>
 
       </SimpleGrid>
@@ -140,6 +148,12 @@ export const Block = ({ dict }: Props) => {
           width: 100%;
           height: 100%;
           display: block;
+        }
+        /* Completely disable interactions on mobile to allow normal page scrolling */
+        @media (max-width: 991px) {
+          spline-viewer {
+            pointer-events: none !important;
+          }
         }
       `}} />
     </Box>
