@@ -83,7 +83,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <CategoryGrid dict={content.project} projects={regularProjects || []} />
+              <CategoryGrid 
+                dict={content.project} 
+                projects={regularProjects || []} 
+                viewAllHref={`/${currentLocale}/projects`}
+                viewAllText={currentLocale === 'es' ? 'Ver todos los proyectos' : 'View all projects'}
+              />
             </FadeIn>
           </Container>
         </Box>
@@ -92,7 +97,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <CategoryGrid dict={content.playground} projects={playgroundProjects || []} />
+              <CategoryGrid 
+                dict={content.playground} 
+                projects={playgroundProjects || []} 
+                viewAllHref={`/${currentLocale}/playground`}
+                viewAllText={currentLocale === 'es' ? 'Ver todos los experimentos' : 'View all experiments'}
+              />
             </FadeIn>
           </Container>
         </Box>
