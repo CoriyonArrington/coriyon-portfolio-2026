@@ -16,11 +16,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // We only fetch the data we actually need for the streamlined Home page
   const { data: pageData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
   const { data: projects } = await supabase.from('projects').select('*').order('sort_order', { ascending: true })
   
-  // Only fetch the single featured testimonial to save load time!
   const { data: featuredTestimonials } = await supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
 
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
@@ -37,7 +35,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     category: p.project_category 
   }))
   
-  // Split projects based on the 'Playground' category
   const regularProjects = localizedProjects?.filter(p => !p.category?.includes('Playground'))
   const playgroundProjects = localizedProjects?.filter(p => p.category?.includes('Playground'))
   
@@ -55,7 +52,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <Stack gap="0">
         <BannerBlock dict={content.banner} />
 
-        <Box pt={{ base: "12", md: "12" }} className="pattern-dots">
+        {/* FIX: Removed pt={{ base: "12", md: "12" }} here so the Hero controls its own padding */}
+        <Box className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <HeroWithFullImage 
@@ -70,7 +68,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        {/* Immediate Social Proof */}
         <Box py={{ base: "16", md: "24" }} bg="bg.emphasized">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
@@ -79,7 +76,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        {/* The Meat: Case Studies */}
         <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
@@ -93,7 +89,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        {/* Proof of Innovation: The Lab */}
         <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
@@ -107,12 +102,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        {/* Proof of Workflow: The Process */}
         <Box id="process" w="full" pt={{ base: "16", md: "24" }}>
             <ProcessTimeline dict={content.process} />
         </Box>
 
-        {/* The Ask: Contact */}
         <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>

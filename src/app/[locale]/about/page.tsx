@@ -52,8 +52,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       
       <Stack gap="0">
         
-        {/* Same layout, padding, and pattern-dots as the Home Page */}
-        <Box pt={{ base: "12", md: "12" }} className="pattern-dots">
+        {/* FIX: Removed pt={{ base: "12", md: "12" }} here so the Hero strictly controls its own top padding */}
+        <Box className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <HeroWithFullImage 

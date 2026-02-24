@@ -21,7 +21,6 @@ export async function generateMetadata(
   const { locale, slug } = await params;
   const currentLocale = locale || 'en'
 
-  // FIX: Swapped .single() to .maybeSingle() to prevent console errors on 404s
   const { data: project } = await supabase
     .from('projects')
     .select('*')
@@ -32,7 +31,6 @@ export async function generateMetadata(
     return { title: 'Project Not Found' }
   }
 
-  // FIX: Cast project to 'any' to allow dynamic string indexing without TS errors
   const title = (project as any)[`title_${currentLocale}`] || project.title_en || project.title
   const description = (project as any)[`description_${currentLocale}`] || project.description_en || project.description
   const imageUrl = project.featured_image_url 
@@ -74,13 +72,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   if (currentIndex > 0) {
     const p = allProjects[currentIndex - 1]
-    // FIX: TS casting
     prevProject = { slug: p.slug, title: (p as any)[`title_${currentLocale}`] || p.title_en || p.title }
   }
 
   if (currentIndex < allProjects.length - 1 && currentIndex !== -1) {
     const n = allProjects[currentIndex + 1]
-    // FIX: TS casting
     nextProject = { slug: n.slug, title: (n as any)[`title_${currentLocale}`] || n.title_en || n.title }
   }
 
@@ -103,14 +99,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const localizedFeaturedTestimonial = rawFeaturedTestimonial ? {
     ...rawFeaturedTestimonial,
-    // FIX: TS casting
     quote: (rawFeaturedTestimonial as any)[`quote_${currentLocale}`] || rawFeaturedTestimonial.quote_en || rawFeaturedTestimonial.quote,
     role: (rawFeaturedTestimonial as any)[`role_${currentLocale}`] || rawFeaturedTestimonial.role_en || rawFeaturedTestimonial.role
   } : null
 
   const localizedRemainingTestimonials = remainingTestimonials.map(t => ({
     ...t,
-    // FIX: TS casting
     quote: (t as any)[`quote_${currentLocale}`] || t.quote_en || t.quote,
     role: (t as any)[`role_${currentLocale}`] || t.role_en || t.role
   }))
@@ -168,12 +162,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     <Box bg="bg.canvas" minH="100vh">
       <NavbarIsland dict={content.navbar} />
       
-      <Stack gap="0" pt="24">
+      {/* FIX: Removed pt="24" from the stack wrapper */}
+      <Stack gap="0">
         
-        <Box className="pattern-dots" pt={{ base: "8", md: "12" }} pb={{ base: "16", md: "24" }}>
+        {/* FIX: Removed pt={{ base: "8", md: "12" }} so the Hero controls its own padding */}
+        <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              {/* FIX: Dynamically override the 'exploreWork' key just for this hero instance! */}
               <HeroWithImageBottomCentered 
                 dict={{ ...content.hero, exploreWork: content.project?.readCaseStudy || "Read case study" }}
                 title={title}
