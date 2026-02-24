@@ -9,19 +9,22 @@ import {
   Badge, 
   Button, 
   Image, 
-  SimpleGrid
+  SimpleGrid,
+  Center
 } from '@chakra-ui/react'
-import { useRef } from 'react'
-import { useScroll, useTransform, motion, useSpring } from 'motion/react'
+import { useRef, useState } from 'react'
+import { useScroll, useTransform, motion, useSpring, AnimatePresence } from 'motion/react'
 import { LuDownload } from 'react-icons/lu'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { DownloadTrigger } from '@/components/ui/download-trigger'
+import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 
 interface TimelineStep {
   date: string
   heading: string
   description: string
   imageSrc: string
+  lottieUrl?: string 
 }
 
 interface TimelineSectionProps {
@@ -31,6 +34,7 @@ interface TimelineSectionProps {
     description?: string
     steps?: TimelineStep[]
     viewProcess?: string
+    showMore?: string
   }
 }
 
@@ -41,8 +45,10 @@ export const Block = ({ dict }: TimelineSectionProps) => {
   const { playHover, playClick, playSuccess } = useUiSounds()
   const sectionRef = useRef<HTMLElement | null>(null)
   const steps = dict?.steps || []
+  
+  // State for progressive disclosure
+  const [isExpanded, setIsExpanded] = useState(false)
 
-  // 1. Center Line Scroll Animation (We keep this because we want it to animate)
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start center", "end center"]
@@ -54,14 +60,11 @@ export const Block = ({ dict }: TimelineSectionProps) => {
     restDelta: 0.001
   })
 
+  // Only show first 3 steps unless expanded
+  const visibleSteps = isExpanded ? steps : steps.slice(0, 3)
+
   return (
     <>
-      {/* THE STICKY FIX: 
-        If a parent container (like body or html) has overflow-x: hidden, 
-        CSS position: sticky is instantly broken. Changing it to 'clip' 
-        maintains the exact same protection against horizontal scrolling 
-        while allowing sticky elements to function natively without lag!
-      */}
       <style dangerouslySetInnerHTML={{ __html: `
         html, body {
           overflow-x: clip !important;
@@ -75,20 +78,16 @@ export const Block = ({ dict }: TimelineSectionProps) => {
         className="pattern-dots"
       >
         <Container maxW="7xl">
-          {/* alignItems="stretch" ensures the left column is exactly 
-              as tall as the timeline steps, creating the "track" */}
           <SimpleGrid 
             columns={{ base: 1, md: 2 }} 
             gap={{ base: '12', md: GAP_MD, lg: GAP_LG }} 
             alignItems="stretch" 
           >
             
-            {/* LEFT COLUMN: The Track */}
             <Box height="100%">
-              {/* Native CSS Sticky Element (Zero Lag, Perfectly Still) */}
               <Box 
                 position={{ base: 'relative', md: 'sticky' }} 
-                top={{ base: 'auto', md: '140px' }} // Clears the navbar perfectly
+                top={{ base: 'auto', md: '140px' }} 
                 zIndex="10"
               >
                 <motion.div
@@ -131,9 +130,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
               </Box>
             </Box>
 
-            {/* RIGHT COLUMN: Progress Line & Steps */}
             <Box position="relative">
-               {/* Animated Center Progress Line */}
                <Box 
                 hideBelow="md"
                 position="absolute" 
@@ -160,9 +157,30 @@ export const Block = ({ dict }: TimelineSectionProps) => {
               </Box>
 
               <Stack gap={{ base: '16', md: '40' }} pt={{ base: '0', md: '8' }}>
-                {steps.map((step, index) => (
-                  <TimelineStepItem key={index} step={step} index={index} />
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {visibleSteps.map((step, index) => (
+                    <TimelineStepItem key={index} step={step} index={index} />
+                  ))}
+                </AnimatePresence>
+
+                {/* Show More Button */}
+                {!isExpanded && steps.length > 3 && (
+                  <Center pt={{ base: '4', md: '8' }}>
+                    <Button
+                      variant="outline"
+                      colorPalette="gray"
+                      size="xl"
+                      rounded="full"
+                      onClick={() => {
+                        playClick()
+                        setIsExpanded(true)
+                      }}
+                      onMouseEnter={playHover}
+                    >
+                      {dict?.showMore || "Show more steps"}
+                    </Button>
+                  </Center>
+                )}
               </Stack>
             </Box>
           </SimpleGrid>
@@ -174,6 +192,8 @@ export const Block = ({ dict }: TimelineSectionProps) => {
 
 const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }) => {
   const itemRef = useRef<HTMLDivElement>(null)
+  const { playHover } = useUiSounds()
+  const [isLottieReady, setIsLottieReady] = useState(false)
 
   const { scrollYProgress } = useScroll({
     target: itemRef,
@@ -226,23 +246,58 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
             </Text>
           </Stack>
           
-          <Box 
-            borderRadius="l3" 
-            overflow="hidden" 
-            borderWidth="1px" 
-            borderColor="border.subtle"
-            bg="bg.muted"
-            aspectRatio={4/3}
-            shadow="sm"
+          <motion.div
+            whileHover={{ y: -8, scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            onHoverStart={() => playHover()}
+            style={{ width: '100%', cursor: 'default' }}
           >
-            <Image 
-              src={step.imageSrc} 
-              alt={step.heading} 
-              w="full" 
-              h="full" 
-              objectFit="cover" 
-            />
-          </Box>
+            <Box 
+              borderRadius="l3" 
+              overflow="hidden" 
+              borderWidth="1px" 
+              borderColor="border.subtle"
+              bg="bg.muted"
+              aspectRatio={4/3}
+              shadow="sm"
+              position="relative"
+              role="group"
+            >
+              <Image 
+                src={step.imageSrc} 
+                alt={step.heading} 
+                w="full" 
+                h="full" 
+                objectFit="cover" 
+                transition="transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
+                _groupHover={{ transform: (step.lottieUrl && isLottieReady) ? "none" : "scale(1.05)" }}
+              />
+
+              {step.lottieUrl && (
+                <Box 
+                  position="absolute" 
+                  inset="0" 
+                  zIndex="1" 
+                  bg={isLottieReady ? "bg.muted" : "transparent"} 
+                  opacity={isLottieReady ? 1 : 0}
+                  transition="opacity 0.5s ease"
+                >
+                  <DotLottieReact
+                    src={step.lottieUrl}
+                    loop
+                    autoplay
+                    dotLottieRefCallback={(dotLottie: any) => {
+                      if (dotLottie) {
+                        dotLottie.addEventListener('load', () => setIsLottieReady(true));
+                        dotLottie.addEventListener('error', () => setIsLottieReady(false));
+                      }
+                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </Box>
+              )}
+            </Box>
+          </motion.div>
         </Stack>
       </motion.div>
     </Box>
