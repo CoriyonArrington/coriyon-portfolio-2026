@@ -46,7 +46,6 @@ export const Block = ({
     }
   }
 
-  // Handle Asterisk Highlighting for the Title
   const rawTitle = title || dict?.title || 'Project Title'
   const { displayTitle, highlightQueries } = useMemo(() => {
     const matches = rawTitle.match(/\*(.*?)\*/g)
@@ -98,7 +97,7 @@ export const Block = ({
   )
 
   return (
-    <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full">
+    <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full" py={{ base: '8', md: '12' }}>
       <Stack gap="6" align="center" px={{ base: '4', md: '8' }}>
         {tagline && (
           <Badge size="lg" variant="subtle" colorPalette="green" alignSelf="center" rounded="full" px="4" py="1">
@@ -125,7 +124,6 @@ export const Block = ({
         </Text>
 
         <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="2" w={{ base: 'full', md: 'auto' }}>
-          {/* Primary Button */}
           <Button 
             size="xl" 
             bg={bgColor || "green.600"} 
@@ -138,7 +136,6 @@ export const Block = ({
             {dict?.exploreWork || "Read Case Study"} <LuChevronDown />
           </Button>
 
-          {/* Secondary Button */}
           <Dialog.Root placement="center" motionPreset="slide-in-bottom">
             <Dialog.Trigger asChild>
               <Button 
@@ -158,10 +155,8 @@ export const Block = ({
               <Dialog.Positioner>
                 <Dialog.Content p={{ base: "6", md: "8" }} rounded="2xl" shadow="2xl" bg="bg.panel" color="fg.default" maxW="2xl" w="full" mx="4">
                   
-                  {/* Flex header ensures vertical centering and perfect right-alignment */}
                   <Dialog.Header pb="6" display="flex" justifyContent="space-between" alignItems="center">
                     <Dialog.Title textStyle="2xl" fontWeight="bold">Project Overview</Dialog.Title>
-                    {/* position="static" removes the default absolute positioning! */}
                     <Dialog.CloseTrigger asChild position="static" inset="auto">
                       <IconButton 
                         aria-label="Close dialog"
@@ -226,7 +221,6 @@ export const Block = ({
         </Stack>
       </Stack>
 
-      {/* Media Container */}
       {showMockup ? (
         <Center w="full" mt={{ base: '8', md: '12' }} px={{ base: '4', md: '8' }}>
           <Box position="relative" w="full" maxW={isTablet ? "5xl" : "300px"} aspectRatio={isTablet ? '1106/814' : '1/2'}>

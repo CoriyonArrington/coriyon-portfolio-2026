@@ -32,7 +32,6 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
     category: p.project_category 
   }))
   
-  // Split projects based on the 'Playground' category
   const regularProjects = localizedProjects?.filter(p => !p.category?.includes('Playground')) || []
   const playgroundProjects = localizedProjects?.filter(p => p.category?.includes('Playground')) || []
 
@@ -65,7 +64,6 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
           />
         </FadeIn>
 
-        {/* The Meat: Case Studies - Only renders if there are projects */}
         {regularProjects.length > 0 && (
           <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
@@ -76,12 +74,16 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
           </Box>
         )}
 
-        {/* Proof of Innovation: The Lab - Only renders if there are playground projects */}
         {playgroundProjects.length > 0 && (
           <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
               <FadeIn>
-                <CategoryGrid dict={homeContent.playground} projects={playgroundProjects} />
+                <CategoryGrid 
+                  dict={homeContent.playground} 
+                  projects={playgroundProjects} 
+                  viewAllHref={`/${currentLocale}/playground`}
+                  viewAllText={currentLocale === 'es' ? 'Ver todos los experimentos' : 'View all experiments'}
+                />
               </FadeIn>
             </Container>
           </Box>
