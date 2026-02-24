@@ -97,7 +97,7 @@ export const Block = ({
   )
 
   return (
-    <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full" py={{ base: '8', md: '12' }}>
+    <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={{ base: '8', md: '12' }}>
       <Stack gap="6" align="center" px={{ base: '4', md: '8' }}>
         {tagline && (
           <Badge size="lg" variant="subtle" colorPalette="green" alignSelf="center" rounded="full" px="4" py="1">
@@ -126,6 +126,9 @@ export const Block = ({
         <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="2" w={{ base: 'full', md: 'auto' }}>
           <Button 
             size="xl" 
+            h={{ base: 14, md: 16 }}
+            px={{ base: 6, md: 8 }}
+            fontSize="lg"
             bg={bgColor || "green.600"} 
             color="white"
             _hover={{ opacity: 0.85 }} 
@@ -140,6 +143,9 @@ export const Block = ({
             <Dialog.Trigger asChild>
               <Button 
                 size="xl" 
+                h={{ base: 14, md: 16 }}
+                px={{ base: 6, md: 8 }}
+                fontSize="lg"
                 colorPalette="gray" 
                 variant="solid" 
                 onClick={playClick} 

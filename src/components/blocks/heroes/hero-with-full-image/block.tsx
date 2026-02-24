@@ -16,7 +16,8 @@ import {
   IconButton,
   HStack,
   Text,
-  Avatar
+  Avatar,
+  Skeleton
 } from '@chakra-ui/react'
 import { LuPlay, LuArrowDown, LuUser, LuX, LuCalendar, LuDownload } from 'react-icons/lu'
 import { FaStar } from 'react-icons/fa' 
@@ -81,6 +82,7 @@ export const Block = ({
 }: BlockProps) => {
   const { playHover, playClick, playSuccess } = useUiSounds()
   const [avatars, setAvatars] = useState<string[]>([])
+  const [isLoadingAvatars, setIsLoadingAvatars] = useState(true)
   const [isCalendlyOpen, setIsCalendlyOpen] = useState(false)
 
   const rawTitle = title || dict?.title || ""
@@ -93,6 +95,7 @@ export const Block = ({
 
   useEffect(() => {
     const fetchAvatars = async () => {
+      setIsLoadingAvatars(true)
       const { data } = await supabase
         .from('testimonials')
         .select('avatar_url')
@@ -102,6 +105,7 @@ export const Block = ({
       if (data) {
         setAvatars(data.map(t => t.avatar_url).filter(Boolean) as string[])
       }
+      setIsLoadingAvatars(false)
     }
     fetchAvatars()
   }, [])
@@ -165,8 +169,9 @@ export const Block = ({
         <Flex
           align="center"
           justify="center"
+          w="full"
           pe={{ base: '0', lg: '12' }} 
-          pt={{ base: '20', lg: '8' }}
+          pt={{ base: '32', md: '40' }} 
           pb={{ base: '8', lg: '24' }} 
         >
           <HeroHeader
@@ -204,12 +209,20 @@ export const Block = ({
             alignItems={{ base: "center", lg: "flex-start" }}
             textAlign={{ base: "center", lg: "start" }}
           >
-            <Stack gap="6" mt="2" alignItems={{ base: "center", lg: "flex-start" }}>
+            <Stack gap="6" mt="2" alignItems={{ base: "center", lg: "flex-start" }} w="full">
               
               <Stack direction={{ base: 'column', md: 'row' }} gap="4" w={{ base: "full", md: "auto" }}>
                 {variant === 'home' ? (
                   <>
-                    <Button size="2xl" onClick={scrollToProjects} onMouseEnter={playHover} w={{ base: "full", md: "auto" }}>
+                    <Button 
+                      size="xl" 
+                      h={{ base: 14, md: 16 }}
+                      px={{ base: 6, md: 8 }}
+                      fontSize="lg"
+                      onClick={scrollToProjects} 
+                      onMouseEnter={playHover} 
+                      w={{ base: "full", md: "auto" }}
+                    >
                       {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
                     </Button>
                     
@@ -217,7 +230,10 @@ export const Block = ({
                       <Dialog.Trigger asChild>
                         <Button 
                           variant="solid" 
-                          size="2xl" 
+                          size="xl" 
+                          h={{ base: 14, md: 16 }}
+                          px={{ base: 6, md: 8 }}
+                          fontSize="lg"
                           colorPalette="gray" 
                           onClick={playClick}
                           onMouseEnter={playHover}
@@ -256,13 +272,24 @@ export const Block = ({
                   </>
                 ) : (
                   <>
-                    <Button size="2xl" onClick={handleOpenCalendly} onMouseEnter={playHover} w={{ base: "full", md: "auto" }}>
+                    <Button 
+                      size="xl" 
+                      h={{ base: 14, md: 16 }}
+                      px={{ base: 6, md: 8 }}
+                      fontSize="lg"
+                      onClick={handleOpenCalendly} 
+                      onMouseEnter={playHover} 
+                      w={{ base: "full", md: "auto" }}
+                    >
                       {dict?.primaryCta || "Book an intro call"} <LuCalendar /> 
                     </Button>
                     
                     <Button 
                       variant="solid" 
-                      size="2xl" 
+                      size="xl" 
+                      h={{ base: 14, md: 16 }}
+                      px={{ base: 6, md: 8 }}
+                      fontSize="lg"
                       colorPalette="gray" 
                       onClick={handleDownload}
                       onMouseEnter={playHover}
@@ -281,9 +308,24 @@ export const Block = ({
                 cursor="pointer"
                 transition="all 0.2s"
                 _hover={{ opacity: 0.8 }}
+                h="10"
               >
-                {avatars.length > 0 && (
-                  <HStack gap="-2" me="1">
+                {isLoadingAvatars ? (
+                  <HStack gap="-2" me="1" w="20">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Box 
+                        key={`skeleton-${i}`} 
+                        borderWidth="2px" 
+                        borderColor="bg.panel" 
+                        rounded="full"
+                        zIndex={10 - i}
+                      >
+                        <Skeleton width="32px" height="32px" borderRadius="full" />
+                      </Box>
+                    ))}
+                  </HStack>
+                ) : avatars.length > 0 ? (
+                  <HStack gap="-2" me="1" w="auto">
                     {avatars.map((src, i) => (
                       <Box 
                         key={i} 
@@ -300,7 +342,7 @@ export const Block = ({
                       </Box>
                     ))}
                   </HStack>
-                )}
+                ) : null}
                 <Stack gap="0" pt="1">
                   <HStack gap="0.5" color="yellow.400">
                     <FaStar size="12px" />
@@ -347,7 +389,7 @@ export const Block = ({
             </PhoneFrame>
           ) : (
             <Box width="full" maxW="lg" px="8">
-               <Box w="full" minH={{ base: '96', lg: '3xl' }} height="100%" bg="bg.muted" borderRadius="3xl" />
+               <Skeleton w="full" minH={{ base: '96', lg: '3xl' }} height="100%" borderRadius="3xl" />
             </Box>
           )}
         </Flex>
