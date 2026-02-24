@@ -41,6 +41,7 @@ export function FloatingContact() {
     message: ''
   })
 
+  // 1. Fetch Services
   useEffect(() => {
     const fetchServices = async () => {
       const { data, error } = await supabase
@@ -93,7 +94,12 @@ export function FloatingContact() {
       placement="center" 
       motionPreset="slide-in-bottom"
     >
-      <Box position="fixed" bottom={{ base: '20', md: '24' }} right={{ base: '6', md: '8' }} zIndex="popover">
+      <Box 
+        position="fixed" 
+        bottom={{ base: '16', md: '20' }} 
+        right={{ base: '6', md: '8' }} 
+        zIndex="popover"
+      >
         <Dialog.Trigger asChild>
           <IconButton
             aria-label="Contact Us"
