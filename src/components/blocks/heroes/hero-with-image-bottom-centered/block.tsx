@@ -46,7 +46,7 @@ export const Block = ({
     }
   }
 
-  const rawTitle = title || dict?.title || 'Project Title'
+  const rawTitle = title || dict?.title || 'Project title'
   const { displayTitle, highlightQueries } = useMemo(() => {
     const matches = rawTitle.match(/\*(.*?)\*/g)
     const queries = matches ? matches.map((m: string) => m.replace(/\*/g, '')) : []
@@ -65,7 +65,7 @@ export const Block = ({
         <Box position="absolute" inset="0" zIndex="0">
           <Image
             src={imageUrl}
-            alt={title || "Project Media"}
+            alt={title || "Project media"}
             fill
             priority
             style={{ objectFit: 'cover' }}
@@ -107,10 +107,10 @@ export const Block = ({
         
         <Heading
           as="h1"
-          textStyle={{ base: '4xl', md: '6xl', lg: '7xl' }}
+          textStyle={{ base: '5xl', md: '6xl', lg: '7xl' }}
           maxW="4xl"
           mx="auto"
-          lineHeight="tighter"
+          lineHeight={{ base: '1.2', md: '1.1' }}
           fontWeight="bold"
           letterSpacing="tight"
         >
@@ -136,7 +136,7 @@ export const Block = ({
             onMouseEnter={playHover}
             w={{ base: 'full', md: 'auto' }}
           >
-            {dict?.exploreWork || "Read Case Study"} <LuChevronDown />
+            {dict?.exploreWork || "Read case study"} <LuChevronDown />
           </Button>
 
           <Dialog.Root placement="center" motionPreset="slide-in-bottom">
@@ -162,7 +162,7 @@ export const Block = ({
                 <Dialog.Content p={{ base: "6", md: "8" }} rounded="2xl" shadow="2xl" bg="bg.panel" color="fg.default" maxW="2xl" w="full" mx="4">
                   
                   <Dialog.Header pb="6" display="flex" justifyContent="space-between" alignItems="center">
-                    <Dialog.Title textStyle="2xl" fontWeight="bold">Project Overview</Dialog.Title>
+                    <Dialog.Title textStyle="2xl" fontWeight="bold">Project overview</Dialog.Title>
                     <Dialog.CloseTrigger asChild position="static" inset="auto">
                       <IconButton 
                         aria-label="Close dialog"
@@ -188,7 +188,7 @@ export const Block = ({
                       <SimpleGrid columns={{ base: 1, md: 2 }} gap="8">
                         {role && (
                           <Box>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">My Role</Text>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">My role</Text>
                             <Text fontWeight="medium">{role}</Text>
                           </Box>
                         )}
@@ -206,7 +206,7 @@ export const Block = ({
                         )}
                         {teamRoles && (
                           <Box>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team Roles</Text>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team roles</Text>
                             <Text fontWeight="medium">{teamRoles}</Text>
                           </Box>
                         )}

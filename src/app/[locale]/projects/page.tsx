@@ -39,18 +39,15 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
     <Box bg="bg.canvas" minH="100vh">
       <NavbarIsland dict={homeContent.navbar} />
       
-      {/* FIX: Removed pt={{ base: "32", md: "40" }} so the hero controls its own top padding */}
       <Stack gap="0">
-        
-        {/* FIX: Wrapped in pattern-dots and a Container to match the other pages */}
         <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <ProjectsHero 
                 dict={{ 
                   ...projectsContent.hero, 
-                  exploreWork: currentLocale === 'es' ? 'Ver Proyectos' : 'View Projects', 
-                  showOverview: currentLocale === 'es' ? 'Resumen' : 'Quick Overview' 
+                  exploreWork: projectsContent.hero?.exploreWork || (currentLocale === 'es' ? 'Ver proyectos' : 'View projects'), 
+                  showOverview: projectsContent.hero?.showOverview || (currentLocale === 'es' ? 'Resumen rápido' : 'Quick overview') 
                 }}
                 title={projectsContent.hero?.title}
                 description={projectsContent.hero?.description}
@@ -58,7 +55,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
                 imageUrl={projectsContent.hero?.imageUrl}
                 videoUrl={projectsContent.hero?.videoUrl}
                 mockupType={projectsContent.hero?.mockupType}
-                bgColor="green.600"
+                bgColor={projectsContent.hero?.bgColor || "green.600"}
                 summary={projectsContent.hero?.summary}
                 role={projectsContent.hero?.role}
                 duration={projectsContent.hero?.duration}
