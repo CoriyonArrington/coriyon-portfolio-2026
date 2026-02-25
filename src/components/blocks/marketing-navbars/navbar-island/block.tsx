@@ -22,11 +22,7 @@ import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { CalendlyPopup } from '@/components/ui/calendly-popup'
 
 interface NavbarBlockProps {
-  dict?: {
-    links?: Array<{ href: string, label: string }>;
-    cta?: string;
-    logoText?: string;
-  }
+  dict?: any; // Accepting the full localized dictionary for dynamic mapping
 }
 
 export const Block = ({ dict }: NavbarBlockProps) => {
