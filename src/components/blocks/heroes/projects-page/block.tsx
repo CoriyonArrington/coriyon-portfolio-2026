@@ -23,11 +23,13 @@ interface HeroProps {
   teamRoles?: string | null;
   deliverables?: string | null;
   summary?: string | null;
+  industries?: string | null;
+  platforms?: string | null;
 }
 
 export const Block = ({ 
   dict, title, description, tagline, imageUrl, videoUrl, mockupType, bgColor,
-  role, duration, year, teamRoles, deliverables, summary 
+  role, duration, year, teamRoles, deliverables, summary, industries, platforms
 }: HeroProps) => {
   const { playClick, playHover } = useUiSounds()
 
@@ -54,18 +56,35 @@ export const Block = ({
     return { displayTitle: cleanText, highlightQueries: queries }
   }, [rawTitle])
 
-  const normalizedMockupType = mockupType?.toString().toLowerCase().trim()
+  // Fallback to reading from the dictionary if props aren't explicitly passed
+  const finalTagline = tagline || dict?.tagline;
+  const finalDescription = description || dict?.description || 'Project description goes here.';
+  const finalImageUrl = imageUrl || dict?.imageUrl;
+  const finalVideoUrl = videoUrl || dict?.videoUrl;
+  const finalMockupType = mockupType || dict?.mockupType;
+  
+  // Safely extract nested stats from the JSON dictionary
+  const displayRole = role || dict?.stats?.role;
+  const displayDuration = duration || dict?.stats?.duration;
+  const displayYear = year || dict?.stats?.year;
+  const displayTeamRoles = teamRoles || dict?.stats?.teamRoles;
+  const displayDeliverables = deliverables || dict?.stats?.deliverables;
+  const displaySummary = summary || dict?.stats?.summary;
+  const displayIndustries = industries || dict?.stats?.industries;
+  const displayPlatforms = platforms || dict?.stats?.platforms;
+
+  const normalizedMockupType = finalMockupType?.toString().toLowerCase().trim()
   const isTablet = normalizedMockupType === 'tablet' || normalizedMockupType === 'ipad'
   const isPhone = normalizedMockupType === 'phone' || normalizedMockupType === 'mobile' || normalizedMockupType === 'iphone'
   const showMockup = isTablet || isPhone
 
   const MediaContent = () => (
     <>
-      {imageUrl && !videoUrl && (
+      {finalImageUrl && !finalVideoUrl && (
         <Box position="absolute" inset="0" zIndex="0">
           <Image
-            src={imageUrl}
-            alt={title || "Project media"}
+            src={finalImageUrl}
+            alt={rawTitle || "Project media"}
             fill
             priority
             style={{ objectFit: 'cover' }}
@@ -74,15 +93,15 @@ export const Block = ({
         </Box>
       )}
 
-      {videoUrl && (
+      {finalVideoUrl && (
         <video
-          src={videoUrl}
+          src={finalVideoUrl}
           autoPlay
           loop
           muted
           controls
           playsInline
-          poster={imageUrl || undefined}
+          poster={finalImageUrl || undefined}
           style={{ 
             position: 'absolute', 
             inset: 0, 
@@ -99,9 +118,9 @@ export const Block = ({
   return (
     <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={{ base: '8', md: '12' }}>
       <Stack gap="6" align="center" px={{ base: '4', md: '8' }}>
-        {tagline && (
+        {finalTagline && (
           <Badge size="lg" variant="subtle" colorPalette="green" alignSelf="center" rounded="full" px="4" py="1">
-            {tagline}
+            {finalTagline}
           </Badge>
         )}
         
@@ -120,7 +139,7 @@ export const Block = ({
         </Heading>
         
         <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} maxW="2xl" mx="auto">
-          {description || 'Project description goes here.'}
+          {finalDescription}
         </Text>
 
         <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="2" w={{ base: 'full', md: 'auto' }}>
@@ -178,42 +197,54 @@ export const Block = ({
                   
                   <Dialog.Body>
                     <Stack gap="8">
-                      {summary && (
+                      {displaySummary && (
                         <Box>
                           <Text fontWeight="semibold" color="fg.muted" mb="2" textTransform="uppercase" fontSize="xs" letterSpacing="widest">Summary</Text>
-                          <Text fontSize="lg" lineHeight="relaxed">{summary}</Text>
+                          <Text fontSize="lg" lineHeight="relaxed">{displaySummary}</Text>
                         </Box>
                       )}
                       
                       <SimpleGrid columns={{ base: 1, md: 2 }} gap="8">
-                        {role && (
+                        {displayRole && (
                           <Box>
                             <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">My role</Text>
-                            <Text fontWeight="medium">{role}</Text>
+                            <Text fontWeight="medium">{displayRole}</Text>
                           </Box>
                         )}
-                        {duration && (
+                        {displayDuration && (
                           <Box>
                             <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Duration</Text>
-                            <Text fontWeight="medium">{duration}</Text>
+                            <Text fontWeight="medium">{displayDuration}</Text>
                           </Box>
                         )}
-                        {year && (
+                        {displayYear && (
                           <Box>
                             <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Year</Text>
-                            <Text fontWeight="medium">{year}</Text>
+                            <Text fontWeight="medium">{displayYear}</Text>
                           </Box>
                         )}
-                        {teamRoles && (
+                        {displayIndustries && (
+                          <Box>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Industries</Text>
+                            <Text fontWeight="medium">{displayIndustries}</Text>
+                          </Box>
+                        )}
+                        {displayPlatforms && (
+                          <Box>
+                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Platforms</Text>
+                            <Text fontWeight="medium">{displayPlatforms}</Text>
+                          </Box>
+                        )}
+                        {displayTeamRoles && (
                           <Box>
                             <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team roles</Text>
-                            <Text fontWeight="medium">{teamRoles}</Text>
+                            <Text fontWeight="medium">{displayTeamRoles}</Text>
                           </Box>
                         )}
-                        {deliverables && (
+                        {displayDeliverables && (
                           <Box gridColumn={{ md: "span 2" }}>
                             <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Deliverables</Text>
-                            <Text fontWeight="medium">{deliverables}</Text>
+                            <Text fontWeight="medium">{displayDeliverables}</Text>
                           </Box>
                         )}
                       </SimpleGrid>
