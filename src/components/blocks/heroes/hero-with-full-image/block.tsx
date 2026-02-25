@@ -19,14 +19,13 @@ import {
   Avatar,
   Skeleton
 } from '@chakra-ui/react'
-import { LuPlay, LuArrowDown, LuUser, LuX, LuCalendar, LuDownload } from 'react-icons/lu'
+import { LuPlay, LuArrowDown, LuUser, LuX } from 'react-icons/lu'
 import { FaStar } from 'react-icons/fa' 
 import { HeroHeader } from './hero-header'
 import Link from 'next/link'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CalendlyPopup } from '@/components/ui/calendly-popup'
 
 const Video = chakra('video')
 
@@ -59,6 +58,25 @@ const PhoneFrame = ({ children }: { children: React.ReactNode }) => (
   </Box>
 )
 
+const getYouTubeEmbedUrl = (url: string) => {
+  if (!url) return ""
+  if (url.includes("youtube.com/embed/")) return url
+
+  let videoId = ""
+  if (url.includes("youtu.be/")) {
+    videoId = url.split("youtu.be/")[1]?.split("?")[0]
+  } else if (url.includes("youtube.com/watch")) {
+    try {
+      const urlParams = new URL(url).searchParams
+      videoId = urlParams.get("v") || ""
+    } catch (e) {
+      // Ignore parsing errors
+    }
+  }
+
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : url
+}
+
 interface BlockProps {
   dict?: any
   title?: string
@@ -67,7 +85,6 @@ interface BlockProps {
   videoUrl?: string
   imageUrl?: string
   introVideoUrl?: string
-  variant?: 'home' | 'about'
 }
 
 export const Block = ({ 
@@ -77,13 +94,11 @@ export const Block = ({
   tagline = "Senior Product Designer in Minneapolis", 
   videoUrl, 
   imageUrl,
-  introVideoUrl,
-  variant = 'home'
+  introVideoUrl
 }: BlockProps) => {
-  const { playHover, playClick, playSuccess } = useUiSounds()
+  const { playHover, playClick } = useUiSounds()
   const [avatars, setAvatars] = useState<string[]>([])
   const [isLoadingAvatars, setIsLoadingAvatars] = useState(true)
-  const [isCalendlyOpen, setIsCalendlyOpen] = useState(false)
 
   const rawTitle = title || dict?.title || ""
   const { displayTitle, highlightQueries } = useMemo(() => {
@@ -110,7 +125,8 @@ export const Block = ({
     fetchAvatars()
   }, [])
 
-  const finalIntroVideoUrl = introVideoUrl || dict?.introVideoUrl || "https://www.youtube.com/embed/fnK-KIB3H44"
+  const rawVideoUrl = introVideoUrl || dict?.introVideoUrl || "https://youtu.be/FbF0OMghl-o"
+  const finalIntroVideoUrl = getYouTubeEmbedUrl(rawVideoUrl)
   
   const scrollToProjects = () => {
     playClick()
@@ -147,255 +163,203 @@ export const Block = ({
     }
   }
 
-  const handleOpenCalendly = () => {
-    playClick()
-    setIsCalendlyOpen(true)
-  }
-
-  const handleDownload = () => {
-    playSuccess()
-    const link = document.createElement('a')
-    link.href = '/Resume-Coriyon Arrington-Senior Product Designer.pdf'
-    link.download = 'Coriyon_Arrington_Resume.pdf'
-    link.target = '_blank'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   return (
-    <>
-      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 8, lg: 0 }}>
-        <Flex
-          align="center"
-          justify="center"
-          w="full"
-          pe={{ base: '0', lg: '12' }} 
-          pt={{ base: '32', md: '40' }} 
-          pb={{ base: '8', lg: '24' }} 
-        >
-          <HeroHeader
-            tagline={
-              <Box width="fit-content" mx={{ base: 'auto', lg: '0' }}>
-                <Link href="#about" onClick={scrollToAbout} onMouseEnter={playHover}>
-                  <Badge 
-                    size="lg" 
-                    colorPalette="gray" 
-                    variant="subtle" 
-                    px="3" 
-                    py="1" 
-                    borderRadius="full"
-                    cursor="pointer"
-                    transition="all 0.2s"
-                    _hover={{ bg: "bg.emphasized", transform: "translateY(-1px)" }}
-                  >
-                    <Icon size="sm" mr="1">
-                      <LuUser />
-                    </Icon>
-                    {tagline}
-                  </Badge>
-                </Link>
-              </Box>
-            }
-            headline={
-              <Highlight 
-                query={highlightQueries} 
-                styles={{ color: "green.600" }}
-              >
-                {displayTitle}
-              </Highlight>
-            }
-            description={description || dict?.description}
-            alignItems={{ base: "center", lg: "flex-start" }}
-            textAlign={{ base: "center", lg: "start" }}
-          >
-            <Stack gap="6" mt="2" alignItems={{ base: "center", lg: "flex-start" }} w="full">
-              
-              <Stack direction={{ base: 'column', md: 'row' }} gap="4" w={{ base: "full", md: "auto" }}>
-                {variant === 'home' ? (
-                  <>
-                    <Button 
-                      size="xl" 
-                      h={{ base: 14, md: 16 }}
-                      px={{ base: 6, md: 8 }}
-                      fontSize="lg"
-                      onClick={scrollToProjects} 
-                      onMouseEnter={playHover} 
-                      w={{ base: "full", md: "auto" }}
-                    >
-                      {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
-                    </Button>
-                    
-                    <Dialog.Root placement="center" motionPreset="slide-in-bottom">
-                      <Dialog.Trigger asChild>
-                        <Button 
-                          variant="solid" 
-                          size="xl" 
-                          h={{ base: 14, md: 16 }}
-                          px={{ base: 6, md: 8 }}
-                          fontSize="lg"
-                          colorPalette="gray" 
-                          onClick={playClick}
-                          onMouseEnter={playHover}
-                          w={{ base: "full", md: "auto" }}
-                        >
-                          {dict?.watchIntro || "Watch Intro"} <LuPlay />
-                        </Button>
-                      </Dialog.Trigger>
-                      
-                      <Portal>
-                        <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
-                        <Dialog.Positioner>
-                          <Dialog.Content bg="transparent" shadow="none" maxW="4xl" w="full" mx="4">
-                            <Dialog.CloseTrigger asChild position="absolute" top={{ base: "-12", md: "-12" }} right="0">
-                              <IconButton aria-label="Close video" variant="ghost" color="white" _hover={{ bg: "whiteAlpha.200" }} rounded="full" onClick={playClick}>
-                                <LuX />
-                              </IconButton>
-                            </Dialog.CloseTrigger>
-                            <Dialog.Body p="0" rounded="2xl" overflow="hidden" bg="black" shadow="2xl">
-                              <Box aspectRatio={16 / 9} w="full">
-                                <iframe
-                                  width="100%"
-                                  height="100%"
-                                  src={finalIntroVideoUrl}
-                                  title="Introduction Video"
-                                  frameBorder="0"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                />
-                              </Box>
-                            </Dialog.Body>
-                          </Dialog.Content>
-                        </Dialog.Positioner>
-                      </Portal>
-                    </Dialog.Root>
-                  </>
-                ) : (
-                  <>
-                    <Button 
-                      size="xl" 
-                      h={{ base: 14, md: 16 }}
-                      px={{ base: 6, md: 8 }}
-                      fontSize="lg"
-                      onClick={handleOpenCalendly} 
-                      onMouseEnter={playHover} 
-                      w={{ base: "full", md: "auto" }}
-                    >
-                      {dict?.primaryCta || "Book an intro call"} <LuCalendar /> 
-                    </Button>
-                    
-                    <Button 
-                      variant="solid" 
-                      size="xl" 
-                      h={{ base: 14, md: 16 }}
-                      px={{ base: 6, md: 8 }}
-                      fontSize="lg"
-                      colorPalette="gray" 
-                      onClick={handleDownload}
-                      onMouseEnter={playHover}
-                      w={{ base: "full", md: "auto" }}
-                    >
-                      {dict?.secondaryCta || "Download Resume"} <LuDownload />
-                    </Button>
-                  </>
-                )}
-              </Stack>
-
-              <HStack 
-                gap="3" 
-                onClick={scrollToTestimonials}
-                onMouseEnter={playHover}
-                cursor="pointer"
-                transition="all 0.2s"
-                _hover={{ opacity: 0.8 }}
-                h="10"
-              >
-                {isLoadingAvatars ? (
-                  <HStack gap="-2" me="1" w="20">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Box 
-                        key={`skeleton-${i}`} 
-                        borderWidth="2px" 
-                        borderColor="bg.panel" 
-                        rounded="full"
-                        zIndex={10 - i}
-                      >
-                        <Skeleton width="32px" height="32px" borderRadius="full" />
-                      </Box>
-                    ))}
-                  </HStack>
-                ) : avatars.length > 0 ? (
-                  <HStack gap="-2" me="1" w="auto">
-                    {avatars.map((src, i) => (
-                      <Box 
-                        key={i} 
-                        borderWidth="2px" 
-                        borderColor="bg.panel" 
-                        rounded="full"
-                        transition="all 0.2s"
-                        _hover={{ transform: "translateY(-4px)", zIndex: 10 }}
-                      >
-                        <Avatar.Root size="sm">
-                          <Avatar.Image src={src} />
-                          <Avatar.Fallback name={`User ${i + 1}`} />
-                        </Avatar.Root>
-                      </Box>
-                    ))}
-                  </HStack>
-                ) : null}
-                <Stack gap="0" pt="1">
-                  <HStack gap="0.5" color="yellow.400">
-                    <FaStar size="12px" />
-                    <FaStar size="12px" />
-                    <FaStar size="12px" />
-                    <FaStar size="12px" />
-                    <FaStar size="12px" />
-                  </HStack>
-                  <Text fontSize="sm" color="fg.muted" fontWeight="medium">
-                    {dict?.socialProof || "Trusted by product teams"}
-                  </Text>
-                </Stack>
-              </HStack>
-
-            </Stack>
-          </HeroHeader>
-        </Flex>
-        
-        <Flex 
-          align="center" 
-          justify="center" 
-          minH={{ base: 'auto', lg: '3xl' }} 
-          pt={{ base: 8, lg: 0 }}
-          pb={{ base: 12, lg: 0 }}
-        >
-          {videoUrl || imageUrl ? (
-            <PhoneFrame>
-              {videoUrl?.includes('youtube.com') || videoUrl?.includes('youtu.be') ? (
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={videoUrl}
-                  title="Video"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ border: 'none', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                />
-              ) : videoUrl ? (
-                <Video src={videoUrl} poster={imageUrl} autoPlay muted loop controls playsInline objectFit="cover" width="100%" height="100%" />
-              ) : (
-                <Image src={imageUrl} alt="App Screen" objectFit="cover" width="100%" height="100%" />
-              )}
-            </PhoneFrame>
-          ) : (
-            <Box width="full" maxW="lg" px="8">
-               <Skeleton w="full" minH={{ base: '96', lg: '3xl' }} height="100%" borderRadius="3xl" />
+    <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 8, lg: 0 }}>
+      <Flex
+        align="center"
+        justify="center"
+        w="full"
+        pe={{ base: '0', lg: '12' }} 
+        pt={{ base: '32', md: '40' }} 
+        pb={{ base: '8', lg: '24' }} 
+      >
+        <HeroHeader
+          tagline={
+            <Box width="fit-content" mx={{ base: 'auto', lg: '0' }}>
+              <Link href="#about" onClick={scrollToAbout} onMouseEnter={playHover}>
+                <Badge 
+                  size="lg" 
+                  colorPalette="gray" 
+                  variant="subtle" 
+                  px="3" 
+                  py="1" 
+                  borderRadius="full"
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  _hover={{ bg: "bg.emphasized", transform: "translateY(-1px)" }}
+                >
+                  <Icon size="sm" mr="1">
+                    <LuUser />
+                  </Icon>
+                  {tagline}
+                </Badge>
+              </Link>
             </Box>
-          )}
-        </Flex>
-      </SimpleGrid>
+          }
+          headline={
+            <Highlight 
+              query={highlightQueries} 
+              styles={{ color: "green.600" }}
+            >
+              {displayTitle}
+            </Highlight>
+          }
+          description={description || dict?.description}
+          alignItems={{ base: "center", lg: "flex-start" }}
+          textAlign={{ base: "center", lg: "start" }}
+        >
+          <Stack gap="6" mt="2" alignItems={{ base: "center", lg: "flex-start" }} w="full">
+            
+            <Stack direction={{ base: 'column', md: 'row' }} gap="4" w={{ base: "full", md: "auto" }}>
+              <Button 
+                size="xl" 
+                h={{ base: 14, md: 16 }}
+                px={{ base: 6, md: 8 }}
+                fontSize="lg"
+                onClick={scrollToProjects} 
+                onMouseEnter={playHover} 
+                w={{ base: "full", md: "auto" }}
+              >
+                {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
+              </Button>
+              
+              <Dialog.Root placement="center" motionPreset="slide-in-bottom">
+                <Dialog.Trigger asChild>
+                  <Button 
+                    variant="solid" 
+                    size="xl" 
+                    h={{ base: 14, md: 16 }}
+                    px={{ base: 6, md: 8 }}
+                    fontSize="lg"
+                    colorPalette="gray" 
+                    onClick={playClick}
+                    onMouseEnter={playHover}
+                    w={{ base: "full", md: "auto" }}
+                  >
+                    {dict?.watchIntro || "Watch Intro"} <LuPlay />
+                  </Button>
+                </Dialog.Trigger>
+                
+                <Portal>
+                  <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
+                  <Dialog.Positioner>
+                    <Dialog.Content bg="transparent" shadow="none" maxW="4xl" w="full" mx="4">
+                      <Dialog.CloseTrigger asChild position="absolute" top={{ base: "-12", md: "-12" }} right="0">
+                        <IconButton aria-label="Close video" variant="ghost" color="white" _hover={{ bg: "whiteAlpha.200" }} rounded="full" onClick={playClick}>
+                          <LuX />
+                        </IconButton>
+                      </Dialog.CloseTrigger>
+                      <Dialog.Body p="0" rounded="2xl" overflow="hidden" bg="black" shadow="2xl">
+                        <Box aspectRatio={16 / 9} w="full">
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            src={finalIntroVideoUrl}
+                            title="Introduction Video"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </Box>
+                      </Dialog.Body>
+                    </Dialog.Content>
+                  </Dialog.Positioner>
+                </Portal>
+              </Dialog.Root>
+            </Stack>
 
-      <CalendlyPopup isOpen={isCalendlyOpen} onClose={() => setIsCalendlyOpen(false)} />
-    </>
+            <HStack 
+              gap="3" 
+              onClick={scrollToTestimonials}
+              onMouseEnter={playHover}
+              cursor="pointer"
+              transition="all 0.2s"
+              _hover={{ opacity: 0.8 }}
+              h="10"
+            >
+              {isLoadingAvatars ? (
+                <HStack gap="-2" me="1" w="20">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Box 
+                      key={`skeleton-${i}`} 
+                      borderWidth="2px" 
+                      borderColor="bg.panel" 
+                      rounded="full"
+                      zIndex={10 - i}
+                    >
+                      <Skeleton width="32px" height="32px" borderRadius="full" />
+                    </Box>
+                  ))}
+                </HStack>
+              ) : avatars.length > 0 ? (
+                <HStack gap="-2" me="1" w="auto">
+                  {avatars.map((src, i) => (
+                    <Box 
+                      key={i} 
+                      borderWidth="2px" 
+                      borderColor="bg.panel" 
+                      rounded="full"
+                      transition="all 0.2s"
+                      _hover={{ transform: "translateY(-4px)", zIndex: 10 }}
+                    >
+                      <Avatar.Root size="sm">
+                        <Avatar.Image src={src} />
+                        <Avatar.Fallback name={`User ${i + 1}`} />
+                      </Avatar.Root>
+                    </Box>
+                  ))}
+                </HStack>
+              ) : null}
+              <Stack gap="0" pt="1">
+                <HStack gap="0.5" color="yellow.400">
+                  <FaStar size="12px" />
+                  <FaStar size="12px" />
+                  <FaStar size="12px" />
+                  <FaStar size="12px" />
+                  <FaStar size="12px" />
+                </HStack>
+                <Text fontSize="sm" color="fg.muted" fontWeight="medium">
+                  {dict?.socialProof || "Trusted by product teams"}
+                </Text>
+              </Stack>
+            </HStack>
+
+          </Stack>
+        </HeroHeader>
+      </Flex>
+      
+      <Flex 
+        align="center" 
+        justify="center" 
+        minH={{ base: 'auto', lg: '3xl' }} 
+        pt={{ base: 8, lg: 0 }}
+        pb={{ base: 12, lg: 0 }}
+      >
+        {videoUrl || imageUrl ? (
+          <PhoneFrame>
+            {videoUrl?.includes('youtube.com') || videoUrl?.includes('youtu.be') ? (
+              <iframe
+                width="100%"
+                height="100%"
+                src={videoUrl}
+                title="Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ border: 'none', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+              />
+            ) : videoUrl ? (
+              <Video src={videoUrl} poster={imageUrl} autoPlay muted loop controls playsInline objectFit="cover" width="100%" height="100%" />
+            ) : (
+              <Image src={imageUrl} alt="App Screen" objectFit="cover" width="100%" height="100%" />
+            )}
+          </PhoneFrame>
+        ) : (
+          <Box width="full" maxW="lg" px="8">
+             <Skeleton w="full" minH={{ base: '96', lg: '3xl' }} height="100%" borderRadius="3xl" />
+          </Box>
+        )}
+      </Flex>
+    </SimpleGrid>
   )
 }
