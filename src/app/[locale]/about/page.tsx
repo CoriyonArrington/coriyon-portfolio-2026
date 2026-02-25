@@ -1,7 +1,8 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-import { Block as HeroWithFullImage } from "@/components/blocks/heroes/hero-with-full-image/block"
+// FIX: Imported the new HeroWithVideo component
+import { Block as HeroWithVideo } from "@/components/blocks/heroes/hero-with-video/block"
 import { Block as ServicesBlock } from "@/components/blocks/features/feature-10/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
 import { Block as AboutFeatures } from "@/components/blocks/features/feature-07/block"
@@ -52,12 +53,11 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       
       <Stack gap="0">
         
-        {/* FIX: Removed pt={{ base: "12", md: "12" }} here so the Hero strictly controls its own top padding */}
-        <Box className="pattern-dots">
+        {/* FIX: Applied padding so the rounded hero clears the nav bar perfectly */}
+        <Box pt={{ base: "32", md: "40" }} pb={{ base: "8", md: "12" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <HeroWithFullImage 
-                variant="about"
+              <HeroWithVideo 
                 dict={aboutContent.hero}
                 title={aboutContent.hero?.title}
                 description={aboutContent.hero?.description}
