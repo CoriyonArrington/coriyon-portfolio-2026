@@ -76,6 +76,7 @@ export const Block = ({
   const normalizedMockupType = finalMockupType?.toString().toLowerCase().trim()
   const isTablet = normalizedMockupType === 'tablet' || normalizedMockupType === 'ipad'
   const isPhone = normalizedMockupType === 'phone' || normalizedMockupType === 'mobile' || normalizedMockupType === 'iphone'
+  const isPadded = normalizedMockupType === 'padded'
   const showMockup = isTablet || isPhone
 
   const MediaContent = () => (
@@ -87,7 +88,7 @@ export const Block = ({
             alt={rawTitle || "Project media"}
             fill
             priority
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: isPadded ? 'contain' : 'cover' }}
             sizes="(max-width: 768px) 100vw, 80vw"
           />
         </Box>
@@ -107,7 +108,7 @@ export const Block = ({
             inset: 0, 
             width: '100%', 
             height: '100%', 
-            objectFit: 'cover', 
+            objectFit: isPadded ? 'contain' : 'cover', 
             zIndex: 1 
           }}
         />
@@ -258,29 +259,58 @@ export const Block = ({
         </Stack>
       </Stack>
 
-      {showMockup ? (
-        <Center w="full" mt={{ base: '8', md: '12' }} px={{ base: '4', md: '8' }}>
-          <Box position="relative" w="full" maxW={isTablet ? "5xl" : "300px"} aspectRatio={isTablet ? '1106/814' : '1/2'}>
-            <Box position="absolute" inset={isTablet ? "4.8% 4.2%" : "1.8% 5%"} borderRadius={isTablet ? "md" : "3rem"} overflow="hidden" bg="black" zIndex="0">
-              <MediaContent />
+      {/* The fully rounded presentation container */}
+      <Box 
+        maxW="5xl" 
+        mx="auto" 
+        w="full" 
+        mt={{ base: '8', md: '12' }} 
+        position="relative" 
+        borderRadius="l3" 
+        overflow="hidden" 
+        borderWidth="1px" 
+        borderColor="border.subtle" 
+        bg={bgColor || "bg.muted"} 
+        shadow="md"
+        aspectRatio={{ base: "4/3", md: "16/9" }}
+      >
+        {showMockup ? (
+          <Center position="absolute" inset="0" p={{ base: '8', md: '16' }} zIndex="0">
+            {/* Constrains the tablet to the height of the container so it scales down perfectly without clipping */}
+            <Box position="relative" h="full" w="full" display="flex" justifyContent="center" alignItems="center">
+              <Box position="relative" h="full" aspectRatio={isTablet ? '1106/814' : '422/862'}>
+                <Box position="absolute" inset={isTablet ? "4.8% 4.2%" : "2.2% 5.2% 2.2% 5.2%"} borderRadius={isTablet ? "sm" : "3xl"} overflow="hidden" bg="black" zIndex="0">
+                  <MediaContent />
+                </Box>
+                <Box position="relative" h="full" w="auto" aspectRatio={isTablet ? '1106/814' : '422/862'} zIndex="1">
+                  <Image
+                    src={isTablet 
+                      ? "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/ipad-mockup-optimized.png"
+                      : "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup-optimized.png"
+                    }
+                    alt={`${normalizedMockupType} mockup`}
+                    fill
+                    priority
+                    unoptimized={true}
+                    style={{ objectFit: 'contain', pointerEvents: 'none' }}
+                  />
+                </Box>
+              </Box>
             </Box>
-            <Box position="relative" h="full" w="full" zIndex="1" pointerEvents="none">
-              <Image
-                src={isTablet ? "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/ipad-mockup-optimized.png" : "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup.png"}
-                alt={`${normalizedMockupType} mockup`}
-                fill
-                priority
-                unoptimized={true}
-                style={{ objectFit: 'contain' }}
-              />
-            </Box>
+          </Center>
+        ) : isPadded ? (
+          <Box position="absolute" inset="0" p={{ base: '8', md: '12', lg: '16' }}>
+             {/* Clean inner box, removes the double-box effect for custom images */}
+             <Box position="relative" w="full" h="full">
+               <MediaContent />
+             </Box>
           </Box>
-        </Center>
-      ) : (
-        <Box maxW="5xl" mx="auto" w="full" mt={{ base: '4', md: '8' }} position="relative" roundedTop="l3" overflow="hidden" aspectRatio={{ base: "4/3", md: "16/9" }} borderWidth="1px" borderBottomWidth="0" borderColor="border.subtle" bg="bg.muted" shadow="md">
-          <MediaContent />
-        </Box>
-      )}
+        ) : (
+          <Box position="absolute" inset="0" zIndex="0">
+            <MediaContent />
+          </Box>
+        )}
+      </Box>
     </VStack>
   )
 }
