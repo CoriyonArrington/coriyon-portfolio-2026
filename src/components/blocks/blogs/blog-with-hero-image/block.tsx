@@ -75,7 +75,7 @@ export const Block = ({ dict, posts, locale = 'en' }: BlogProps) => {
                 onMouseEnter={playHover}
                 w={{ base: 'full', md: 'auto' }}
               >
-                {locale === 'es' ? 'Ver Videos' : 'Watch Videos'} <LuChevronDown />
+                {locale === 'es' ? 'Ver videos' : 'Watch videos'} <LuChevronDown />
               </Button>
 
               <Button 
