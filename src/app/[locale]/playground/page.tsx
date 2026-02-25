@@ -1,8 +1,8 @@
 import { Box, Stack, Container } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-// Updated to use the new cropped-image hero!
-import { Block as HeroSpline } from "@/components/blocks/heroes/hero-with-cropped-image/block"
+// FIX: Updated to the new renamed playground-page hero component
+import { Block as PlaygroundHero } from "@/components/blocks/heroes/playground-page/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
@@ -41,7 +41,7 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
       
       <Stack gap="0">
         <FadeIn>
-          <HeroSpline dict={playgroundContent.hero} />
+          <PlaygroundHero dict={playgroundContent.hero} />
         </FadeIn>
 
         {/* Playground Projects Section */}

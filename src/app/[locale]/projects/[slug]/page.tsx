@@ -3,7 +3,8 @@ import type { Metadata, ResolvingMetadata } from 'next'
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-import { Block as HeroWithImageBottomCentered } from "@/components/blocks/heroes/hero-with-image-bottom-centered/block"
+// FIX: Updated to the newly renamed projects-page hero component
+import { Block as ProjectsHero } from "@/components/blocks/heroes/projects-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as CaseStudyAccordion } from "@/components/blocks/features/feature-06/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
@@ -162,14 +163,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     <Box bg="bg.canvas" minH="100vh">
       <NavbarIsland dict={content.navbar} />
       
-      {/* FIX: Removed pt="24" from the stack wrapper */}
       <Stack gap="0">
         
-        {/* FIX: Removed pt={{ base: "8", md: "12" }} so the Hero controls its own padding */}
         <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <HeroWithImageBottomCentered 
+              <ProjectsHero 
                 dict={{ ...content.hero, exploreWork: content.project?.readCaseStudy || "Read case study" }}
                 title={title}
                 description={description}

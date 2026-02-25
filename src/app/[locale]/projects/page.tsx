@@ -1,7 +1,8 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-import { Block as ProjectsHero } from "@/components/blocks/heroes/hero-with-image-bottom-centered/block"
+// FIX: Updated to the newly renamed projects-page hero component
+import { Block as ProjectsHero } from "@/components/blocks/heroes/projects-page/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"

@@ -1,7 +1,7 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-import { Block as HeroWithFullImage } from "@/components/blocks/heroes/hero-with-full-image/block"
+import { Block as HomeHero } from "@/components/blocks/heroes/home-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
 import { Block as ProcessTimeline } from "@/components/blocks/process/timeline-section"
@@ -53,7 +53,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <Box className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <HeroWithFullImage 
+              <HomeHero 
                 dict={content.hero}
                 title={content.hero?.title || featuredProject?.[`title_${currentLocale}`] || featuredProject?.title_en}
                 description={content.hero?.description || featuredProject?.[`description_${currentLocale}`] || featuredProject?.description_en}

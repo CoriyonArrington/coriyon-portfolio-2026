@@ -23,6 +23,7 @@ import { LuPlay, LuArrowDown, LuUser, LuX } from 'react-icons/lu'
 import { FaStar } from 'react-icons/fa' 
 import { HeroHeader } from './hero-header'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -96,9 +97,15 @@ export const Block = ({
   imageUrl,
   introVideoUrl
 }: BlockProps) => {
+  const pathname = usePathname()
   const { playHover, playClick } = useUiSounds()
   const [avatars, setAvatars] = useState<string[]>([])
   const [isLoadingAvatars, setIsLoadingAvatars] = useState(true)
+
+  // Dynamically determine the locale for the About link
+  const segments = pathname?.split('/').filter(Boolean) || []
+  const currentLocale = segments.length > 0 && segments[0].length === 2 ? segments[0] : 'en'
+  const aboutUrl = `/${currentLocale}/about`
 
   const rawTitle = title || dict?.title || ""
   const { displayTitle, highlightQueries } = useMemo(() => {
@@ -139,19 +146,6 @@ export const Block = ({
     }
   }
 
-  const scrollToAbout = (e: React.MouseEvent) => {
-    e.preventDefault()
-    playClick()
-    const element = document.getElementById('about')
-    if (element) {
-      const offset = 120 
-      const elementPosition = element.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.scrollY - offset
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
-      window.history.pushState(null, '', '#about')
-    }
-  }
-
   const scrollToTestimonials = () => {
     playClick()
     const element = document.getElementById('testimonials')
@@ -176,7 +170,7 @@ export const Block = ({
         <HeroHeader
           tagline={
             <Box width="fit-content" mx={{ base: 'auto', lg: '0' }}>
-              <Link href="#about" onClick={scrollToAbout} onMouseEnter={playHover}>
+              <Link href={aboutUrl} onClick={playClick} onMouseEnter={playHover}>
                 <Badge 
                   size="lg" 
                   colorPalette="gray" 

@@ -1,8 +1,8 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-// FIX: Imported the new HeroWithVideo component
-import { Block as HeroWithVideo } from "@/components/blocks/heroes/hero-with-video/block"
+// FIX: Updated to the new renamed about-page hero component
+import { Block as AboutHero } from "@/components/blocks/heroes/about-page/block"
 import { Block as ServicesBlock } from "@/components/blocks/features/feature-10/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
 import { Block as AboutFeatures } from "@/components/blocks/features/feature-07/block"
@@ -57,7 +57,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         <Box pt={{ base: "32", md: "40" }} pb={{ base: "8", md: "12" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <HeroWithVideo 
+              <AboutHero 
                 dict={aboutContent.hero}
                 title={aboutContent.hero?.title}
                 description={aboutContent.hero?.description}
