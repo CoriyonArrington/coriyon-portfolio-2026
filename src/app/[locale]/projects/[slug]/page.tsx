@@ -38,7 +38,9 @@ export async function generateMetadata(
 
   const title = (project as any)[`title_${currentLocale}`] || project.title_en || project.title
   const description = (project as any)[`description_${currentLocale}`] || project.description_en || project.description
-  const imageUrl = project.featured_image_url 
+  
+  // FIX: Prioritize og_image_url from the database, fallback to featured_image_url
+  const imageUrl = project.og_image_url || project.featured_image_url 
 
   return {
     title: title,
@@ -174,7 +176,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const faqData = projectContentJson.faq || {}
   const hasFaqs = faqData.faqs && faqData.faqs.length > 0
 
-  // FIX: Read from global home page content instead of project specific JSON
   const globalContactData = content.contact || {}
   const hasCta = !!globalContactData.title
 
@@ -297,7 +298,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
               <FadeIn>
-                {/* FIX: Passed the globalContactData instead of the old CTA data */}
                 <ProjectCta dict={globalContactData} />
               </FadeIn>
             </Container>
