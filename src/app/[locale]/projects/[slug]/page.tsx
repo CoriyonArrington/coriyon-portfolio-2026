@@ -3,15 +3,19 @@ import type { Metadata, ResolvingMetadata } from 'next'
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-// FIX: Updated to the newly renamed projects-page hero component
 import { Block as ProjectsHero } from "@/components/blocks/heroes/projects-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
+import { Block as ProjectBentoGrid } from "@/components/blocks/features/project-bento-grid/block"
 import { Block as CaseStudyAccordion } from "@/components/blocks/features/feature-06/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
 import { Block as InterstitialNav } from "@/components/blocks/marketing-navbars/interstitial-nav/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 import { LuTarget, LuLightbulb, LuTrendingUp } from "react-icons/lu"
+
+import { Block as ProjectStats } from "@/components/blocks/stats/project-stats/block"
+import { Block as ProjectFaq } from "@/components/blocks/faqs/faq-with-inline-headline/block"
+import { Block as ProjectCta } from "@/components/blocks/cta/cta-08/block"
 
 export const revalidate = 0 
 
@@ -129,10 +133,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const teamRoles = overviewData.team_roles || projectMeta.team
   const deliverables = overviewData.deliverables || (Array.isArray(projectMeta.deliverables) ? projectMeta.deliverables.join(', ') : projectMeta.deliverables)
   const summary = overviewData.summary || description
+  const industries = overviewData.industries || projectMeta.industries
+  const platforms = overviewData.platforms || projectMeta.platforms
+
+  const bentoData = projectContentJson.bento_grid || {}
+  const bentoFeatures = bentoData.features || []
+  const hasBentoGrid = bentoFeatures.length > 0
 
   const caseStudyData = projectContentJson.case_study || {}
   const resultData = caseStudyData.results || caseStudyData.result || {}
-  
   const hasCaseStudy = !!caseStudyData.challenge || !!caseStudyData.solution || !!resultData.heading
 
   const caseStudyFeatures = hasCaseStudy ? [
@@ -159,6 +168,16 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     }
   ] : []
 
+  const statsData = projectContentJson.stats || {}
+  const hasStats = statsData.items && statsData.items.length > 0
+
+  const faqData = projectContentJson.faq || {}
+  const hasFaqs = faqData.faqs && faqData.faqs.length > 0
+
+  // FIX: Read from global home page content instead of project specific JSON
+  const globalContactData = content.contact || {}
+  const hasCta = !!globalContactData.title
+
   return (
     <Box bg="bg.canvas" minH="100vh">
       <NavbarIsland dict={content.navbar} />
@@ -183,6 +202,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 teamRoles={teamRoles}
                 deliverables={deliverables}
                 summary={summary}
+                industries={industries}
+                platforms={platforms}
               />
             </FadeIn>
           </Container>
@@ -198,7 +219,22 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         )}
 
-        <Box id="projects" minH="30vh" py={{ base: "16", md: "24" }} className="pattern-dots">
+        {hasBentoGrid && (
+          <Box py={{ base: "16", md: "24" }} className="pattern-dots">
+            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+              <FadeIn>
+                <ProjectBentoGrid 
+                  badge={bentoData.badge}
+                  title={bentoData.title || "Core Features"} 
+                  description={bentoData.description} 
+                  features={bentoFeatures} 
+                />
+              </FadeIn>
+            </Container>
+          </Box>
+        )}
+
+        <Box id="projects" py={hasCaseStudy ? { base: "16", md: "24" } : "0"} className={hasBentoGrid ? "" : "pattern-dots"}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
              {hasCaseStudy && (
                <FadeIn>
@@ -209,7 +245,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     </Badge>
                    }
                    title="Behind the process"
-                   description={null} 
+                   description={caseStudyData.description || null} 
                    features={caseStudyFeatures}
                    mockupType={mockupType}
                  />
@@ -217,6 +253,19 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
              )}
           </Container>
         </Box>
+
+        {hasStats && (
+          <Box borderTopWidth="1px" borderColor="border.subtle" bg="bg.canvas">
+             <FadeIn>
+               <ProjectStats 
+                 tagline={statsData.tagline}
+                 headline={statsData.headline}
+                 description={statsData.description}
+                 stats={statsData.items}
+               />
+             </FadeIn>
+          </Box>
+        )}
 
         {localizedRemainingTestimonials.length > 0 && (
           <Box py={{ base: "16", md: "24" }} borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots">
@@ -231,7 +280,31 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         )}
 
-        <Box py={{ base: "12", md: "20" }} bg="bg.canvas">
+        {hasFaqs && (
+          <Box py={{ base: "16", md: "24" }} bg="bg.canvas" borderTopWidth={localizedRemainingTestimonials.length === 0 ? "1px" : "0"} borderColor="border.subtle">
+            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+              <FadeIn>
+                <ProjectFaq 
+                  dict={faqData}
+                  faqs={faqData.faqs}
+                />
+              </FadeIn>
+            </Container>
+          </Box>
+        )}
+
+        {hasCta && (
+          <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle">
+            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+              <FadeIn>
+                {/* FIX: Passed the globalContactData instead of the old CTA data */}
+                <ProjectCta dict={globalContactData} />
+              </FadeIn>
+            </Container>
+          </Box>
+        )}
+
+        <Box py={{ base: "12", md: "20" }} bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="5xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <InterstitialNav prev={prevProject} next={nextProject} dict={content.interstitial} />
