@@ -1,7 +1,6 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-import { Block as BannerBlock } from "@/components/blocks/banners/banner-with-link/block"
 import { Block as HeroWithFullImage } from "@/components/blocks/heroes/hero-with-full-image/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
@@ -50,9 +49,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     <Box bg="bg.canvas" minH="100vh">
       <NavbarIsland dict={content.navbar} />
       <Stack gap="0">
-        <BannerBlock dict={content.banner} />
-
-        {/* FIX: Removed pt={{ base: "12", md: "12" }} here so the Hero controls its own padding */}
+        
         <Box className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>

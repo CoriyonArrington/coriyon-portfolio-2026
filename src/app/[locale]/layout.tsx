@@ -6,8 +6,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ClarityAnalytics } from "@/components/ui/clarity";
 import "../globals.css";
 
-// IMPORT THE NEW COMPONENT
+import { supabase } from "@/lib/supabase";
 import { FloatingContact } from "@/components/ui/floating-contact";
+import { Block as BannerBlock } from "@/components/blocks/banners/banner-with-link/block";
 
 const montserrat = localFont({
   src: "../../fonts/Montserrat/Montserrat-VariableFont_wght.ttf",
@@ -57,6 +58,11 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+  const currentLocale = locale || 'en';
+
+  // Fetch the home page data to pass the dictionary to the global banner
+  const { data: homeData } = await supabase.from('pages').select('*').eq('slug', 'home').single();
+  const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {};
 
   return (
     <html lang={locale || "en"} suppressHydrationWarning>
@@ -64,8 +70,8 @@ export default async function RootLayout({
         <Provider>
           {children}
           
-          {/* INJECT IT HERE GLOBALLY */}
           <FloatingContact />
+          <BannerBlock dict={homeContent.banner} />
           
         </Provider>
         <Analytics />
