@@ -15,12 +15,24 @@ interface NavbarLinksProps extends StackProps {
 export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) => {
   const { playHover, playWhoosh } = useUiSounds()
   const pathname = usePathname() || ''
-  const [navLinks, setNavLinks] = useState<any[]>([])
+  
+  // 1. Map initial SSR state from the dictionary to prevent load CLS
+  const initialLinks = dict?.links?.map((link: any) => ({
+    id: link.href,
+    slug: link.href.replace('/', ''),
+    nav_title: link.label
+  })) || [
+    { id: 'projects', slug: 'projects', nav_title: 'Work' },
+    { id: 'about', slug: 'about', nav_title: 'About' },
+    { id: 'blog', slug: 'blog', nav_title: 'Videos' }
+  ]
+
+  const [navLinks, setNavLinks] = useState<any[]>(initialLinks)
 
   const segments = pathname.split('/').filter(Boolean)
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
 
-  // Fetch MAIN_MENU pages from Supabase
+  // 2. Fetch MAIN_MENU pages from Supabase to catch dynamic updates silently
   useEffect(() => {
     const fetchNavLinks = async () => {
       const { data } = await supabase
@@ -30,7 +42,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
         .eq('page_type', 'MAIN_MENU')
         .order('sort_order', { ascending: true })
 
-      if (data) {
+      if (data && data.length > 0) {
         setNavLinks(data)
       }
     }
@@ -108,7 +120,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
       {navLinks.map((page: any) => {
         const href = getHref(page.slug)
         
-        // FIX: Extract the translation from the navbar dictionary array by matching the slug
+        // Extract the translation from the navbar dictionary array by matching the slug
         const dictLink = dict?.links?.find((l: any) => l.href.includes(page.slug))
         const label = dictLink?.label || dict?.[`${page.slug}Link`] || page.nav_title || page.title
 
@@ -126,6 +138,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
             asChild
             fontWeight={isActive ? "bold" : "medium"}
             color={isActive ? "colorPalette.fg" : "fg.muted"}
+            transition="color 0.2s"
             _hover={{ color: 'colorPalette.fg', textDecoration: 'none' }}
             onClick={(e) => handleScroll(e, href)}
             onMouseEnter={playHover}

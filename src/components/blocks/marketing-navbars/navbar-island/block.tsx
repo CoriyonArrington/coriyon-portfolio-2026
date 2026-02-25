@@ -82,6 +82,7 @@ export const Block = ({ dict }: NavbarBlockProps) => {
           py="3"
           border="1px solid"
           borderColor="border.subtle"
+          transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" // <-- Smooth animation for language switch
         >
           <HStack gap={{ base: '3', md: '8' }} w="full">
             <Logo />
