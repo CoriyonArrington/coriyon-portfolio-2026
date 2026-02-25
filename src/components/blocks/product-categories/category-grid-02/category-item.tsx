@@ -25,7 +25,6 @@ export const CategoryItem = (props: CategoryItemProps) => {
   
   const showMockup = data.mockupType === 'phone' || data.mockupType === 'tablet'
   const isTablet = data.mockupType === 'tablet'
-  // NEW: Specifically check if we should use the padded layout
   const isPadded = data.mockupType === 'padded'
   const hasVideo = !!data.videoUrl
 
@@ -40,7 +39,6 @@ export const CategoryItem = (props: CategoryItemProps) => {
             alt={data.title}
             fill
             priority={priority}
-            // Use contain only if it's explicitly set to padded
             style={{ objectFit: isPadded ? 'contain' : 'cover' }}
             sizes="(max-width: 768px) 100vw, 50vw"
           />
@@ -120,16 +118,30 @@ export const CategoryItem = (props: CategoryItemProps) => {
               inset="0" 
               zIndex="0" 
               p={{ base: '8', md: '12' }} 
-              pb={{ base: '36', md: '48' }}
+              pb={{ base: '40', md: '48' }} 
+              display="flex"
+              alignItems="center" 
+              justifyContent="center"
             >
-               <Box position="relative" w="full" h="full">
+               <Box position="relative" w="full" aspectRatio="16/9" borderRadius="xl" overflow="hidden" shadow="2xl">
                  <DoubleLayerMedia />
                </Box>
             </Box>
           ) : (
-            // Full bleed fallback for standard web projects
-            <Box position="absolute" inset="0" zIndex="0">
-               <DoubleLayerMedia />
+            // FIX: For videos/images where mockupType is null. 
+            // Creates a 16:9 ratio box so the sides of your pre-rendered videos don't get chopped off!
+            <Box 
+              position="absolute" 
+              inset="0" 
+              zIndex="0" 
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              pb={{ base: '28', md: '40' }} // Pushes the video up so it doesn't overlap with the title text
+            >
+               <Box position="relative" w="full" aspectRatio="16/9" overflow="hidden">
+                 <DoubleLayerMedia />
+               </Box>
             </Box>
           )}
 
