@@ -23,19 +23,17 @@ export const Block = ({ dict }: FooterProps) => {
   const [hasCopied, setHasCopied] = useState(false)
   const pathname = usePathname() || ''
   
-  // State for database pages
   const [pagesList, setPagesList] = useState<any[]>([])
 
   const emailAddress = "coriyonarrington@gmail.com"
 
-  // Fetch all PUBLISHED pages
   useEffect(() => {
     const fetchPages = async () => {
       const { data } = await supabase
         .from('pages')
         .select('id, slug, title, nav_title, sort_order, page_type, status')
         .eq('status', 'PUBLISHED')
-        .order('sort_order', { ascending: true })
+        .order('sort_order', { ascending: true }) // Initial DB sort
       
       if (data) {
         setPagesList(data)
@@ -44,12 +42,16 @@ export const Block = ({ dict }: FooterProps) => {
     fetchPages()
   }, [])
 
-  // Organize pages by type for the footer columns
   const mainMenuPages = pagesList.filter(p => p.page_type === 'MAIN_MENU' || p.page_type === 'STANDARD')
   const explorePages = pagesList.filter(p => p.page_type === 'EXPLORE')
   
-  // Filter ALL pages for the Previous/Next interstitial nav (excluding hash links)
-  const navPages = pagesList.filter(p => p.sort_order > 0 && !p.slug.includes('#'))
+  // FIX: Group pages sequentially by category to prevent "Playground" from jumping ahead of "Work"
+  const mainMenuNav = mainMenuPages.filter(p => !p.slug.includes('#'))
+  const exploreNav = explorePages.filter(p => !p.slug.includes('#'))
+  const otherNav = pagesList.filter(p => !['MAIN_MENU', 'STANDARD', 'EXPLORE'].includes(p.page_type) && !p.slug.includes('#'))
+  
+  // Final linear array: Main Menu -> Explore -> Everything Else
+  const navPages = [...mainMenuNav, ...exploreNav, ...otherNav]
 
   const handleCopyEmail = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -63,32 +65,27 @@ export const Block = ({ dict }: FooterProps) => {
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
   const currentLocale = (segments.length > 0 && segments[0].length === 2) ? segments[0] : 'en'
 
-  // Safely converts database slugs and hash fragments to valid, localized absolute hrefs
   const getHref = (slug: string) => {
     if (!slug) return homePath;
     if (slug === 'home' || slug === '/') return homePath;
     
-    // Handle direct hash links (e.g., "#process" meant for the home page)
     if (slug.startsWith('#')) {
       const base = homePath === '/' ? '' : homePath;
-      return `${base}/${slug}`; // e.g., /en/#process
+      return `${base}/${slug}`; 
     }
     
-    // Handle path + hash links (e.g., "about#services")
     if (slug.includes('#')) {
       const [pagePart, hashPart] = slug.split('#');
       const cleanPage = pagePart.startsWith('/') ? pagePart : `/${pagePart}`;
       const base = homePath === '/' ? cleanPage : `${homePath}${cleanPage}`;
-      return `${base}#${hashPart}`; // e.g., /en/about#services
+      return `${base}#${hashPart}`; 
     }
 
-    // Standard pages
     const cleanPath = slug.startsWith('/') ? slug : `/${slug}`;
     return homePath === '/' ? cleanPath : `${homePath}${cleanPath}`;
   }
 
   const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
-    // If it's a standard link, just let NextLink route normally
     if (!href.includes('#')) {
       playWhoosh();
       return;
@@ -96,11 +93,9 @@ export const Block = ({ dict }: FooterProps) => {
 
     const [pathPart, hashPart] = href.split('#')
     
-    // Normalize paths to ensure accurate matching (e.g. '/en/' matches '/en')
     const normalizePath = (p: string) => p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : (p || '/');
     const isCurrentPage = normalizePath(pathPart) === normalizePath(pathname);
 
-    // If the hash is on the current page, scroll smoothly
     if (hashPart && isCurrentPage) {
       e.preventDefault()
       playWhoosh()
@@ -119,7 +114,6 @@ export const Block = ({ dict }: FooterProps) => {
         window.history.pushState(null, '', `#${hashPart}`)
       }
     } else {
-      // If the hash is on a DIFFERENT page, let NextLink handle the hard navigation
       playWhoosh()
     }
   }
@@ -131,7 +125,6 @@ export const Block = ({ dict }: FooterProps) => {
     window.history.pushState(null, '', window.location.pathname)
   }
 
-  // --- Dynamic Interstitial Logic ---
   const isProjectDetail = segments.length >= 2 && segments[segments.length - 2] === 'projects'
   
   let currentSlug = 'home'
@@ -152,7 +145,6 @@ export const Block = ({ dict }: FooterProps) => {
     const currentIndex = navPages.findIndex(p => p.slug === currentSlug)
 
     if (currentIndex !== -1) {
-      // Calculate Previous
       if (currentIndex > 0) {
         const prevPage = navPages[currentIndex - 1]
         const dictKey = prevPage.slug.includes('#') ? prevPage.slug.split('#')[1] : prevPage.slug;
@@ -162,7 +154,6 @@ export const Block = ({ dict }: FooterProps) => {
         }
       }
 
-      // Calculate Next
       if (currentIndex < navPages.length - 1) {
         const nextPage = navPages[currentIndex + 1]
         const dictKey = nextPage.slug.includes('#') ? nextPage.slug.split('#')[1] : nextPage.slug;
@@ -176,7 +167,6 @@ export const Block = ({ dict }: FooterProps) => {
 
   return (
     <>
-      {/* Inject PageNav directly above the footer if we are not on a project detail page */}
       {!isProjectDetail && (navPrev || navNext) && (
         <Box py={{ base: "12", md: "20" }} bg="bg.canvas">
           <Container maxW="5xl" px={{ base: "4", md: "8" }}>
@@ -261,7 +251,6 @@ export const Block = ({ dict }: FooterProps) => {
 
             <SimpleGrid columns={2} gap="8" width={{ base: 'full', md: 'auto' }}>
               
-              {/* Dynamic Main Menu Column */}
               <Stack gap="4" minW={{ md: '40' }}>
                 <Text fontWeight="medium" color="fg">{dict?.mainMenu || "Main Menu"}</Text>
                 <Stack gap="3" alignItems="start">
@@ -279,7 +268,6 @@ export const Block = ({ dict }: FooterProps) => {
                 </Stack>
               </Stack>
 
-              {/* Dynamic Explore Column */}
               <Stack gap="4" minW={{ md: '40' }}>
                 <Text fontWeight="medium" color="fg">{dict?.explore || "Explore"}</Text>
                 <Stack gap="3" alignItems="start">
