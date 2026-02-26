@@ -22,8 +22,9 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 interface TimelineStep {
   date: string
   heading: string
-  description: string
-  imageSrc: string
+  description?: string
+  details?: { label: string; value: string | string[] }[] 
+  imageSrc?: string
   lottieUrl?: string 
 }
 
@@ -46,7 +47,6 @@ export const Block = ({ dict }: TimelineSectionProps) => {
   const sectionRef = useRef<HTMLElement | null>(null)
   const steps = dict?.steps || []
   
-  // State for progressive disclosure
   const [isExpanded, setIsExpanded] = useState(false)
 
   const { scrollYProgress } = useScroll({
@@ -60,8 +60,9 @@ export const Block = ({ dict }: TimelineSectionProps) => {
     restDelta: 0.001
   })
 
-  // Only show first 3 steps unless expanded
   const visibleSteps = isExpanded ? steps : steps.slice(0, 3)
+
+  if (!steps || steps.length === 0) return null;
 
   return (
     <>
@@ -163,7 +164,6 @@ export const Block = ({ dict }: TimelineSectionProps) => {
                   ))}
                 </AnimatePresence>
 
-                {/* Show More Button */}
                 {!isExpanded && steps.length > 3 && (
                   <Center pt={{ base: '4', md: '8' }}>
                     <Button
@@ -238,66 +238,92 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
         <Stack gap="6">
           <Stack gap="3">
             <Text fontWeight="bold" color="green.500" fontSize="sm" letterSpacing="widest" textTransform="uppercase">
-              Step 0{index + 1}
+              {step.date || `Step 0${index + 1}`}
             </Text>
             <Heading size="3xl">{step.heading}</Heading>
-            <Text color="fg.muted" fontSize="md" lineHeight="relaxed">
-              {step.description}
-            </Text>
+            
+            {step.description && (
+              <Text color="fg.muted" fontSize="md" lineHeight="relaxed">
+                {step.description}
+              </Text>
+            )}
           </Stack>
           
-          <motion.div
-            whileHover={{ y: -8, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            onHoverStart={() => playHover()}
-            style={{ width: '100%', cursor: 'default' }}
-          >
-            <Box 
-              borderRadius="l3" 
-              overflow="hidden" 
-              borderWidth="1px" 
-              borderColor="border.subtle"
-              bg="bg.muted"
-              aspectRatio={4/3}
-              shadow="sm"
-              position="relative"
-              role="group"
+          {/* REORDERED: Image sits right below the header */}
+          {step.imageSrc && (
+            <motion.div
+              whileHover={{ y: -8, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              onHoverStart={() => playHover()}
+              style={{ width: '100%', cursor: 'default' }}
             >
-              <Image 
-                src={step.imageSrc} 
-                alt={step.heading} 
-                w="full" 
-                h="full" 
-                objectFit="cover" 
-                transition="transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
-                _groupHover={{ transform: (step.lottieUrl && isLottieReady) ? "none" : "scale(1.05)" }}
-              />
+              <Box 
+                borderRadius="l3" 
+                overflow="hidden" 
+                borderWidth="1px" 
+                borderColor="border.subtle"
+                bg="bg.muted"
+                aspectRatio={4/3}
+                shadow="sm"
+                position="relative"
+                role="group"
+              >
+                <Image 
+                  src={step.imageSrc} 
+                  alt={step.heading} 
+                  w="full" 
+                  h="full" 
+                  objectFit="cover" 
+                  transition="transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
+                  _groupHover={{ transform: (step.lottieUrl && isLottieReady) ? "none" : "scale(1.05)" }}
+                />
 
-              {step.lottieUrl && (
-                <Box 
-                  position="absolute" 
-                  inset="0" 
-                  zIndex="1" 
-                  bg={isLottieReady ? "bg.muted" : "transparent"} 
-                  opacity={isLottieReady ? 1 : 0}
-                  transition="opacity 0.5s ease"
-                >
-                  <DotLottieReact
-                    src={step.lottieUrl}
-                    loop
-                    autoplay
-                    dotLottieRefCallback={(dotLottie: any) => {
-                      if (dotLottie) {
-                        dotLottie.addEventListener('load', () => setIsLottieReady(true));
-                        dotLottie.addEventListener('error', () => setIsLottieReady(false));
-                      }
-                    }}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                {step.lottieUrl && (
+                  <Box 
+                    position="absolute" 
+                    inset="0" 
+                    zIndex="1" 
+                    bg={isLottieReady ? "bg.muted" : "transparent"} 
+                    opacity={isLottieReady ? 1 : 0}
+                    transition="opacity 0.5s ease"
+                  >
+                    <DotLottieReact
+                      src={step.lottieUrl}
+                      loop
+                      autoplay
+                      dotLottieRefCallback={(dotLottie: any) => {
+                        if (dotLottie) {
+                          dotLottie.addEventListener('load', () => setIsLottieReady(true));
+                          dotLottie.addEventListener('error', () => setIsLottieReady(false));
+                        }
+                      }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            </motion.div>
+          )}
+
+          {/* REORDERED: Details provide additional context below the image */}
+          {step.details && step.details.length > 0 && (
+            <Stack gap="4" mt="2">
+              {step.details.map((detail, idx) => (
+                <Box key={idx} bg="bg.panel" p="4" rounded="2xl" borderWidth="1px" borderColor="border.subtle">
+                  <Text fontWeight="semibold" color="fg.default">{detail.label}</Text>
+                  {Array.isArray(detail.value) ? (
+                    <Stack as="ul" pl="4" gap="2" mt="2" style={{ listStyleType: 'disc' }}>
+                      {detail.value.map((v, i) => (
+                        <Box as="li" key={i} color="fg.muted" fontSize="sm">{v}</Box>
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Text color="fg.muted" fontSize="sm" mt="1">{detail.value}</Text>
+                  )}
                 </Box>
-              )}
-            </Box>
-          </motion.div>
+              ))}
+            </Stack>
+          )}
         </Stack>
       </motion.div>
     </Box>
