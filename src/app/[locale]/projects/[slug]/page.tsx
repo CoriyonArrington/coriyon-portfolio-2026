@@ -194,7 +194,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const cleanStr = (val: any) => typeof val === 'string' ? val.replace(/^"|"$/g, '') : val;
 
-  // STRICT RENDER GUARDS (Prevents empty sections from rendering)
   const hasContextData = pmContext?.whatExisted || pmContext?.whatChanged || pmContext?.imageSrc || pmContext?.heading;
   const hasProblemData = pmProblem?.businessProblem || pmProblem?.productProblem || pmProblem?.risk || pmProblem?.imageSrc || pmProblem?.heading;
   const hasStrategyData = pmStrategy?.initialBet || pmStrategy?.northStarMetric || pmStrategy?.imageSrc || pmStrategy?.heading;
@@ -213,7 +212,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const hasOutcomesData = pmOutcomes?.headline || pmOutcomes?.impactAreas || pmOutcomes?.imageSrc || pmOutcomes?.heading;
   const shouldRenderOutcomes = hasOutcomesData || hasStats;
 
-  // Smart Timeline Extraction
   const hasApproach = pmApproach && Object.keys(pmApproach).length > 0;
   const processSteps = hasApproach ? Object.entries(pmApproach).map(([key, phase]: [string, any]) => {
     const stepNumber = key.replace(/\D/g, '') || "1"; 
@@ -241,7 +239,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     }
   }) : []
 
-  // --- UNIFIED BENTO GRID (Learnings + Scaling/Impact) ---
   const unifiedBentoFeatures = [];
   
   if (pmOutcomes?.impactAreas && pmOutcomes.impactAreas.length > 0) {
@@ -295,7 +292,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const hasLearningsData = pmLearnings?.scoping || pmLearnings?.stakeholderAlignment || pmLearnings?.timing || pmLearnings?.imageSrc || pmLearnings?.heading;
   const shouldRenderLearnings = hasLearningsData || unifiedBentoFeatures.length > 0;
 
-  // Clean Fallback for Non-PM (Standard) projects
   const bentoData = projectContentJson.bento_grid || {}
   const bentoFeatures = bentoData.features || []
   const hasBentoGrid = bentoFeatures.length > 0
@@ -317,7 +313,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const globalContactData = content.contact || {}
   const hasCta = !!globalContactData.title
 
-  // --- EXECUTIVE TOP-DOWN TABLE OF CONTENTS ---
   const dynamicToc: TocItem[] = [];
   if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: 'The Results', level: 1 });
   if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: 'Key Takeaways', level: 1 });
@@ -370,17 +365,38 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         )}
 
+        {/* --- GLASS TRACK TOC NAVIGATION --- */}
         {dynamicToc.length > 0 && (
           <Box 
             position="sticky" 
-            top={{ base: "80px", md: "110px" }} 
-            zIndex="40" 
+            top="-1px" 
+            zIndex="30" 
             w="full" 
-            mt={{ base: 4, md: 8 }} 
-            mb={{ base: 4, md: 0 }}
             pointerEvents="none" 
           >
-            <Container maxW="3xl" pointerEvents="auto">
+            {/* The actual blurred backdrop that spans the gap */}
+            <Box
+              position="absolute"
+              top="0"
+              left="0"
+              right="0"
+              bottom="-24px" // Fades out slightly below the container
+              bg="bg.canvas/75"
+              backdropFilter="blur(16px)"
+              zIndex="-1"
+              css={{
+                maskImage: 'linear-gradient(to bottom, black 85%, transparent)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent)'
+              }}
+            />
+            
+            {/* The TOC Container, pushed down by padding to form the exact visual space needed */}
+            <Container 
+              maxW="3xl" 
+              pointerEvents="auto" 
+              pt={{ base: "100px", md: "120px" }} 
+              pb={{ base: 4, md: 6 }}
+            >
               <TableOfContents tocData={dynamicToc} />
             </Container>
           </Box>
@@ -550,7 +566,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         )}
 
         {hasCta && (
-          <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle" className="pattern-dots">
+          <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
               <FadeIn>
                 <ProjectCta dict={globalContactData} />
