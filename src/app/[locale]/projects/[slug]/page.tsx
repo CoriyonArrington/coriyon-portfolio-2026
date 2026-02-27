@@ -3,7 +3,7 @@ import type { Metadata, ResolvingMetadata } from 'next'
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-import { Block as Hero } from "@/components/blocks/heroes/home-page/block"
+import { Block as Hero } from "@/components/blocks/heroes/project-detail-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as ProjectBentoGrid } from "@/components/blocks/features/project-bento-grid/block"
 import { Block as CaseStudyAccordion } from "@/components/blocks/features/feature-06/block"
@@ -404,26 +404,24 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       
       <Stack gap="0">
         
+        {/* FIX: Removed the Container so the new Hero component can break out perfectly! */}
         <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
-          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <FadeIn>
-              <Hero 
-                dict={{ ...content.hero }}
-                title={projectContentJson.hero?.title || title}
-                description={projectContentJson.hero?.subtitle || description}
-                tagline={category}
-                videoUrl={videoUrl}
-                imageUrl={imageUrl} 
-                bgColor={bgColor}
-                hideSocialProof={true}
-                primaryCtaText={t.readCaseStudy}
-                secondaryCtaText={t.showOverview}
-                primaryScrollTo="outcomes"
-                showOverview={true}
-                overviewData={overviewDataPayload}
-              />
-            </FadeIn>
-          </Container>
+          <FadeIn>
+            <Hero 
+              dict={{ ...content.hero }}
+              title={projectContentJson.hero?.title || title}
+              description={projectContentJson.hero?.subtitle || description}
+              tagline={category}
+              videoUrl={videoUrl}
+              imageUrl={imageUrl} 
+              bgColor={bgColor}
+              mockupType={mockupType || "browser"}
+              primaryCtaText={t.readCaseStudy}
+              secondaryCtaText={t.showOverview}
+              primaryScrollTo="outcomes"
+              overviewData={overviewDataPayload}
+            />
+          </FadeIn>
         </Box>
 
         {localizedFeaturedTestimonial && (
@@ -634,7 +632,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         )}
 
         {globalContactData && globalContactData.title && (
-          <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle">
+          <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle" className="pattern-dots">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
               <FadeIn>
                 <ProjectCta dict={globalContactData} />
