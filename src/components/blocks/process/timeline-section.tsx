@@ -309,8 +309,8 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
               {step.details.map((detail, idx) => (
                 <Box 
                   key={idx} 
-                  bg="bg.canvas" // FIX: Forces the card to pop out against bg.emphasized in light mode
-                  p="6" 
+                  bg="bg.panel" // Matches StoryHeroBlock exactly (solid, opaque, light/dark responsive)
+                  p={{ base: "6", md: "8" }} // Matches padding on the other cards perfectly
                   rounded="3xl" 
                   borderWidth="1px" 
                   borderColor="border.subtle"
