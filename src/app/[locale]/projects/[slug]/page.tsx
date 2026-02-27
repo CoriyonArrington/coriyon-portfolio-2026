@@ -3,7 +3,7 @@ import type { Metadata, ResolvingMetadata } from 'next'
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-import { Block as ProjectsHero } from "@/components/blocks/heroes/projects-page/block"
+import { Block as Hero } from "@/components/blocks/heroes/home-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as ProjectBentoGrid } from "@/components/blocks/features/project-bento-grid/block"
 import { Block as CaseStudyAccordion } from "@/components/blocks/features/feature-06/block"
@@ -48,7 +48,6 @@ export async function generateMetadata(
   }
 }
 
-// --- NARRATIVE STORYTELLING COMPONENT ---
 const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark, pt, pb, borderTopWidth, className, children }: any) => {
   const renderValue = (v: any) => {
     if (typeof v === 'string') return <Text color="fg.muted" lineHeight="relaxed">{v}</Text>;
@@ -99,9 +98,9 @@ const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark
       borderColor="border.subtle"
     >
       <Container maxW="5xl">
-        <Stack gap={{ base: "10", md: "16" }} align="center">
+        <Stack gap={{ base: "10", md: "16" }} align="flex-start" w="full">
           
-          <Stack gap="6" align="center" textAlign="center" maxW="3xl">
+          <Stack gap="6" align="flex-start" textAlign="left" maxW="3xl" w="full">
             {badge && <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">{badge}</Badge>}
             <Heading as="h2" size={{ base: "4xl", md: "5xl" }} fontWeight="bold" letterSpacing="tight">{title}</Heading>
             {description && <Text color="fg.muted" textStyle="xl">{description}</Text>}
@@ -119,7 +118,17 @@ const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark
             {items && items.length > 0 && (
               <SimpleGrid columns={{ base: 1, md: items.length > 1 ? 2 : 1 }} gap="6" alignItems="stretch">
                 {items.map((item: any, idx: number) => (
-                  <Box key={idx} bg="bg.panel" p={{ base: "6", md: "8" }} rounded="3xl" borderWidth="1px" borderColor="border.subtle" shadow="sm">
+                  <Box 
+                    key={idx} 
+                    bg="bg.panel" 
+                    p={{ base: "6", md: "8" }} 
+                    rounded="3xl" 
+                    borderWidth="1px" 
+                    borderColor="border.subtle" 
+                    shadow="sm"
+                    transition="all 0.2s"
+                    _hover={{ transform: 'translateY(-2px)', shadow: 'md' }}
+                  >
                     <Heading size="lg" mb="4" color="fg.default">{item.label}</Heading>
                     {renderValue(item.value)}
                   </Box>
@@ -137,6 +146,56 @@ const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark
 export default async function ProjectDetailPage({ params }: { params: Promise<{ locale: string, slug: string }> }) {
   const { locale, slug } = await params;
   const currentLocale = locale || 'en'
+  const isEs = currentLocale === 'es'
+
+  const t = {
+    readCaseStudy: isEs ? "Leer caso de estudio" : "Read case study",
+    showOverview: isEs ? "Ver resumen" : "Show overview",
+    tocTitle: isEs ? "Navegación del Caso" : "Case Study Navigation",
+    resultsBadge: isEs ? "Los Resultados" : "The Results",
+    resultsTitle: isEs ? "Métricas de Rendimiento" : "Performance Metrics",
+    learningsBadge: isEs ? "Conclusiones Clave" : "Key Takeaways",
+    learningsTitle: isEs ? "Aprendizajes e Impacto" : "Key Learnings & Impact",
+    contextBadge: isEs ? "El Contexto" : "The Context",
+    contextTitle: isEs ? "El Punto de Partida" : "The Starting Point",
+    problemBadge: isEs ? "El Problema" : "The Problem",
+    problemTitle: isEs ? "Identificando el Bloqueo Real" : "Identifying the Real Blocker",
+    strategyBadge: isEs ? "La Estrategia" : "The Strategy",
+    strategyTitle: isEs ? "Definiendo la Estrella Polar" : "Defining the North Star",
+    executionBadge: isEs ? "La Ejecución" : "The Execution",
+    executionTitle: isEs ? "Cómo Llegamos Ahí" : "How We Got There",
+    whatExisted: isEs ? "Lo que existía" : "What Existed",
+    whatChanged: isEs ? "Lo que cambió" : "What Changed",
+    businessProblem: isEs ? "Problema de Negocio" : "Business Problem",
+    productProblem: isEs ? "Problema de Producto" : "Product Problem",
+    initialBet: isEs ? "Apuesta Inicial" : "Initial Bet",
+    northStar: isEs ? "Métrica Estrella" : "North Star Metric",
+    impactAreas: isEs ? "Áreas de Impacto" : "Impact Areas",
+    pilotRollout: isEs ? "Piloto y Lanzamiento" : "Pilot & Rollout",
+    enablement: isEs ? "Habilitación y Soporte" : "Enablement & Guardrails",
+    scoping: isEs ? "Alcance" : "Scoping",
+    alignment: isEs ? "Alineación" : "Stakeholder Alignment",
+    timing: isEs ? "Sincronización" : "Timing",
+    coreFeatures: isEs ? "Características Clave" : "Core Features",
+    caseStudy: isEs ? "Caso de Estudio" : "Case Study",
+    behindProcess: isEs ? "Detrás del proceso" : "Behind the process",
+    moreTeam: isEs ? "Más de este equipo" : "More from this team",
+    hearMore: isEs ? "Escucha lo que dijeron sobre nuestra colaboración." : "Hear what else they had to say about our partnership."
+  }
+
+  const tKeys: Record<string, string> = {
+    whatWeRedesigned: isEs ? "Qué rediseñamos" : "What We Redesigned",
+    keyConcept: isEs ? "Concepto clave" : "Key Concept",
+    result: isEs ? "Resultado" : "Result",
+    example: isEs ? "Ejemplo" : "Example",
+    keyLesson: isEs ? "Lección clave" : "Key Lesson",
+    whatChanged: isEs ? "Qué cambió" : "What Changed",
+    whatWeDid: isEs ? "Qué hicimos" : "What We Did",
+    whatWeFound: isEs ? "Qué encontramos" : "What We Found",
+    fix: isEs ? "Solución" : "The Fix",
+    change: isEs ? "Cambio" : "Change",
+    whyItWorked: isEs ? "Por qué funcionó" : "Why It Worked",
+  }
 
   const { data: allProjectsData } = await supabase.from('projects').select('*').order('sort_order', { ascending: true })
   const allProjects = allProjectsData || []
@@ -167,22 +226,38 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const category = project.project_category || "Case Study"
   const videoUrl = project.featured_video_url
   const imageUrl = project.featured_image_url
-  const mockupType = project.mockup_type 
   const bgColor = project.bg_color 
+  const mockupType = project.mockup_type 
 
   const projectContentJson = (project as any)[`content_${currentLocale}`] || project.content_en || {}
-  
+
   const overviewData = projectContentJson.overview || {}
-  const projectMeta = projectContentJson.project_meta || {}
-  
-  const role = overviewData.myRole || overviewData.role || projectMeta.role
-  const duration = overviewData.timeframe?.total || overviewData.duration || projectMeta.duration
+  const role = overviewData.myRole || overviewData.role || projectContentJson.project_meta?.role
+  const duration = overviewData.timeframe?.total || overviewData.duration || projectContentJson.project_meta?.duration
   const summary = overviewData.oneLiner || overviewData.summary || description
-  const year = overviewData.year || projectMeta.year || (project.project_date ? new Date(project.project_date).getFullYear() : null)
-  const teamRoles = overviewData.users ? overviewData.users.join(', ') : (overviewData.team_roles || projectMeta.team)
-  const deliverables = overviewData.deliverables || (Array.isArray(projectMeta.deliverables) ? projectMeta.deliverables.join(', ') : projectMeta.deliverables)
-  const industries = overviewData.industries || projectMeta.industries
-  const platforms = overviewData.platforms || projectMeta.platforms
+  const year = overviewData.year || projectContentJson.project_meta?.year || (project.project_date ? new Date(project.project_date).getFullYear() : null)
+  const teamRoles = overviewData.users ? overviewData.users.join(', ') : (overviewData.team_roles || projectContentJson.project_meta?.team)
+  const deliverables = overviewData.deliverables || (Array.isArray(projectContentJson.project_meta?.deliverables) ? projectContentJson.project_meta.deliverables.join(', ') : projectContentJson.project_meta?.deliverables)
+  const industries = overviewData.industries || projectContentJson.project_meta?.industries
+
+  const overviewDataPayload = {
+    role,
+    duration,
+    teamRoles,
+    deliverables,
+    summary,
+    year: year ? String(year) : undefined,
+    industries,
+    labels: {
+      role: isEs ? "Rol" : "Role",
+      duration: isEs ? "Duración" : "Duration",
+      team: isEs ? "Equipo" : "Team",
+      deliverables: isEs ? "Entregables" : "Deliverables",
+      year: isEs ? "Año" : "Year",
+      industry: isEs ? "Industria" : "Industry",
+      overview: isEs ? "Resumen del Proyecto" : "Project Overview"
+    }
+  }
 
   const pmContext = projectContentJson.context
   const pmProblem = projectContentJson.problem
@@ -203,8 +278,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
      const math = pmOutcomes.estimatedROI.math;
      statsData = {
        items: [
-         { value: `${math.hoursSavedPerClinicianPerWeek} hrs`, label: "Saved per Clinician / Week" },
-         { value: `${(math.annualHoursSaved / 1000).toFixed(0)}k`, label: "Annual Hours Saved (Est.)" },
+         { value: `${math.hoursSavedPerClinicianPerWeek} hrs`, label: isEs ? "Ahorradas / Sem" : "Saved per Clinician / Week" },
+         { value: `${(math.annualHoursSaved / 1000).toFixed(0)}k`, label: isEs ? "Ahorro Anual" : "Annual Hours Saved (Est.)" },
        ]
      }
   }
@@ -218,12 +293,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     const details = Object.entries(phase)
       .filter(([k]) => k !== 'title' && k !== 'imageSrc')
       .map(([k, v]) => {
-        const formattedKey = k.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        const formattedKey = tKeys[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
         let value: string | string[] = '';
         if (Array.isArray(v)) { value = v as string[]; } 
         else if (typeof v === 'object' && v !== null) {
           value = Object.entries(v).map(([sk, sv]) => {
-            const subFormatted = sk.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            const subFormatted = tKeys[sk] || sk.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
             return `${subFormatted}: ${sv}`;
           });
         } else { value = String(v); }
@@ -231,8 +306,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       });
 
     return {
-      date: `Phase ${stepNumber}`,
-      heading: phase.title || `Phase ${stepNumber}`,
+      date: `${isEs ? 'Fase' : 'Phase'} ${stepNumber}`,
+      heading: phase.title || `${isEs ? 'Fase' : 'Phase'} ${stepNumber}`,
       description: "", 
       details: details,
       imageSrc: cleanStr(phase.imageSrc)
@@ -243,7 +318,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   
   if (pmOutcomes?.impactAreas && pmOutcomes.impactAreas.length > 0) {
     unifiedBentoFeatures.push({
-      title: "Impact Areas",
+      title: t.impactAreas,
       colSpan: 4,
       description: pmOutcomes.impactAreas.join(' • '),
       mediaUrl: cleanStr(pmOutcomes.media?.mediaUrl),
@@ -252,14 +327,14 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   }
   if (pmScaling?.pilot || pmScaling?.rollout) {
     unifiedBentoFeatures.push({
-      title: "Pilot & Rollout",
+      title: t.pilotRollout,
       colSpan: 2,
       description: `Pilot: ${pmScaling.pilot} • Rollout: ${pmScaling.rollout}`,
     });
   }
   if (pmScaling?.enablement?.onboardingPlaybook || pmScaling?.adoptionGuardrails) {
     unifiedBentoFeatures.push({
-      title: "Enablement & Guardrails",
+      title: t.enablement,
       colSpan: 2,
       description: [pmScaling.enablement?.onboardingPlaybook, ...(pmScaling.adoptionGuardrails || [])].filter(Boolean).join(' • '),
     });
@@ -268,21 +343,21 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (pmLearnings) {
     if (pmLearnings.scoping) {
       unifiedBentoFeatures.push({
-        title: "Scoping",
+        title: t.scoping,
         colSpan: 4, 
         description: pmLearnings.scoping?.learning || pmLearnings.scoping?.whatHappened,
       });
     }
     if (pmLearnings.stakeholderAlignment) {
       unifiedBentoFeatures.push({
-        title: "Stakeholder Alignment",
+        title: t.alignment,
         colSpan: 2,
         description: pmLearnings.stakeholderAlignment?.learning || pmLearnings.stakeholderAlignment?.tension,
       });
     }
     if (pmLearnings.timing) {
       unifiedBentoFeatures.push({
-        title: "Timing",
+        title: t.timing,
         colSpan: 2,
         description: pmLearnings.timing?.learning || pmLearnings.timing?.risk,
       });
@@ -311,18 +386,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   }
   const hasFaqs = faqData.faqs && faqData.faqs.length > 0
   const globalContactData = content.contact || {}
-  const hasCta = !!globalContactData.title
 
   const dynamicToc: TocItem[] = [];
-  if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: 'The Results', level: 1 });
-  if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: 'Key Takeaways', level: 1 });
-  if (hasContextData) dynamicToc.push({ id: 'context', text: 'The Context', level: 1 });
-  if (hasProblemData) dynamicToc.push({ id: 'problem', text: 'The Problem', level: 1 });
-  if (hasStrategyData) dynamicToc.push({ id: 'strategy', text: 'The Strategy', level: 1 });
-  if (hasApproach) dynamicToc.push({ id: 'execution', text: 'The Execution', level: 1 });
+  if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: t.resultsBadge, level: 1 });
+  if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: t.learningsBadge, level: 1 });
+  if (hasContextData) dynamicToc.push({ id: 'context', text: t.contextBadge, level: 1 });
+  if (hasProblemData) dynamicToc.push({ id: 'problem', text: t.problemBadge, level: 1 });
+  if (hasStrategyData) dynamicToc.push({ id: 'strategy', text: t.strategyBadge, level: 1 });
+  if (hasApproach) dynamicToc.push({ id: 'execution', text: t.executionBadge, level: 1 });
   
-  if (!pmContext && hasBentoGrid) dynamicToc.push({ id: 'features', text: 'Core Features', level: 1 });
-  if (!pmContext && hasStandardCaseStudy) dynamicToc.push({ id: 'case-study', text: 'Case Study', level: 1 });
+  if (!pmContext && hasBentoGrid) dynamicToc.push({ id: 'features', text: t.coreFeatures, level: 1 });
+  if (!pmContext && hasStandardCaseStudy) dynamicToc.push({ id: 'case-study', text: t.caseStudy, level: 1 });
 
   return (
     <Box bg="bg.canvas" minH="100vh">
@@ -333,23 +407,20 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <ProjectsHero 
-                dict={{ ...content.hero, exploreWork: content.project?.readCaseStudy || "Read case study" }}
+              <Hero 
+                dict={{ ...content.hero }}
                 title={projectContentJson.hero?.title || title}
                 description={projectContentJson.hero?.subtitle || description}
                 tagline={category}
                 videoUrl={videoUrl}
                 imageUrl={imageUrl} 
-                mockupType={mockupType}
-                bgColor={bgColor} 
-                role={role}
-                duration={duration}
-                year={year}
-                teamRoles={teamRoles}
-                deliverables={deliverables}
-                summary={summary}
-                industries={industries}
-                platforms={platforms}
+                bgColor={bgColor}
+                hideSocialProof={true}
+                primaryCtaText={t.readCaseStudy}
+                secondaryCtaText={t.showOverview}
+                primaryScrollTo="outcomes"
+                showOverview={true}
+                overviewData={overviewDataPayload}
               />
             </FadeIn>
           </Container>
@@ -365,7 +436,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         )}
 
-        {/* --- GLASS TRACK TOC NAVIGATION --- */}
         {dynamicToc.length > 0 && (
           <Box 
             position="sticky" 
@@ -374,30 +444,28 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             w="full" 
             pointerEvents="none" 
           >
-            {/* The actual blurred backdrop that spans the gap */}
             <Box
               position="absolute"
               top="0"
               left="0"
               right="0"
-              bottom="-24px" // Fades out slightly below the container
+              bottom={{ base: "-24px", md: "-16px" }} 
               bg="bg.canvas/75"
               backdropFilter="blur(16px)"
               zIndex="-1"
               css={{
-                maskImage: 'linear-gradient(to bottom, black 85%, transparent)',
-                WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent)'
+                maskImage: 'linear-gradient(to bottom, black 80%, transparent)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent)'
               }}
             />
             
-            {/* The TOC Container, pushed down by padding to form the exact visual space needed */}
             <Container 
               maxW="3xl" 
               pointerEvents="auto" 
-              pt={{ base: "100px", md: "120px" }} 
-              pb={{ base: 4, md: 6 }}
+              pt={{ base: "96px", md: "96px" }} 
+              pb={{ base: 3, md: 4 }} 
             >
-              <TableOfContents tocData={dynamicToc} />
+              <TableOfContents tocData={dynamicToc} title={t.tocTitle} />
             </Container>
           </Box>
         )}
@@ -410,16 +478,16 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <Box id="outcomes" className="pattern-dots" bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
               <FadeIn>
                 <StoryHeroBlock 
-                  badge={pmOutcomes ? "The Results" : (statsData.tagline || "The Results")} 
-                  title={pmOutcomes?.heading || statsData.headline || "Performance Metrics"} 
+                  badge={pmOutcomes ? t.resultsBadge : (statsData.tagline || t.resultsBadge)} 
+                  title={pmOutcomes?.heading || statsData.headline || t.resultsTitle} 
                   description={pmOutcomes?.headline || statsData.description}
                   imageSrc={cleanStr(pmOutcomes?.imageSrc) || null} 
                   isDark={false}
                   pb={{ base: "16", md: "24" }}
                 >
                   {hasStats && (
-                    <Box w="full" pt={{ base: 4, md: 8 }}>
-                      <ProjectStats stats={statsData.items} headline={undefined} tagline={undefined} description={undefined} />
+                    <Box w="full">
+                      <ProjectStats stats={statsData.items} headline="" tagline="" description="" />
                     </Box>
                   )}
                 </StoryHeroBlock>
@@ -432,15 +500,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <Box id="learnings" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
               <FadeIn>
                 <StoryHeroBlock 
-                  badge="Key Takeaways" 
-                  title={pmLearnings?.heading || "Key Learnings & Impact"} 
+                  badge={t.learningsBadge} 
+                  title={pmLearnings?.heading || t.learningsTitle} 
                   description={pmLearnings?.description || null}
                   imageSrc={cleanStr(pmLearnings?.imageSrc) || null} 
                   isDark={true}
-                  pb="4" 
+                  pb={{ base: "16", md: "24" }}
                 >
                   {unifiedBentoFeatures.length > 0 && (
-                    <Box w="full" pt={{ base: 8, md: 12 }}>
+                    <Box w="full">
                        <ProjectBentoGrid features={unifiedBentoFeatures} />
                     </Box>
                   )}
@@ -455,11 +523,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <StoryHeroBlock 
                 id="context"
                 className="pattern-dots"
-                badge="The Context" 
-                title={pmContext?.heading || "The Starting Point"} 
+                badge={t.contextBadge} 
+                title={pmContext?.heading || t.contextTitle} 
                 items={[
-                  ...(pmContext?.whatExisted ? [{ label: "What Existed", value: pmContext.whatExisted }] : []),
-                  ...(pmContext?.whatChanged ? [{ label: "What Changed", value: pmContext.whatChanged }] : [])
+                  ...(pmContext?.whatExisted ? [{ label: t.whatExisted, value: pmContext.whatExisted }] : []),
+                  ...(pmContext?.whatChanged ? [{ label: t.whatChanged, value: pmContext.whatChanged }] : [])
                 ]}
                 imageSrc={cleanStr(pmContext?.imageSrc) || null} 
                 isDark={false}
@@ -472,12 +540,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <FadeIn>
               <StoryHeroBlock 
                 id="problem"
-                badge="The Problem" 
-                title={pmProblem?.heading || "Identifying the Real Blocker"} 
+                badge={t.problemBadge} 
+                title={pmProblem?.heading || t.problemTitle} 
                 description={pmProblem?.risk}
                 items={[
-                  ...(pmProblem?.businessProblem ? [{ label: "Business Problem", value: pmProblem.businessProblem }] : []),
-                  ...(pmProblem?.productProblem ? [{ label: "Product Problem", value: pmProblem.productProblem }] : [])
+                  ...(pmProblem?.businessProblem ? [{ label: t.businessProblem, value: pmProblem.businessProblem }] : []),
+                  ...(pmProblem?.productProblem ? [{ label: t.productProblem, value: pmProblem.productProblem }] : [])
                 ]}
                 imageSrc={cleanStr(pmProblem?.imageSrc) || null} 
                 isDark={true}
@@ -491,11 +559,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <StoryHeroBlock 
                 id="strategy"
                 className="pattern-dots"
-                badge="The Strategy" 
-                title={pmStrategy?.heading || "Defining the North Star"} 
+                badge={t.strategyBadge} 
+                title={pmStrategy?.heading || t.strategyTitle} 
                 items={[
-                  ...(pmStrategy?.initialBet ? [{ label: "Initial Bet", value: pmStrategy.initialBet }] : []),
-                  ...(pmStrategy?.northStarMetric ? [{ label: "North Star Metric", value: `${pmStrategy.northStarMetric.metric} — ${pmStrategy.northStarMetric.definition}` }] : [])
+                  ...(pmStrategy?.initialBet ? [{ label: t.initialBet, value: pmStrategy.initialBet }] : []),
+                  ...(pmStrategy?.northStarMetric ? [{ label: t.northStar, value: `${pmStrategy.northStarMetric.metric} — ${pmStrategy.northStarMetric.definition}` }] : [])
                 ]}
                 imageSrc={cleanStr(pmStrategy?.imageSrc) || null} 
                 isDark={false}
@@ -509,9 +577,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <FadeIn>
                 <TimelineSection 
                   dict={{
-                    badge: "The Execution",
-                    title: projectContentJson.approachHeading || "How We Got There",
-                    description: "A phased execution plan prioritizing discovery, patient-centered redesign, and workflow adoption.",
+                    badge: t.executionBadge,
+                    title: projectContentJson.approachHeading || t.executionTitle,
+                    description: isEs ? "Un plan de ejecución por fases que prioriza el descubrimiento, el rediseño centrado en el paciente y la adopción." : "A phased execution plan prioritizing discovery, patient-centered redesign, and workflow adoption.",
                     steps: processSteps
                   }}
                 />
@@ -524,7 +592,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <Box id="features" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
               <Container maxW="7xl" px={{ base: "4", md: "8" }}>
                 <FadeIn>
-                  <ProjectBentoGrid badge={bentoData.badge} title={bentoData.title || "Core Features"} description={bentoData.description} features={bentoFeatures} />
+                  <ProjectBentoGrid badge={bentoData.badge} title={bentoData.title || t.coreFeatures} description={bentoData.description} features={bentoFeatures} />
                 </FadeIn>
               </Container>
             </Box>
@@ -534,7 +602,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <Box id="case-study" py={{ base: "16", md: "24" }} className={hasBentoGrid ? "" : "pattern-dots"} borderTopWidth={hasBentoGrid ? "1px" : "0"} borderColor="border.subtle">
               <Container maxW="7xl" px={{ base: "4", md: "8" }}>
                  <FadeIn>
-                   <CaseStudyAccordion badge={<Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">Case Study</Badge>} title="Behind the process" description={caseStudyData.description || null} features={caseStudyFeatures} mockupType={mockupType} />
+                   <CaseStudyAccordion badge={<Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">{t.caseStudy}</Badge>} title={t.behindProcess} description={caseStudyData.description || null} features={caseStudyFeatures} mockupType={mockupType} />
                  </FadeIn>
               </Container>
             </Box>
@@ -548,7 +616,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <FadeIn>
                 <TestimonialGrid 
                   testimonials={localizedRemainingTestimonials} 
-                  dict={{ title: "More from this team", description: "Hear what else they had to say about our partnership." }} 
+                  dict={{ title: t.moreTeam, description: t.hearMore }} 
                 />
               </FadeIn>
             </Container>
@@ -565,7 +633,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         )}
 
-        {hasCta && (
+        {globalContactData && globalContactData.title && (
           <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
               <FadeIn>
