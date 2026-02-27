@@ -249,7 +249,6 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
             )}
           </Stack>
           
-          {/* REORDERED: Image sits right below the header */}
           {step.imageSrc && (
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
@@ -305,20 +304,29 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
             </motion.div>
           )}
 
-          {/* REORDERED: Details provide additional context below the image */}
           {step.details && step.details.length > 0 && (
             <Stack gap="4" mt="2">
               {step.details.map((detail, idx) => (
-                <Box key={idx} bg="bg.panel" p="4" rounded="2xl" borderWidth="1px" borderColor="border.subtle">
-                  <Text fontWeight="semibold" color="fg.default">{detail.label}</Text>
+                <Box 
+                  key={idx} 
+                  bg="bg.canvas" // FIX: Forces the card to pop out against bg.emphasized in light mode
+                  p="6" 
+                  rounded="3xl" 
+                  borderWidth="1px" 
+                  borderColor="border.subtle"
+                  shadow="sm"
+                  transition="all 0.2s"
+                  _hover={{ transform: 'translateY(-2px)', shadow: 'md' }}
+                >
+                  <Heading size="lg" color="fg.default">{detail.label}</Heading>
                   {Array.isArray(detail.value) ? (
-                    <Stack as="ul" pl="4" gap="2" mt="2" style={{ listStyleType: 'disc' }}>
+                    <Stack as="ul" pl="4" gap="2" mt="3" style={{ listStyleType: 'disc' }}>
                       {detail.value.map((v, i) => (
-                        <Box as="li" key={i} color="fg.muted" fontSize="sm">{v}</Box>
+                        <Box as="li" key={i} color="fg.muted" lineHeight="relaxed">{v}</Box>
                       ))}
                     </Stack>
                   ) : (
-                    <Text color="fg.muted" fontSize="sm" mt="1">{detail.value}</Text>
+                    <Text color="fg.muted" mt="2" lineHeight="relaxed">{detail.value}</Text>
                   )}
                 </Box>
               ))}
