@@ -428,6 +428,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               primaryCtaText={t.readCaseStudy}
               secondaryCtaText={t.showOverview}
               primaryScrollTo="outcomes"
+              isProtected={isProtected}
               overviewData={overviewDataPayload}
             />
           </FadeIn>
@@ -446,7 +447,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
         {/* --- CONDITIONAL RENDER --- */}
         {isProtected ? (
-          <Box py={{ base: "20", md: "32" }} className="pattern-dots">
+          <Box 
+            id="unlock-section" 
+            py={{ base: "20", md: "32" }} 
+            className="pattern-dots"
+          >
             <Container maxW="2xl">
               <FadeIn>
                 <PasswordGate 
