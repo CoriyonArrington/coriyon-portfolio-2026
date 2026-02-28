@@ -2,6 +2,8 @@ import { Box, Container, Stack, Badge, Heading, Text, SimpleGrid, Image } from "
 import type { Metadata, ResolvingMetadata } from 'next'
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
+import { cookies } from "next/headers"
+import { PasswordGate } from "@/components/ui/password-gate"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
 import { Block as Hero } from "@/components/blocks/heroes/project-detail-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
@@ -204,6 +206,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   if (!project) notFound()
 
+  // Security Check
+  const cookieStore = await cookies()
+  const isUnlocked = cookieStore.get(`unlocked_${slug}`)?.value === 'true'
+  const isProtected = !!project.password && !isUnlocked
+
   let prevProject = null
   let nextProject = null
   if (currentIndex > 0) prevProject = { slug: allProjects[currentIndex - 1].slug, title: (allProjects[currentIndex - 1] as any)[`title_${currentLocale}`] || allProjects[currentIndex - 1].title_en || allProjects[currentIndex - 1].title }
@@ -388,15 +395,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const globalContactData = content.contact || {}
 
   const dynamicToc: TocItem[] = [];
-  if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: t.resultsBadge, level: 1 });
-  if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: t.learningsBadge, level: 1 });
-  if (hasContextData) dynamicToc.push({ id: 'context', text: t.contextBadge, level: 1 });
-  if (hasProblemData) dynamicToc.push({ id: 'problem', text: t.problemBadge, level: 1 });
-  if (hasStrategyData) dynamicToc.push({ id: 'strategy', text: t.strategyBadge, level: 1 });
-  if (hasApproach) dynamicToc.push({ id: 'execution', text: t.executionBadge, level: 1 });
-  
-  if (!pmContext && hasBentoGrid) dynamicToc.push({ id: 'features', text: t.coreFeatures, level: 1 });
-  if (!pmContext && hasStandardCaseStudy) dynamicToc.push({ id: 'case-study', text: t.caseStudy, level: 1 });
+  if (!isProtected) {
+    if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: t.resultsBadge, level: 1 });
+    if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: t.learningsBadge, level: 1 });
+    if (hasContextData) dynamicToc.push({ id: 'context', text: t.contextBadge, level: 1 });
+    if (hasProblemData) dynamicToc.push({ id: 'problem', text: t.problemBadge, level: 1 });
+    if (hasStrategyData) dynamicToc.push({ id: 'strategy', text: t.strategyBadge, level: 1 });
+    if (hasApproach) dynamicToc.push({ id: 'execution', text: t.executionBadge, level: 1 });
+    
+    if (!pmContext && hasBentoGrid) dynamicToc.push({ id: 'features', text: t.coreFeatures, level: 1 });
+    if (!pmContext && hasStandardCaseStudy) dynamicToc.push({ id: 'case-study', text: t.caseStudy, level: 1 });
+  }
 
   return (
     <Box bg="bg.canvas" minH="100vh">
@@ -404,7 +413,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       
       <Stack gap="0">
         
-        {/* FIX: Removed the Container so the new Hero component can break out perfectly! */}
+        {/* HERO: Always visible */}
         <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
           <FadeIn>
             <Hero 
@@ -424,6 +433,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </FadeIn>
         </Box>
 
+        {/* FEATURED TESTIMONIAL: Always visible */}
         {localizedFeaturedTestimonial && (
           <Box bg="bg.emphasized" w="full" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
@@ -434,213 +444,226 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         )}
 
-        {dynamicToc.length > 0 && (
-          <Box 
-            position="sticky" 
-            top="-1px" 
-            zIndex="30" 
-            w="full" 
-            pointerEvents="none" 
-          >
-            <Box
-              position="absolute"
-              top="0"
-              left="0"
-              right="0"
-              bottom={{ base: "-24px", md: "-16px" }} 
-              bg="bg.canvas/75"
-              backdropFilter="blur(16px)"
-              zIndex="-1"
-              css={{
-                maskImage: 'linear-gradient(to bottom, black 80%, transparent)',
-                WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent)'
-              }}
-            />
-            
-            <Container 
-              maxW="3xl" 
-              pointerEvents="auto" 
-              pt={{ base: "96px", md: "96px" }} 
-              pb={{ base: 3, md: 4 }} 
-            >
-              <TableOfContents tocData={dynamicToc} title={t.tocTitle} />
+        {/* --- CONDITIONAL RENDER --- */}
+        {isProtected ? (
+          <Box py={{ base: "20", md: "32" }} className="pattern-dots">
+            <Container maxW="2xl">
+              <FadeIn>
+                <PasswordGate 
+                  slug={slug} 
+                  title={isEs ? "Caso de Estudio Protegido" : "Protected Case Study"}
+                  description={isEs 
+                    ? "Por favor ingresa la contraseña para ver la estrategia, métricas y resultados." 
+                    : "Please enter the password to view the strategic approach, metrics, and outcomes."
+                  }
+                />
+              </FadeIn>
             </Container>
           </Box>
-        )}
-
-        {/* --- EXECUTIVE TOP-DOWN STORY SEQUENCE --- */}
-        <Box id="projects">
-
-          {/* 1. OUTCOMES & ANIMATED STATS */}
-          {shouldRenderOutcomes && (
-            <Box id="outcomes" className="pattern-dots" bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
-              <FadeIn>
-                <StoryHeroBlock 
-                  badge={pmOutcomes ? t.resultsBadge : (statsData.tagline || t.resultsBadge)} 
-                  title={pmOutcomes?.heading || statsData.headline || t.resultsTitle} 
-                  description={pmOutcomes?.headline || statsData.description}
-                  imageSrc={cleanStr(pmOutcomes?.imageSrc) || null} 
-                  isDark={false}
-                  pb={{ base: "16", md: "24" }}
-                >
-                  {hasStats && (
-                    <Box w="full">
-                      <ProjectStats stats={statsData.items} headline="" tagline="" description="" />
-                    </Box>
-                  )}
-                </StoryHeroBlock>
-              </FadeIn>
-            </Box>
-          )}
-
-          {/* 2. LEARNINGS & MASSIVE UNIFIED BENTO GRID */}
-          {shouldRenderLearnings && (
-            <Box id="learnings" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
-              <FadeIn>
-                <StoryHeroBlock 
-                  badge={t.learningsBadge} 
-                  title={pmLearnings?.heading || t.learningsTitle} 
-                  description={pmLearnings?.description || null}
-                  imageSrc={cleanStr(pmLearnings?.imageSrc) || null} 
-                  isDark={true}
-                  pb={{ base: "16", md: "24" }}
-                >
-                  {unifiedBentoFeatures.length > 0 && (
-                    <Box w="full">
-                       <ProjectBentoGrid features={unifiedBentoFeatures} />
-                    </Box>
-                  )}
-                </StoryHeroBlock>
-              </FadeIn>
-            </Box>
-          )}
-
-          {/* 3. CONTEXT */}
-          {hasContextData && (
-            <FadeIn>
-              <StoryHeroBlock 
-                id="context"
-                className="pattern-dots"
-                badge={t.contextBadge} 
-                title={pmContext?.heading || t.contextTitle} 
-                items={[
-                  ...(pmContext?.whatExisted ? [{ label: t.whatExisted, value: pmContext.whatExisted }] : []),
-                  ...(pmContext?.whatChanged ? [{ label: t.whatChanged, value: pmContext.whatChanged }] : [])
-                ]}
-                imageSrc={cleanStr(pmContext?.imageSrc) || null} 
-                isDark={false}
-              />
-            </FadeIn>
-          )}
-
-          {/* 4. PROBLEM */}
-          {hasProblemData && (
-            <FadeIn>
-              <StoryHeroBlock 
-                id="problem"
-                badge={t.problemBadge} 
-                title={pmProblem?.heading || t.problemTitle} 
-                description={pmProblem?.risk}
-                items={[
-                  ...(pmProblem?.businessProblem ? [{ label: t.businessProblem, value: pmProblem.businessProblem }] : []),
-                  ...(pmProblem?.productProblem ? [{ label: t.productProblem, value: pmProblem.productProblem }] : [])
-                ]}
-                imageSrc={cleanStr(pmProblem?.imageSrc) || null} 
-                isDark={true}
-              />
-            </FadeIn>
-          )}
-
-          {/* 5. STRATEGY */}
-          {hasStrategyData && (
-            <FadeIn>
-              <StoryHeroBlock 
-                id="strategy"
-                className="pattern-dots"
-                badge={t.strategyBadge} 
-                title={pmStrategy?.heading || t.strategyTitle} 
-                items={[
-                  ...(pmStrategy?.initialBet ? [{ label: t.initialBet, value: pmStrategy.initialBet }] : []),
-                  ...(pmStrategy?.northStarMetric ? [{ label: t.northStar, value: `${pmStrategy.northStarMetric.metric} — ${pmStrategy.northStarMetric.definition}` }] : [])
-                ]}
-                imageSrc={cleanStr(pmStrategy?.imageSrc) || null} 
-                isDark={false}
-              />
-            </FadeIn>
-          )}
-
-          {/* 6. EXECUTION (TIMELINE) */}
-          {hasApproach && (
-            <Box id="execution" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
-              <FadeIn>
-                <TimelineSection 
-                  dict={{
-                    badge: t.executionBadge,
-                    title: projectContentJson.approachHeading || t.executionTitle,
-                    description: isEs ? "Un plan de ejecución por fases que prioriza el descubrimiento, el rediseño centrado en el paciente y la adopción." : "A phased execution plan prioritizing discovery, patient-centered redesign, and workflow adoption.",
-                    steps: processSteps
+        ) : (
+          <>
+            {dynamicToc.length > 0 && (
+              <Box 
+                position="sticky" 
+                top="-1px" 
+                zIndex="30" 
+                w="full" 
+                pointerEvents="none" 
+              >
+                <Box
+                  position="absolute"
+                  top="0"
+                  left="0"
+                  right="0"
+                  bottom={{ base: "-24px", md: "-16px" }} 
+                  bg="bg.canvas/75"
+                  backdropFilter="blur(16px)"
+                  zIndex="-1"
+                  css={{
+                    maskImage: 'linear-gradient(to bottom, black 80%, transparent)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent)'
                   }}
                 />
-              </FadeIn>
-            </Box>
-          )}
-          
-          {/* FALLBACK FOR NON-PM CASE STUDIES */}
-          {!pmContext && hasBentoGrid && (
-            <Box id="features" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
-              <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+                
+                <Container 
+                  maxW="3xl" 
+                  pointerEvents="auto" 
+                  pt={{ base: "96px", md: "96px" }} 
+                  pb={{ base: 3, md: 4 }} 
+                >
+                  <TableOfContents tocData={dynamicToc} title={t.tocTitle} />
+                </Container>
+              </Box>
+            )}
+
+            <Box id="projects">
+
+              {shouldRenderOutcomes && (
+                <Box id="outcomes" className="pattern-dots" bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
+                  <FadeIn>
+                    <StoryHeroBlock 
+                      badge={pmOutcomes ? t.resultsBadge : (statsData.tagline || t.resultsBadge)} 
+                      title={pmOutcomes?.heading || statsData.headline || t.resultsTitle} 
+                      description={pmOutcomes?.headline || statsData.description}
+                      imageSrc={cleanStr(pmOutcomes?.imageSrc) || null} 
+                      isDark={false}
+                      pb={{ base: "16", md: "24" }}
+                    >
+                      {hasStats && (
+                        <Box w="full">
+                          <ProjectStats stats={statsData.items} headline="" tagline="" description="" />
+                        </Box>
+                      )}
+                    </StoryHeroBlock>
+                  </FadeIn>
+                </Box>
+              )}
+
+              {shouldRenderLearnings && (
+                <Box id="learnings" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
+                  <FadeIn>
+                    <StoryHeroBlock 
+                      badge={t.learningsBadge} 
+                      title={pmLearnings?.heading || t.learningsTitle} 
+                      description={pmLearnings?.description || null}
+                      imageSrc={cleanStr(pmLearnings?.imageSrc) || null} 
+                      isDark={true}
+                      pb={{ base: "16", md: "24" }}
+                    >
+                      {unifiedBentoFeatures.length > 0 && (
+                        <Box w="full">
+                           <ProjectBentoGrid features={unifiedBentoFeatures} />
+                        </Box>
+                      )}
+                    </StoryHeroBlock>
+                  </FadeIn>
+                </Box>
+              )}
+
+              {hasContextData && (
                 <FadeIn>
-                  <ProjectBentoGrid badge={bentoData.badge} title={bentoData.title || t.coreFeatures} description={bentoData.description} features={bentoFeatures} />
+                  <StoryHeroBlock 
+                    id="context"
+                    className="pattern-dots"
+                    badge={t.contextBadge} 
+                    title={pmContext?.heading || t.contextTitle} 
+                    items={[
+                      ...(pmContext?.whatExisted ? [{ label: t.whatExisted, value: pmContext.whatExisted }] : []),
+                      ...(pmContext?.whatChanged ? [{ label: t.whatChanged, value: pmContext.whatChanged }] : [])
+                    ]}
+                    imageSrc={cleanStr(pmContext?.imageSrc) || null} 
+                    isDark={false}
+                  />
                 </FadeIn>
-              </Container>
+              )}
+
+              {hasProblemData && (
+                <FadeIn>
+                  <StoryHeroBlock 
+                    id="problem"
+                    badge={t.problemBadge} 
+                    title={pmProblem?.heading || t.problemTitle} 
+                    description={pmProblem?.risk}
+                    items={[
+                      ...(pmProblem?.businessProblem ? [{ label: t.businessProblem, value: pmProblem.businessProblem }] : []),
+                      ...(pmProblem?.productProblem ? [{ label: t.productProblem, value: pmProblem.productProblem }] : [])
+                    ]}
+                    imageSrc={cleanStr(pmProblem?.imageSrc) || null} 
+                    isDark={true}
+                  />
+                </FadeIn>
+              )}
+
+              {hasStrategyData && (
+                <FadeIn>
+                  <StoryHeroBlock 
+                    id="strategy"
+                    className="pattern-dots"
+                    badge={t.strategyBadge} 
+                    title={pmStrategy?.heading || t.strategyTitle} 
+                    items={[
+                      ...(pmStrategy?.initialBet ? [{ label: t.initialBet, value: pmStrategy.initialBet }] : []),
+                      ...(pmStrategy?.northStarMetric ? [{ label: t.northStar, value: `${pmStrategy.northStarMetric.metric} — ${pmStrategy.northStarMetric.definition}` }] : [])
+                    ]}
+                    imageSrc={cleanStr(pmStrategy?.imageSrc) || null} 
+                    isDark={false}
+                  />
+                </FadeIn>
+              )}
+
+              {hasApproach && (
+                <Box id="execution" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
+                  <FadeIn>
+                    <TimelineSection 
+                      dict={{
+                        badge: t.executionBadge,
+                        title: projectContentJson.approachHeading || t.executionTitle,
+                        description: isEs ? "Un plan de ejecución por fases que prioriza el descubrimiento, el rediseño centrado en el paciente y la adopción." : "A phased execution plan prioritizing discovery, patient-centered redesign, and workflow adoption.",
+                        steps: processSteps
+                      }}
+                    />
+                  </FadeIn>
+                </Box>
+              )}
+              
+              {!pmContext && hasBentoGrid && (
+                <Box id="features" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
+                  <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+                    <FadeIn>
+                      <ProjectBentoGrid badge={bentoData.badge} title={bentoData.title || t.coreFeatures} description={bentoData.description} features={bentoFeatures} />
+                    </FadeIn>
+                  </Container>
+                </Box>
+              )}
+
+              {!pmContext && hasStandardCaseStudy && (
+                <Box id="case-study" py={{ base: "16", md: "24" }} className={hasBentoGrid ? "" : "pattern-dots"} borderTopWidth={hasBentoGrid ? "1px" : "0"} borderColor="border.subtle">
+                  <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+                     <FadeIn>
+                       <CaseStudyAccordion badge={<Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">{t.caseStudy}</Badge>} title={t.behindProcess} description={caseStudyData.description || null} features={caseStudyFeatures} mockupType={mockupType} />
+                     </FadeIn>
+                  </Container>
+                </Box>
+              )}
+
             </Box>
-          )}
 
-          {!pmContext && hasStandardCaseStudy && (
-            <Box id="case-study" py={{ base: "16", md: "24" }} className={hasBentoGrid ? "" : "pattern-dots"} borderTopWidth={hasBentoGrid ? "1px" : "0"} borderColor="border.subtle">
-              <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-                 <FadeIn>
-                   <CaseStudyAccordion badge={<Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">{t.caseStudy}</Badge>} title={t.behindProcess} description={caseStudyData.description || null} features={caseStudyFeatures} mockupType={mockupType} />
-                 </FadeIn>
-              </Container>
-            </Box>
-          )}
+            {localizedRemainingTestimonials.length > 0 && (
+              <Box py={{ base: "16", md: "24" }} borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots">
+                <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+                  <FadeIn>
+                    <TestimonialGrid 
+                      testimonials={localizedRemainingTestimonials} 
+                      dict={{ title: t.moreTeam, description: t.hearMore }} 
+                    />
+                  </FadeIn>
+                </Container>
+              </Box>
+            )}
 
-        </Box>
+            {hasFaqs && (
+              <Box py={{ base: "16", md: "24" }} bg="bg.canvas" borderTopWidth={localizedRemainingTestimonials.length === 0 ? "1px" : "0"} borderColor="border.subtle">
+                <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+                  <FadeIn>
+                    <ProjectFaq dict={faqData} faqs={faqData.faqs} />
+                  </FadeIn>
+                </Container>
+              </Box>
+            )}
 
-        {localizedRemainingTestimonials.length > 0 && (
-          <Box py={{ base: "16", md: "24" }} borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots">
-            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-              <FadeIn>
-                <TestimonialGrid 
-                  testimonials={localizedRemainingTestimonials} 
-                  dict={{ title: t.moreTeam, description: t.hearMore }} 
-                />
-              </FadeIn>
-            </Container>
-          </Box>
+            {globalContactData && globalContactData.title && (
+              <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle" className="pattern-dots">
+                <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+                  <FadeIn>
+                    <ProjectCta dict={globalContactData} />
+                  </FadeIn>
+                </Container>
+              </Box>
+            )}
+          </>
         )}
 
-        {hasFaqs && (
-          <Box py={{ base: "16", md: "24" }} bg="bg.canvas" borderTopWidth={localizedRemainingTestimonials.length === 0 ? "1px" : "0"} borderColor="border.subtle">
-            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-              <FadeIn>
-                <ProjectFaq dict={faqData} faqs={faqData.faqs} />
-              </FadeIn>
-            </Container>
-          </Box>
-        )}
-
-        {globalContactData && globalContactData.title && (
-          <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle" className="pattern-dots">
-            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-              <FadeIn>
-                <ProjectCta dict={globalContactData} />
-              </FadeIn>
-            </Container>
-          </Box>
-        )}
-
+        {/* INTERSTITIAL NAV & FOOTER: Always visible */}
         <Box py={{ base: "12", md: "20" }} bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="5xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
