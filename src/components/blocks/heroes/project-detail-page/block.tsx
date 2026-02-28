@@ -17,7 +17,7 @@ import {
   Skeleton,
   SimpleGrid
 } from '@chakra-ui/react'
-import { LuArrowDown, LuX, LuEye } from 'react-icons/lu'
+import { LuArrowDown, LuX, LuEye, LuLock } from 'react-icons/lu'
 import { HeroHeader } from '../home-page/hero-header'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { useMemo } from 'react'
@@ -84,6 +84,7 @@ interface ProjectHeroProps {
   primaryScrollTo?: string
   bgColor?: string
   mockupType?: string 
+  isProtected?: boolean
   overviewData?: {
     role?: string;
     duration?: string;
@@ -116,6 +117,7 @@ export const Block = ({
   primaryScrollTo = "outcomes",
   bgColor,
   mockupType, 
+  isProtected,
   overviewData
 }: ProjectHeroProps) => {
   const { playHover, playClick } = useUiSounds()
@@ -130,7 +132,8 @@ export const Block = ({
 
   const scrollToPrimary = () => {
     playClick()
-    const element = document.getElementById(primaryScrollTo)
+    const targetId = isProtected ? 'unlock-section' : primaryScrollTo
+    const element = document.getElementById(targetId)
     if (element) {
       const offset = 120 
       const elementPosition = element.getBoundingClientRect().top
@@ -179,7 +182,6 @@ export const Block = ({
     }
 
     // 2. Pure Browser Render
-    // FIX: Removed borders and shadows to prevent the "double container" effect since the video itself is a browser mockup
     if (isYouTube) {
       return (
         <Box w="full" position="relative" aspectRatio={16/9}>
@@ -229,7 +231,6 @@ export const Block = ({
       <Stack 
         direction={{ base: 'column', lg: 'row' }} 
         w="full"
-        // FIX: Replaced 700px with 100vh to ensure the entire hero component fills the full vertical height of the screen
         minH={{ base: 'auto', lg: '100vh' }} 
         alignItems="stretch" 
         gap="0" 
@@ -288,7 +289,8 @@ export const Block = ({
                     color={bgColor ? "white" : "fg.default"}
                     _hover={bgColor ? { opacity: 0.9, transform: "translateY(-1px)", shadow: "md" } : { bg: "bg.muted" }}
                   >
-                    {primaryCtaText || "Read case study"} <LuArrowDown /> 
+                    {isProtected ? "Unlock case study" : (primaryCtaText || "Read case study")} 
+                    {isProtected ? <LuLock /> : <LuArrowDown />} 
                   </Button>
                   
                   <Dialog.Root placement="center" motionPreset="slide-in-bottom">
@@ -380,11 +382,9 @@ export const Block = ({
           justify={isPhoneMockup ? { base: "center", lg: "flex-start" } : "center"} 
           position="relative" 
           py={{ base: 12, lg: 16 }} 
-          // FIX: Slightly reduced horizontal padding on desktop to let the non-phone video fill more space
           px={{ base: 4, md: 8, lg: isPhoneMockup ? 12 : 8 }} 
           zIndex="0"
         >
-          {/* Background container perfectly inherits 100vh stretch from parent Stack */}
           <Box 
             position="absolute"
             top="0"
