@@ -66,7 +66,7 @@ export const Block = ({ testimonial }: BlockProps) => {
                 alt={`${testimonial.company} logo`} 
                 maxH="32px" 
                 objectFit="contain"
-                _dark={{ filter: "invert(1)" }} 
+                _dark={{ filter: "brightness(0) invert(1)" }} 
               />
             ) : (
               <Logo />
