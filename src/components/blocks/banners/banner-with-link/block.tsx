@@ -2,7 +2,7 @@
 
 import { Box, Container, HStack, IconButton, Text } from '@chakra-ui/react'
 import { LuX } from 'react-icons/lu'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
@@ -13,8 +13,32 @@ interface BannerProps {
 
 export const Block = ({ dict }: BannerProps) => {
   const [isVisible, setIsVisible] = useState(true)
+  const bannerRef = useRef<HTMLDivElement>(null)
   const { playHover, playClick } = useUiSounds()
   const pathname = usePathname() || ''
+
+  // Dynamically update a CSS variable so the Navbar knows exactly how far to push down
+  useEffect(() => {
+    if (!isVisible) {
+      document.documentElement.style.setProperty('--banner-height', '0px')
+      return
+    }
+
+    const updateHeight = () => {
+      if (bannerRef.current) {
+        document.documentElement.style.setProperty('--banner-height', `${bannerRef.current.offsetHeight}px`)
+      }
+    }
+
+    // Run initially and on window resize in case text wraps on mobile
+    updateHeight()
+    window.addEventListener('resize', updateHeight)
+    
+    return () => {
+      window.removeEventListener('resize', updateHeight)
+      document.documentElement.style.setProperty('--banner-height', '0px')
+    }
+  }, [isVisible])
 
   if (!isVisible) return null
 
@@ -54,10 +78,11 @@ export const Block = ({ dict }: BannerProps) => {
 
   return (
     <Box 
+      ref={bannerRef}
       bg="colorPalette.solid" 
       color="white" 
       position="fixed" 
-      bottom="0" 
+      top="0" 
       left="0" 
       right="0" 
       w="full" 

@@ -22,7 +22,7 @@ import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { CalendlyPopup } from '@/components/ui/calendly-popup'
 
 interface NavbarBlockProps {
-  dict?: any; // Accepting the full localized dictionary for dynamic mapping
+  dict?: any; 
 }
 
 export const Block = ({ dict }: NavbarBlockProps) => {
@@ -36,7 +36,6 @@ export const Block = ({ dict }: NavbarBlockProps) => {
     setIsCalendlyOpen(true)
   }
 
-  // Updated to use 'cta' key from Supabase JSON
   const bookCallText = dict?.cta || "Book an intro call"
 
   const handleOpenDrawer = () => {
@@ -51,14 +50,28 @@ export const Block = ({ dict }: NavbarBlockProps) => {
         top="0" 
         left="0" 
         right="0" 
-        height="24px" 
-        bg="bg.canvas/40" 
-        backdropFilter="blur(4px)" 
-        style={{ maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)' }} 
+        height="calc(48px + var(--banner-height, 44px))" 
+        bg="bg.canvas/60" 
+        backdropFilter="blur(8px)" 
+        style={{ maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} 
+        zIndex={99} 
+        pointerEvents="none" 
+        transition="height 0.3s ease"
+      />
+      
+      {/* Bottom background blur mask - Perfectly sized to cover the TOC and FAB up to 96px */}
+      <Box 
+        position="fixed" 
+        bottom="0" 
+        left="0" 
+        right="0" 
+        height="96px" 
+        bg="bg.canvas/60" 
+        backdropFilter="blur(8px)" 
+        style={{ maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)' }} 
         zIndex={99} 
         pointerEvents="none" 
       />
-      <Box position="fixed" bottom="0" left="0" right="0" height="24px" bg="bg.canvas/40" backdropFilter="blur(4px)" style={{ maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)' }} zIndex={99} pointerEvents="none" />
 
       <CalendlyPopup 
         isOpen={isCalendlyOpen} 
@@ -68,9 +81,10 @@ export const Block = ({ dict }: NavbarBlockProps) => {
       <Center 
         position="fixed" 
         zIndex={100} 
-        top="4" 
+        top="calc(8px + var(--banner-height, 44px))" 
         left="4" 
         right="4"
+        transition="top 0.3s ease"
       >
         <Container
           bg="bg.panel/60" 
@@ -82,7 +96,7 @@ export const Block = ({ dict }: NavbarBlockProps) => {
           py="3"
           border="1px solid"
           borderColor="border.subtle"
-          transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" // <-- Smooth animation for language switch
+          transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" 
         >
           <HStack gap={{ base: '3', md: '8' }} w="full">
             <Logo />
