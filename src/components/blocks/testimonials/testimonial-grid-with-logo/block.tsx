@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, Stack, Heading, Text, Badge, Marquee } from '@chakra-ui/react'
+import { Box, Stack, Heading, Text, Badge, Marquee, Image } from '@chakra-ui/react'
 import { TestimonialCard } from './testimonial-card'
 
 interface Testimonial {
@@ -62,7 +62,13 @@ export const Block = ({ dict, testimonials }: BlockProps) => {
                 <TestimonialCard
                   meta={{
                     logo: testimonial.logo_url ? (
-                      <img src={testimonial.logo_url} alt="" style={{ height: '32px' }} />
+                      <Image 
+                        src={testimonial.logo_url} 
+                        alt={`${testimonial.company || 'Company'} logo`} 
+                        h="32px" 
+                        objectFit="contain"
+                        _dark={{ filter: "brightness(0) invert(1)" }} 
+                      />
                     ) : null,
                     authorName: testimonial.name,
                     authorImage: testimonial.avatar_url || '',
