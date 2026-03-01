@@ -45,29 +45,30 @@ export const Block = ({ dict }: NavbarBlockProps) => {
 
   return (
     <>
+      {/* Top background blur mask - Reduced intensity */}
       <Box 
         position="fixed" 
         top="0" 
         left="0" 
         right="0" 
         height="calc(48px + var(--banner-height, 44px))" 
-        bg="bg.canvas/60" 
-        backdropFilter="blur(8px)" 
+        bg="bg.canvas/30" 
+        backdropFilter="blur(4px)" 
         style={{ maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} 
         zIndex={99} 
         pointerEvents="none" 
         transition="height 0.3s ease"
       />
       
-      {/* Bottom background blur mask - Perfectly sized to cover the TOC and FAB up to 96px */}
+      {/* Bottom background blur mask - Reduced height and intensity */}
       <Box 
         position="fixed" 
         bottom="0" 
         left="0" 
         right="0" 
-        height="96px" 
-        bg="bg.canvas/60" 
-        backdropFilter="blur(8px)" 
+        height="64px" 
+        bg="bg.canvas/30" 
+        backdropFilter="blur(4px)" 
         style={{ maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)' }} 
         zIndex={99} 
         pointerEvents="none" 
