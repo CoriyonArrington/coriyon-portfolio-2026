@@ -597,7 +597,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               )}
 
               {hasApproach && (
-                <Box id="execution" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
+                <Box id="execution" borderTopWidth="1px" borderColor="border.subtle">
                   <FadeIn>
                     <TimelineSection 
                       dict={{
