@@ -241,7 +241,7 @@ export const Block = ({
           flex="1"
           align="center"
           justify={{ base: "center", lg: "flex-end" }}
-          pt={{ base: '12', md: '24' }} 
+          pt={{ base: '32', md: '40' }} 
           pb={{ base: '12', lg: '32' }} 
           zIndex="1"
         >
