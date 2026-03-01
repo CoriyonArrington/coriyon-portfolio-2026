@@ -321,62 +321,67 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     }
   }) : []
 
-  const unifiedBentoFeatures = [];
-  
-  if (pmOutcomes?.impactAreas && pmOutcomes.impactAreas.length > 0) {
-    unifiedBentoFeatures.push({
-      title: t.impactAreas,
-      colSpan: 4,
-      description: pmOutcomes.impactAreas.join(' • '),
-      mediaUrl: cleanStr(pmOutcomes.media?.mediaUrl),
-      mediaType: cleanStr(pmOutcomes.media?.mediaType) as any,
-    });
-  }
-  if (pmScaling?.pilot || pmScaling?.rollout) {
-    unifiedBentoFeatures.push({
-      title: t.pilotRollout,
-      colSpan: 2,
-      description: `Pilot: ${pmScaling.pilot} • Rollout: ${pmScaling.rollout}`,
-    });
-  }
-  if (pmScaling?.enablement?.onboardingPlaybook || pmScaling?.adoptionGuardrails) {
-    unifiedBentoFeatures.push({
-      title: t.enablement,
-      colSpan: 2,
-      description: [pmScaling.enablement?.onboardingPlaybook, ...(pmScaling.adoptionGuardrails || [])].filter(Boolean).join(' • '),
-    });
-  }
-  
-  if (pmLearnings) {
-    if (pmLearnings.scoping) {
-      unifiedBentoFeatures.push({
-        title: t.scoping,
-        colSpan: 4, 
-        description: pmLearnings.scoping?.learning || pmLearnings.scoping?.whatHappened,
-      });
-    }
-    if (pmLearnings.stakeholderAlignment) {
-      unifiedBentoFeatures.push({
-        title: t.alignment,
-        colSpan: 2,
-        description: pmLearnings.stakeholderAlignment?.learning || pmLearnings.stakeholderAlignment?.tension,
-      });
-    }
-    if (pmLearnings.timing) {
-      unifiedBentoFeatures.push({
-        title: t.timing,
-        colSpan: 2,
-        description: pmLearnings.timing?.learning || pmLearnings.timing?.risk,
-      });
-    }
-  }
-
-  const hasLearningsData = pmLearnings?.scoping || pmLearnings?.stakeholderAlignment || pmLearnings?.timing || pmLearnings?.imageSrc || pmLearnings?.heading;
-  const shouldRenderLearnings = hasLearningsData || unifiedBentoFeatures.length > 0;
-
+  // FIX: Override synthesized bento features if a custom 'bento_grid' object exists in the JSON
   const bentoData = projectContentJson.bento_grid || {}
   const bentoFeatures = bentoData.features || []
   const hasBentoGrid = bentoFeatures.length > 0
+
+  const synthesizedBentoFeatures: any[] = [];
+  
+  if (!hasBentoGrid) {
+    if (pmOutcomes?.impactAreas && pmOutcomes.impactAreas.length > 0) {
+      synthesizedBentoFeatures.push({
+        title: t.impactAreas,
+        colSpan: 4,
+        description: pmOutcomes.impactAreas.join(' • '),
+        mediaUrl: cleanStr(pmOutcomes.media?.mediaUrl),
+        mediaType: cleanStr(pmOutcomes.media?.mediaType) as any,
+      });
+    }
+    if (pmScaling?.pilot || pmScaling?.rollout) {
+      synthesizedBentoFeatures.push({
+        title: t.pilotRollout,
+        colSpan: 2,
+        description: `Pilot: ${pmScaling.pilot} • Rollout: ${pmScaling.rollout}`,
+      });
+    }
+    if (pmScaling?.enablement?.onboardingPlaybook || pmScaling?.adoptionGuardrails) {
+      synthesizedBentoFeatures.push({
+        title: t.enablement,
+        colSpan: 2,
+        description: [pmScaling.enablement?.onboardingPlaybook, ...(pmScaling.adoptionGuardrails || [])].filter(Boolean).join(' • '),
+      });
+    }
+    if (pmLearnings) {
+      if (pmLearnings.scoping) {
+        synthesizedBentoFeatures.push({
+          title: t.scoping,
+          colSpan: 4, 
+          description: pmLearnings.scoping?.learning || pmLearnings.scoping?.whatHappened,
+        });
+      }
+      if (pmLearnings.stakeholderAlignment) {
+        synthesizedBentoFeatures.push({
+          title: t.alignment,
+          colSpan: 2,
+          description: pmLearnings.stakeholderAlignment?.learning || pmLearnings.stakeholderAlignment?.tension,
+        });
+      }
+      if (pmLearnings.timing) {
+        synthesizedBentoFeatures.push({
+          title: t.timing,
+          colSpan: 2,
+          description: pmLearnings.timing?.learning || pmLearnings.timing?.risk,
+        });
+      }
+    }
+  }
+
+  // Use the explicit bento grid from JSON if it exists, otherwise fall back to the synthesized bullet points
+  const unifiedBentoFeatures = hasBentoGrid ? bentoFeatures : synthesizedBentoFeatures;
+
+  const hasLearningsData = pmLearnings?.scoping || pmLearnings?.stakeholderAlignment || pmLearnings?.timing || pmLearnings?.imageSrc || pmLearnings?.heading;
+  const shouldRenderLearnings = hasLearningsData || unifiedBentoFeatures.length > 0;
 
   const caseStudyData = projectContentJson.case_study || {}
   const resultData = caseStudyData.results || caseStudyData.result || {}
@@ -397,13 +402,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const dynamicToc: TocItem[] = [];
   if (!isProtected) {
     if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: t.resultsBadge, level: 1 });
-    if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: t.learningsBadge, level: 1 });
+    // Use custom bento badge in TOC if provided
+    if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: hasBentoGrid && bentoData.badge ? bentoData.badge : t.learningsBadge, level: 1 });
     if (hasContextData) dynamicToc.push({ id: 'context', text: t.contextBadge, level: 1 });
     if (hasProblemData) dynamicToc.push({ id: 'problem', text: t.problemBadge, level: 1 });
     if (hasStrategyData) dynamicToc.push({ id: 'strategy', text: t.strategyBadge, level: 1 });
     if (hasApproach) dynamicToc.push({ id: 'execution', text: t.executionBadge, level: 1 });
-    
-    if (!pmContext && hasBentoGrid) dynamicToc.push({ id: 'features', text: t.coreFeatures, level: 1 });
     if (!pmContext && hasStandardCaseStudy) dynamicToc.push({ id: 'case-study', text: t.caseStudy, level: 1 });
   }
 
@@ -518,9 +522,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <Box id="learnings" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
                   <FadeIn>
                     <StoryHeroBlock 
-                      badge={t.learningsBadge} 
-                      title={pmLearnings?.heading || t.learningsTitle} 
-                      description={pmLearnings?.description || null}
+                      // FIX: Inherit the custom bento grid title and badge if provided
+                      badge={hasBentoGrid && bentoData.badge ? bentoData.badge : t.learningsBadge} 
+                      title={hasBentoGrid && bentoData.title ? bentoData.title : (pmLearnings?.heading || t.learningsTitle)} 
+                      description={hasBentoGrid && bentoData.description ? bentoData.description : (pmLearnings?.description || null)}
                       imageSrc={cleanStr(pmLearnings?.imageSrc) || null} 
                       isDark={true}
                       pb={{ base: "16", md: "24" }}
@@ -600,19 +605,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   </FadeIn>
                 </Box>
               )}
-              
-              {!pmContext && hasBentoGrid && (
-                <Box id="features" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
-                  <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-                    <FadeIn>
-                      <ProjectBentoGrid badge={bentoData.badge} title={bentoData.title || t.coreFeatures} description={bentoData.description} features={bentoFeatures} />
-                    </FadeIn>
-                  </Container>
-                </Box>
-              )}
 
               {!pmContext && hasStandardCaseStudy && (
-                <Box id="case-study" py={{ base: "16", md: "24" }} className={hasBentoGrid ? "" : "pattern-dots"} borderTopWidth={hasBentoGrid ? "1px" : "0"} borderColor="border.subtle">
+                <Box id="case-study" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
                   <Container maxW="7xl" px={{ base: "4", md: "8" }}>
                      <FadeIn>
                        <CaseStudyAccordion badge={<Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">{t.caseStudy}</Badge>} title={t.behindProcess} description={caseStudyData.description || null} features={caseStudyFeatures} mockupType={mockupType} />
