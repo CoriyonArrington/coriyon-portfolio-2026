@@ -14,12 +14,14 @@ const montserrat = localFont({
   src: "../../fonts/Montserrat/Montserrat-VariableFont_wght.ttf",
   variable: "--font-heading",
   display: "swap",
+  weight: "100 900",
 });
 
 const nunitoSans = localFont({
   src: "../../fonts/Nunito-Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf",
   variable: "--font-body",
   display: "swap",
+  weight: "200 1000",
 });
 
 export const metadata: Metadata = {
@@ -65,8 +67,12 @@ export default async function RootLayout({
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {};
 
   return (
-    <html lang={locale || "en"} suppressHydrationWarning>
-      <body className={`${montserrat.variable} ${nunitoSans.variable}`}>
+    <html 
+      lang={locale || "en"} 
+      className={`${montserrat.variable} ${nunitoSans.variable}`} 
+      suppressHydrationWarning
+    >
+      <body>
         <Provider>
           {children}
           
