@@ -41,7 +41,6 @@ export function FloatingContact() {
     message: ''
   })
 
-  // 1. Fetch Services
   useEffect(() => {
     const fetchServices = async () => {
       const { data, error } = await supabase
@@ -96,8 +95,8 @@ export function FloatingContact() {
     >
       <Box 
         position="fixed" 
-        bottom={{ base: '16', md: '20' }} 
-        right={{ base: '6', md: '8' }} 
+        bottom={{ base: '6', md: '8' }} 
+        right={{ base: '4', md: '8' }} 
         zIndex="popover"
       >
         <Dialog.Trigger asChild>
@@ -105,17 +104,16 @@ export function FloatingContact() {
             aria-label="Contact Us"
             bg="green.600"
             color="white"
-            size="2xl"
             rounded="full"
             shadow="xl"
             _hover={{ bg: 'green.700', transform: 'scale(1.05)', shadow: '2xl' }}
             transition="all 0.2s"
             onClick={playClick}
             onMouseEnter={playHover}
-            w="16"
-            h="16"
+            w={{ base: '56px', md: '64px' }}
+            h={{ base: '56px', md: '64px' }}
           >
-            <LuMessageSquare size="28px" />
+            <LuMessageSquare size="24px" />
           </IconButton>
         </Dialog.Trigger>
       </Box>

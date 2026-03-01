@@ -450,6 +450,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <Box 
             id="unlock-section" 
             py={{ base: "20", md: "32" }} 
+            bgColor="bg.emphasized" 
             className="pattern-dots"
           >
             <Container maxW="2xl">
@@ -467,37 +468,26 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         ) : (
           <>
+            {/* 🆕 FLOATING BOTTOM TOC: Perfect height alignment with the floating contact button */}
             {dynamicToc.length > 0 && (
               <Box 
-                position="sticky" 
-                top="-1px" 
-                zIndex="30" 
-                w="full" 
+                position="fixed" 
+                bottom={{ base: "6", md: "8" }} // Matches floating contact bottom perfectly
+                left="0"
+                right="0"
+                zIndex="100" 
                 pointerEvents="none" 
+                display="flex"
+                justifyContent={{ base: "flex-start", md: "center" }}
+                px={{ base: "4", md: "0" }}
               >
-                <Box
-                  position="absolute"
-                  top="0"
-                  left="0"
-                  right="0"
-                  bottom={{ base: "-24px", md: "-16px" }} 
-                  bg="bg.canvas/75"
-                  backdropFilter="blur(16px)"
-                  zIndex="-1"
-                  css={{
-                    maskImage: 'linear-gradient(to bottom, black 80%, transparent)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent)'
-                  }}
-                />
-                
-                <Container 
-                  maxW="3xl" 
+                <Box 
                   pointerEvents="auto" 
-                  pt={{ base: "96px", md: "96px" }} 
-                  pb={{ base: 3, md: 4 }} 
+                  w="full" 
+                  maxW={{ base: "calc(100% - 88px)", md: "460px" }} // Safe zone on right
                 >
                   <TableOfContents tocData={dynamicToc} title={t.tocTitle} />
-                </Container>
+                </Box>
               </Box>
             )}
 
@@ -597,7 +587,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               )}
 
               {hasApproach && (
-                <Box id="execution" borderTopWidth="1px" borderColor="border.subtle">
+                <Box id="execution" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
                   <FadeIn>
                     <TimelineSection 
                       dict={{
@@ -680,6 +670,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <FadeIn>
           <Footer dict={content.footer} />
         </FadeIn>
+
+        {/* SPACER: Kept small to match the newly reduced bottom blur mask */}
+        <Box h={{ base: "28", md: "16" }} w="full" />
+        
       </Stack>
     </Box>
   )
