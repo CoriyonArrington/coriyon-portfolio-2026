@@ -1,71 +1,34 @@
-import { Box, Stack, Container } from "@chakra-ui/react"
+import { Box, Flex } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-// FIX: Updated to the new renamed playground-page hero component
-import { Block as PlaygroundHero } from "@/components/blocks/heroes/playground-page/block"
-import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
-import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
-import { FadeIn } from "@/components/ui/fade-in"
+import { Block as AIInterface } from "@/components/blocks/ai/ai-prompt-with-action-02/block"
 
-// OPTIMIZATION: ISR caching instead of dynamic rendering
 export const revalidate = 3600 
 
 export default async function PlaygroundPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
+  const { locale } = await params
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION: Parallel data fetching
   const [
     { data: playgroundData },
-    { data: homeData },
-    { data: projects }
+    { data: homeData }
   ] = await Promise.all([
     supabase.from('pages').select('*').eq('slug', 'playground').single(),
-    supabase.from('pages').select('*').eq('slug', 'home').single(),
-    supabase.from('projects').select('*').order('sort_order', { ascending: true })
-  ]);
+    supabase.from('pages').select('*').eq('slug', 'home').single()
+  ])
 
   const playgroundContent = playgroundData?.[`content_${currentLocale}`] || playgroundData?.content_en || {}
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {}
 
-  const localizedProjects = projects?.map(p => ({
-    id: p.id,
-    title: p[`title_${currentLocale}`] || p.title_en || p.title,
-    description: p[`description_${currentLocale}`] || p.description_en || p.description,
-    image_url: p.featured_image_url, 
-    videoUrl: p.featured_video_url, 
-    link_url: `/${currentLocale}/projects/${p.slug}`,
-    bgColor: p.bg_color,
-    mockupType: p.mockup_type,
-    category: p.project_category 
-  }))
-  
-  // Filter only projects belonging to the 'Playground' category
-  const playgroundProjects = localizedProjects?.filter(p => p.category?.includes('Playground')) || []
-
   return (
-    <Box bg="bg.canvas" minH="100vh">
+    // OPTIMIZATION: 100dvh prevents mobile browser bar jumping, overflow hidden locks the outer page
+    <Box bg="bg.canvas" h="100dvh" overflow="hidden" display="flex" flexDirection="column">
       <NavbarIsland dict={homeContent.navbar} />
       
-      <Stack gap="0">
-        {/* OPTIMIZATION: Removed FadeIn to fix LCP blocking */}
-        <PlaygroundHero dict={playgroundContent.hero} />
-
-        {/* Playground Projects Section */}
-        {playgroundProjects.length > 0 && (
-          <Box id="playground-projects" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
-            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-              <FadeIn>
-                <CategoryGrid dict={homeContent.playground} projects={playgroundProjects} />
-              </FadeIn>
-            </Container>
-          </Box>
-        )}
-
-        <FadeIn>
-          <Footer dict={homeContent.footer} />
-        </FadeIn>
-      </Stack>
+      {/* pt="72px" safely clears the navbar without causing scroll overflow */}
+      <Box flex="1" overflow="hidden" pt="72px" display="flex" flexDirection="column">
+        <AIInterface dict={playgroundContent.ai} locale={currentLocale} />
+      </Box>
     </Box>
   )
 }
