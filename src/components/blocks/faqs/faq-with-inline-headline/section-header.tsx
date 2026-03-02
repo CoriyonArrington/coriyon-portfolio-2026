@@ -1,9 +1,12 @@
-import { Badge, Heading, Stack, Text } from '@chakra-ui/react'
+import { Badge, Heading, Stack, Text, type StackProps } from '@chakra-ui/react'
 
-export const SectionHeader = ({ dict }: { dict?: any }) => {
+interface SectionHeaderProps extends StackProps {
+  dict?: any;
+}
+
+export const SectionHeader = ({ dict, ...props }: SectionHeaderProps) => {
   return (
-    <Stack gap="4" align="flex-start">
-      {/* Updated to match the fully rounded pill style of the other sections */}
+    <Stack gap="4" align="flex-start" {...props}>
       <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">
         {dict?.badge || "FAQs"}
       </Badge>
@@ -11,7 +14,7 @@ export const SectionHeader = ({ dict }: { dict?: any }) => {
         {dict?.title || "Frequently asked questions"}
       </Heading>
       {dict?.description && (
-        <Text color="fg.muted" fontSize="lg">
+        <Text color="fg.muted" fontSize="lg" maxW="2xl">
           {dict.description}
         </Text>
       )}

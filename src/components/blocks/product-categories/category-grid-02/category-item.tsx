@@ -3,7 +3,7 @@
 import { Box, Button, Heading, Stack, Text, Center } from '@chakra-ui/react'
 import Image from 'next/image'
 import NextLink from 'next/link'
-import { motion } from 'motion/react'
+import { m } from 'motion/react'
 
 interface CategoryItemProps {
   dict?: any
@@ -80,7 +80,7 @@ export const CategoryItem = (props: CategoryItemProps) => {
       cursor="pointer"
     >
       <NextLink href={data.url || '#'}>
-        <motion.div
+        <m.div
           layout
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -175,7 +175,7 @@ export const CategoryItem = (props: CategoryItemProps) => {
               </Button>
             </Stack>
           </Box>
-        </motion.div>
+        </m.div>
       </NextLink>
     </Box>
   )

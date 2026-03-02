@@ -6,7 +6,6 @@ import {
   Button, 
   Flex, 
   Icon, 
-  Image, 
   SimpleGrid, 
   Stack, 
   chakra, 
@@ -23,6 +22,7 @@ import { LuPlay, LuArrowDown, LuUser, LuX } from 'react-icons/lu'
 import { FaStar } from 'react-icons/fa' 
 import { HeroHeader } from './hero-header'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { useEffect, useState, useMemo } from 'react'
@@ -35,13 +35,11 @@ const PhoneFrame = ({ children }: { children: React.ReactNode }) => (
     <Image
       src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup.png"
       alt="iPhone Mockup"
-      position="absolute"
-      inset="0"
-      width="100%"
-      height="100%"
-      objectFit="contain"
-      zIndex={10}
-      pointerEvents="none"
+      fill
+      style={{ objectFit: 'contain' }}
+      sizes="(max-width: 768px) 100vw, 300px"
+      priority
+      className="z-10 pointer-events-none"
     />
     <Box 
       position="absolute"
@@ -101,6 +99,7 @@ export const Block = ({
   const { playHover, playClick } = useUiSounds()
   const [avatars, setAvatars] = useState<string[]>([])
   const [isLoadingAvatars, setIsLoadingAvatars] = useState(true)
+  const [mounted, setMounted] = useState(false) // Added to prevent hydration mismatches
 
   // Dynamically determine the locale for the About link
   const segments = pathname?.split('/').filter(Boolean) || []
@@ -116,6 +115,7 @@ export const Block = ({
   }, [rawTitle])
 
   useEffect(() => {
+    setMounted(true) // Signals that the client has hydrated
     const fetchAvatars = async () => {
       setIsLoadingAvatars(true)
       const { data } = await supabase
@@ -217,49 +217,64 @@ export const Block = ({
                 {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
               </Button>
               
-              <Dialog.Root placement="center" motionPreset="slide-in-bottom">
-                <Dialog.Trigger asChild>
-                  <Button 
-                    variant="solid" 
-                    size="xl" 
-                    h={{ base: 14, md: 16 }}
-                    px={{ base: 6, md: 8 }}
-                    fontSize="lg"
-                    colorPalette="gray" 
-                    onClick={playClick}
-                    onMouseEnter={playHover}
-                    w={{ base: "full", md: "auto" }}
-                  >
-                    {dict?.watchIntro || "Watch Intro"} <LuPlay />
-                  </Button>
-                </Dialog.Trigger>
-                
-                <Portal>
-                  <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
-                  <Dialog.Positioner>
-                    <Dialog.Content bg="transparent" shadow="none" maxW="4xl" w="full" mx="4">
-                      <Dialog.CloseTrigger asChild position="absolute" top={{ base: "-12", md: "-12" }} right="0">
-                        <IconButton aria-label="Close video" variant="ghost" color="white" _hover={{ bg: "whiteAlpha.200" }} rounded="full" onClick={playClick}>
-                          <LuX />
-                        </IconButton>
-                      </Dialog.CloseTrigger>
-                      <Dialog.Body p="0" rounded="2xl" overflow="hidden" bg="black" shadow="2xl">
-                        <Box aspectRatio={16 / 9} w="full">
-                          <iframe
-                            width="100%"
-                            height="100%"
-                            src={finalIntroVideoUrl}
-                            title="Introduction Video"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </Box>
-                      </Dialog.Body>
-                    </Dialog.Content>
-                  </Dialog.Positioner>
-                </Portal>
-              </Dialog.Root>
+              {/* Bulletproof Client-side only rendering for the Dialog to prevent hydration mismatches */}
+              {mounted ? (
+                <Dialog.Root placement="center" motionPreset="slide-in-bottom">
+                  <Dialog.Trigger asChild>
+                    <Button 
+                      variant="solid" 
+                      size="xl" 
+                      h={{ base: 14, md: 16 }}
+                      px={{ base: 6, md: 8 }}
+                      fontSize="lg"
+                      colorPalette="gray" 
+                      onClick={playClick}
+                      onMouseEnter={playHover}
+                      w={{ base: "full", md: "auto" }}
+                    >
+                      {dict?.watchIntro || "Watch Intro"} <LuPlay />
+                    </Button>
+                  </Dialog.Trigger>
+                  
+                  <Portal>
+                    <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
+                    <Dialog.Positioner>
+                      <Dialog.Content bg="transparent" shadow="none" maxW="4xl" w="full" mx="4">
+                        <Dialog.CloseTrigger asChild position="absolute" top={{ base: "-12", md: "-12" }} right="0">
+                          <IconButton aria-label="Close video" variant="ghost" color="white" _hover={{ bg: "whiteAlpha.200" }} rounded="full" onClick={playClick}>
+                            <LuX />
+                          </IconButton>
+                        </Dialog.CloseTrigger>
+                        <Dialog.Body p="0" rounded="2xl" overflow="hidden" bg="black" shadow="2xl">
+                          <Box aspectRatio={16 / 9} w="full">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              src={finalIntroVideoUrl}
+                              title="Introduction Video"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          </Box>
+                        </Dialog.Body>
+                      </Dialog.Content>
+                    </Dialog.Positioner>
+                  </Portal>
+                </Dialog.Root>
+              ) : (
+                <Button 
+                  variant="solid" 
+                  size="xl" 
+                  h={{ base: 14, md: 16 }}
+                  px={{ base: 6, md: 8 }}
+                  fontSize="lg"
+                  colorPalette="gray" 
+                  w={{ base: "full", md: "auto" }}
+                >
+                  {dict?.watchIntro || "Watch Intro"} <LuPlay />
+                </Button>
+              )}
             </Stack>
 
             <HStack 
@@ -345,7 +360,16 @@ export const Block = ({
             ) : videoUrl ? (
               <Video src={videoUrl} poster={imageUrl} autoPlay muted loop controls playsInline objectFit="cover" width="100%" height="100%" />
             ) : (
-              <Image src={imageUrl} alt="App Screen" objectFit="cover" width="100%" height="100%" />
+              <Box position="relative" width="100%" height="100%">
+                <Image 
+                  src={imageUrl || ""} 
+                  alt="App Screen" 
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 768px) 100vw, 300px"
+                  priority 
+                />
+              </Box>
             )}
           </PhoneFrame>
         ) : (

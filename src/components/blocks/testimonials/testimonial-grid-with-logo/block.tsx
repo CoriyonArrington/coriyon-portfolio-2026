@@ -1,7 +1,8 @@
 "use client"
 
-import { Box, Stack, Heading, Text, Badge, Marquee, Image } from '@chakra-ui/react'
+import { Box, Stack, Heading, Text, Badge, Marquee } from '@chakra-ui/react'
 import { TestimonialCard } from './testimonial-card'
+import NextImage from 'next/image' // OPTIMIZATION: Imported Next.js Image
 
 interface Testimonial {
   id: string | number
@@ -24,7 +25,6 @@ export const Block = ({ dict, testimonials }: BlockProps) => {
   return (
     <Box overflow="hidden">
       
-      {/* Header section perfectly left-aligned with the rest of the page */}
       <Stack gap="4" align="flex-start" textAlign="left" w="full" mb={{ base: '12', md: '16' }}>
         {(dict?.badge || dict?.tagline || dict?.tag || "Trusted by colleagues") && (
           <Badge 
@@ -52,7 +52,6 @@ export const Block = ({ dict, testimonials }: BlockProps) => {
         )}
       </Stack>
 
-      {/* Marquee Carousel */}
       <Marquee.Root pauseOnInteraction py="10">
         <Marquee.Edge side="start" />
         <Marquee.Viewport>
@@ -62,13 +61,16 @@ export const Block = ({ dict, testimonials }: BlockProps) => {
                 <TestimonialCard
                   meta={{
                     logo: testimonial.logo_url ? (
-                      <Image 
-                        src={testimonial.logo_url} 
-                        alt={`${testimonial.company || 'Company'} logo`} 
-                        h="32px" 
-                        objectFit="contain"
-                        _dark={{ filter: "brightness(0) invert(1)" }} 
-                      />
+                      // OPTIMIZATION: Replaced Chakra Image with NextImage
+                      <Box position="relative" h="32px" w="100px" _dark={{ filter: "brightness(0) invert(1)" }}>
+                        <NextImage 
+                          src={testimonial.logo_url} 
+                          alt={`${testimonial.company || 'Company'} logo`} 
+                          fill
+                          style={{ objectFit: 'contain', objectPosition: 'left' }}
+                          sizes="100px"
+                        />
+                      </Box>
                     ) : null,
                     authorName: testimonial.name,
                     authorImage: testimonial.avatar_url || '',

@@ -8,16 +8,22 @@ import {
   Stack, 
   Badge, 
   Button, 
-  Image, 
   SimpleGrid,
   Center
 } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
-import { useScroll, useTransform, motion, useSpring, AnimatePresence } from 'motion/react'
+import { useScroll, useTransform, m, useSpring, LazyMotion, domAnimation } from 'motion/react'
 import { LuDownload } from 'react-icons/lu'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { DownloadTrigger } from '@/components/ui/download-trigger'
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'
+import NextImage from 'next/image'
+import dynamic from 'next/dynamic'
+
+// Dynamically import the Lottie player to prevent it from blocking the main thread!
+const LottiePlayer = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact), 
+  { ssr: false }
+)
 
 interface TimelineStep {
   date: string
@@ -65,7 +71,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
   if (!steps || steps.length === 0) return null;
 
   return (
-    <>
+    <LazyMotion features={domAnimation}>
       <style dangerouslySetInnerHTML={{ __html: `
         html, body {
           overflow-x: clip !important;
@@ -91,10 +97,10 @@ export const Block = ({ dict }: TimelineSectionProps) => {
                 top={{ base: 'auto', md: '140px' }} 
                 zIndex="10"
               >
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
+                  viewport={{ once: true, amount: 0.1 }}
                   transition={{ duration: 0.6 }}
                 >
                   <Stack gap="6" align="flex-start">
@@ -127,7 +133,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
                       </Button>
                     </DownloadTrigger>
                   </Stack>
-                </motion.div>
+                </m.div>
               </Box>
             </Box>
 
@@ -142,7 +148,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
                 zIndex="1"
               >
                 <Box h="full" w="full" bg="border.subtle" borderRadius="full" />
-                <motion.div
+                <m.div
                   style={{
                     scaleY,
                     position: 'absolute',
@@ -158,11 +164,9 @@ export const Block = ({ dict }: TimelineSectionProps) => {
               </Box>
 
               <Stack gap={{ base: '16', md: '40' }} pt={{ base: '0', md: '8' }}>
-                <AnimatePresence mode="popLayout">
-                  {visibleSteps.map((step, index) => (
-                    <TimelineStepItem key={index} step={step} index={index} />
-                  ))}
-                </AnimatePresence>
+                {visibleSteps.map((step, index) => (
+                  <TimelineStepItem key={index} step={step} index={index} />
+                ))}
 
                 {!isExpanded && steps.length > 3 && (
                   <Center pt={{ base: '4', md: '8' }}>
@@ -186,7 +190,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
           </SimpleGrid>
         </Container>
       </Box>
-    </>
+    </LazyMotion>
   )
 }
 
@@ -218,7 +222,7 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
         top="8" 
         zIndex="20"
       >
-        <motion.div
+        <m.div
           style={{
             backgroundColor: dotBg,
             width: '20px',
@@ -229,10 +233,10 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
         />
       </Box>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: true, amount: 0.1 }} 
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         <Stack gap="6">
@@ -250,7 +254,7 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
           </Stack>
           
           {step.imageSrc && (
-            <motion.div
+            <m.div
               whileHover={{ y: -8, scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               onHoverStart={() => playHover()}
@@ -267,15 +271,20 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
                 position="relative"
                 role="group"
               >
-                <Image 
-                  src={step.imageSrc} 
-                  alt={step.heading} 
-                  w="full" 
-                  h="full" 
-                  objectFit="cover" 
+                <Box 
+                  position="absolute" 
+                  inset="0" 
                   transition="transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
                   _groupHover={{ transform: (step.lottieUrl && isLottieReady) ? "none" : "scale(1.05)" }}
-                />
+                >
+                  <NextImage 
+                    src={step.imageSrc} 
+                    alt={step.heading} 
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </Box>
 
                 {step.lottieUrl && (
                   <Box 
@@ -286,7 +295,7 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
                     opacity={isLottieReady ? 1 : 0}
                     transition="opacity 0.5s ease"
                   >
-                    <DotLottieReact
+                    <LottiePlayer
                       src={step.lottieUrl}
                       loop
                       autoplay
@@ -301,7 +310,7 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
                   </Box>
                 )}
               </Box>
-            </motion.div>
+            </m.div>
           )}
 
           {step.details && step.details.length > 0 && (
@@ -309,8 +318,8 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
               {step.details.map((detail, idx) => (
                 <Box 
                   key={idx} 
-                  bg="bg.panel" // Matches StoryHeroBlock exactly (solid, opaque, light/dark responsive)
-                  p={{ base: "6", md: "8" }} // Matches padding on the other cards perfectly
+                  bg="bg.panel"
+                  p={{ base: "6", md: "8" }}
                   rounded="3xl" 
                   borderWidth="1px" 
                   borderColor="border.subtle"
@@ -333,7 +342,7 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
             </Stack>
           )}
         </Stack>
-      </motion.div>
+      </m.div>
     </Box>
   )
 }

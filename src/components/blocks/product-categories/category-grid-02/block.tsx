@@ -2,8 +2,7 @@
 
 import { Box, Grid, Stack, Heading, Text, Badge, HStack, Button } from '@chakra-ui/react'
 import { CategoryItem } from './category-item'
-import { useState, useMemo, useEffect } from 'react'
-import { AnimatePresence } from 'motion/react'
+import { useState, useMemo } from 'react'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import Link from 'next/link'
 import { LuArrowRight } from 'react-icons/lu'
@@ -29,19 +28,7 @@ interface BlockProps {
 
 export const Block = ({ dict, projects, viewAllHref, viewAllText }: BlockProps) => {
   const [activeFilter, setActiveFilter] = useState('All')
-  const [isMobile, setIsMobile] = useState(false)
-  
-  // Track mounting to prevent Server-Side Hydration errors!
-  const [mounted, setMounted] = useState(false) 
   const { playHover, playClick } = useUiSounds()
-
-  useEffect(() => {
-    setMounted(true) // Marks that we are safely on the client
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile() 
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
 
   const handleFilterChange = (filterName: string) => {
     playClick()
@@ -74,11 +61,6 @@ export const Block = ({ dict, projects, viewAllHref, viewAllText }: BlockProps) 
     const projectTags = project.category.split(',').map(c => c.trim())
     return projectTags.includes(activeFilter)
   })
-
-  // Safe progressive disclosure:
-  // If not mounted (SSR), it renders all cards to match the server. 
-  // Once mounted on the client, it strictly enforces the 2-item mobile limit!
-  const displayedProjects = (mounted && isMobile) ? filteredProjects.slice(0, 2) : filteredProjects
 
   return (
     <Box py={{ base: '8', lg: '16' }}>
@@ -130,11 +112,15 @@ export const Block = ({ dict, projects, viewAllHref, viewAllText }: BlockProps) 
         gap={{ base: '8', md: '10' }}
         templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }}
       >
-        <AnimatePresence mode="popLayout">
-          {displayedProjects.map((item, index) => (
-            // Removed the wrapper Box to let the CategoryItem control its own Grid layout!
+        {/* OPTIMIZATION: Removed AnimatePresence to fix animation traps and CSS-based mobile slicing */}
+        {filteredProjects.map((item, index) => (
+          <Box 
+            key={item.id} 
+            display={{ base: index < 2 ? 'flex' : 'none', md: 'flex' }}
+            w="full"
+            h="full"
+          >
             <CategoryItem
-              key={item.id}
               dict={dict} 
               data={{
                 title: item.title,
@@ -148,8 +134,8 @@ export const Block = ({ dict, projects, viewAllHref, viewAllText }: BlockProps) 
               minH={{ base: '500px', md: '640px' }}
               priority={index < 4} 
             />
-          ))}
-        </AnimatePresence>
+          </Box>
+        ))}
       </Grid>
 
       <Stack mt="10" align="flex-start">

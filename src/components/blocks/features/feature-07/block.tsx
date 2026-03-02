@@ -1,9 +1,10 @@
 'use client'
 
-import { Badge, Box, Stack, Tabs, Text, VStack, Heading, Image } from '@chakra-ui/react'
+import { Badge, Box, Stack, Tabs, Text, VStack, Heading } from '@chakra-ui/react'
 import { TimerProgress } from './progress'
 import { useTimedState } from './use-timed-state'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
+import NextImage from 'next/image' // Swapped to Next.js Image
 
 interface FeatureProps {
   dict?: any
@@ -83,7 +84,6 @@ export const Block = ({ dict }: FeatureProps) => {
                   onMouseEnter={playHover}
                 >
                   <Stack>
-                    {/* SVG Icons removed, text naturally left-aligned */}
                     <Text fontWeight="semibold">
                       {feature.title}
                     </Text>
@@ -108,28 +108,32 @@ export const Block = ({ dict }: FeatureProps) => {
               borderColor="border.subtle"
               shadow="sm"
             >
-              {features.map((feature) => (
-                <Image 
+              {features.map((feature, index) => (
+                <Box
                   key={feature.value}
-                  src={feature.imageSrc} 
-                  alt={feature.title} 
                   position="absolute"
                   inset="0"
-                  w="full" 
-                  h="full" 
-                  objectFit="cover" 
-                  objectPosition="center"
                   opacity={selected === feature.value ? 1 : 0}
                   transition="opacity 0.4s ease-in-out"
                   pointerEvents={selected === feature.value ? "auto" : "none"}
-                />
+                  zIndex={selected === feature.value ? 1 : 0}
+                >
+                  <NextImage 
+                    src={feature.imageSrc} 
+                    alt={feature.title} 
+                    fill
+                    style={{ objectFit: 'cover', objectPosition: 'center' }}
+                    sizes="(max-width: 1024px) 100vw, 60vw"
+                    priority={index === 0} // OPTIMIZATION: Only preload the first image in the sequence!
+                  />
+                </Box>
               ))}
             </Box>
           </Tabs.Root>
 
           {/* Mobile View */}
           <Stack gap="8" hideFrom="md">
-            {features.map((feature) => (
+            {features.map((feature, index) => (
               <Stack 
                 key={feature.title} 
                 gap="6"
@@ -140,7 +144,6 @@ export const Block = ({ dict }: FeatureProps) => {
                 borderColor="border.subtle"
               >
                 <Stack>
-                  {/* SVG Icons removed, text naturally left-aligned */}
                   <Text fontWeight="semibold">
                     {feature.title}
                   </Text>
@@ -150,14 +153,13 @@ export const Block = ({ dict }: FeatureProps) => {
                 </Stack>
                 
                 <Box w="full" aspectRatio={4 / 3} position="relative" borderRadius="l2" overflow="hidden" bg="bg.muted">
-                  <Image 
+                  <NextImage 
                     src={feature.imageSrc} 
                     alt={feature.title} 
-                    position="absolute"
-                    inset="0"
-                    w="full" 
-                    h="full" 
-                    objectFit="cover" 
+                    fill
+                    style={{ objectFit: 'cover' }} 
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority={index === 0} // OPTIMIZATION: Prioritize the top card on mobile
                   />
                 </Box>
               </Stack>

@@ -2,13 +2,13 @@ import {
   Box,
   Flex,
   HStack,
-  Image,
   RatingGroup,
   Separator,
   Stack,
   Text,
 } from '@chakra-ui/react'
 import { Logo } from './logo'
+import NextImage from 'next/image' // OPTIMIZATION: Imported Next.js Image
 
 interface TestimonialData {
   id: number | string
@@ -29,17 +29,19 @@ export const Block = ({ testimonial }: BlockProps) => {
   if (!testimonial) return null
 
   return (
-    // Swapped Container for Box and added mx="auto" to center it without double padding
     <Box maxW="5xl" mx="auto" py={{ base: '16', md: '24' }}>
       <Flex gap={{ base: '8', md: '16' }} direction={{ base: 'column', md: 'row' }} align={{ base: 'flex-start', md: 'center' }}>
         {testimonial.avatar_url && (
-          <Image 
-            src={testimonial.avatar_url} 
-            alt={testimonial.name} 
-            boxSize={{ base: '24', md: '2xs' }} 
-            rounded="full" 
-            objectFit="cover"
-          />
+          // OPTIMIZATION: Wrapped in a relative box to use NextImage 'fill'
+          <Box position="relative" boxSize={{ base: '24', md: '2xs' }} rounded="full" overflow="hidden" flexShrink={0}>
+            <NextImage 
+              src={testimonial.avatar_url} 
+              alt={testimonial.name} 
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 768px) 96px, 256px"
+            />
+          </Box>
         )}
         
         <Stack gap={{ base: '6', md: '8' }} justify="center" flex="1" alignItems="flex-start" textAlign="left">
@@ -61,13 +63,16 @@ export const Block = ({ testimonial }: BlockProps) => {
             </Stack>
             <Separator orientation="vertical" height="10" />
             {testimonial.logo_url ? (
-              <Image 
-                src={testimonial.logo_url} 
-                alt={`${testimonial.company} logo`} 
-                maxH="32px" 
-                objectFit="contain"
-                _dark={{ filter: "brightness(0) invert(1)" }} 
-              />
+              // OPTIMIZATION: NextImage for logo with CSS filter applied to parent
+              <Box position="relative" h="32px" w="120px" _dark={{ filter: "brightness(0) invert(1)" }}>
+                <NextImage 
+                  src={testimonial.logo_url} 
+                  alt={`${testimonial.company} logo`} 
+                  fill
+                  style={{ objectFit: 'contain', objectPosition: 'left' }}
+                  sizes="120px"
+                />
+              </Box>
             ) : (
               <Logo />
             )}

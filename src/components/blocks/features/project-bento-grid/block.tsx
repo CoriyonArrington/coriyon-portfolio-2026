@@ -2,13 +2,19 @@
 
 import { Badge, Box, Card, Container, Grid, GridItem, Heading, Stack, Text } from '@chakra-ui/react'
 import Image from 'next/image'
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'
+import dynamic from 'next/dynamic'
+
+// Dynamically import Lottie to prevent blocking the main thread
+const LottiePlayer = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact),
+  { ssr: false }
+)
 
 interface BentoFeature {
   title: string;
   description: string;
   mediaUrl?: string;
-  mediaType?: 'image' | 'video' | 'lottie'; // Included 'lottie' support
+  mediaType?: 'image' | 'video' | 'lottie'; 
   colSpan?: number;
 }
 
@@ -79,7 +85,7 @@ export const Block = ({ badge, title, description, features }: BentoGridProps) =
                     <video src={feature.mediaUrl} autoPlay loop muted playsInline style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
                   ) : feature.mediaType === 'lottie' && feature.mediaUrl ? (
                     <Box w="full" h="full" bg="bg.muted" position="relative">
-                      <DotLottieReact
+                      <LottiePlayer
                         src={feature.mediaUrl}
                         loop
                         autoplay

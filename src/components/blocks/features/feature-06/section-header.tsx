@@ -1,4 +1,4 @@
-import { Heading, Stack, type StackProps, Text } from '@chakra-ui/react'
+import { Heading, Stack, type StackProps, Text, Box } from '@chakra-ui/react'
 import type React from 'react'
 
 /**
@@ -23,9 +23,10 @@ export const SectionHeader = (props: SectionHeaderProps) => {
       <Stack gap={{ base: '4', md: '5' }}>
         <Stack gap={{ base: '2', md: '3' }}>
           {tagline && (
-            <Text textStyle={{ base: 'sm', md: 'md' }} fontWeight="medium" color="colorPalette.fg">
+            // FIX: Changed <Text> to <Box> to prevent <div> inside <p> hydration crash
+            <Box textStyle={{ base: 'sm', md: 'md' }} fontWeight="medium" color="colorPalette.fg">
               {tagline}
-            </Text>
+            </Box>
           )}
           <Heading as="h2" textStyle={{ base: '3xl', md: '4xl' }}>
             {headline}

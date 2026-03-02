@@ -5,7 +5,6 @@ import {
   Box, 
   Button, 
   Flex, 
-  Image, 
   Stack, 
   chakra, 
   Highlight,
@@ -21,6 +20,7 @@ import { LuArrowDown, LuX, LuEye, LuLock } from 'react-icons/lu'
 import { HeroHeader } from '../home-page/hero-header'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { useMemo } from 'react'
+import Image from 'next/image' // Swapped Chakra Image for Next Image
 
 const Video = chakra('video')
 
@@ -29,13 +29,11 @@ const PhoneFrame = ({ children }: { children: React.ReactNode }) => (
     <Image
       src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup.png"
       alt="iPhone Mockup"
-      position="absolute"
-      inset="0"
-      width="100%"
-      height="100%"
-      objectFit="contain"
-      zIndex={10}
-      pointerEvents="none"
+      fill
+      style={{ objectFit: 'contain' }}
+      sizes="(max-width: 768px) 100vw, 300px"
+      priority // Ensures the frame paints quickly
+      className="z-10 pointer-events-none"
     />
     <Box 
       position="absolute"
@@ -173,7 +171,16 @@ export const Block = ({
                    objectFit="cover" width="100%" height="100%" position="absolute" inset="0" 
                  />
               ) : (
-                <Image src={imageUrl} alt="Project Preview" objectFit="contain" width="100%" height="100%" position="absolute" inset="0" />
+                <Box position="relative" width="100%" height="100%">
+                  <Image 
+                    src={imageUrl || ""} 
+                    alt="Project Preview" 
+                    fill
+                    style={{ objectFit: 'contain' }}
+                    sizes="(max-width: 768px) 100vw, 300px"
+                    priority
+                  />
+                </Box>
               )}
             </Box>
           </PhoneFrame>
@@ -216,13 +223,16 @@ export const Block = ({
     }
 
     return (
-      <Image 
-        src={imageUrl} 
-        alt="Project Preview" 
-        w="full" 
-        h="auto" 
-        objectFit="contain" 
-      />
+      <Box position="relative" w="full" aspectRatio={16/9}>
+        <Image 
+          src={imageUrl || ""} 
+          alt="Project Preview" 
+          fill
+          style={{ objectFit: 'contain' }}
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          priority
+        />
+      </Box>
     )
   }
 

@@ -1,10 +1,10 @@
 'use client'
 
-import { Badge, Box, Button, Flex, Icon, SimpleGrid, Stack, Highlight } from '@chakra-ui/react'
+import { Badge, Box, Button, Flex, Icon, SimpleGrid, Stack, Highlight, Skeleton } from '@chakra-ui/react'
 import { LuRocket, LuArrowDown } from 'react-icons/lu'
 import { HeroHeader } from './hero-header'
 import Script from 'next/script'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 
 interface Props {
@@ -13,6 +13,11 @@ interface Props {
 
 export const Block = ({ dict }: Props) => {
   const { playHover, playClick } = useUiSounds()
+  const [mounted, setMounted] = useState(false) 
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const rawTitle = dict?.title || "Creative *Playground*"
   const { displayTitle, highlightQueries } = useMemo(() => {
@@ -46,7 +51,6 @@ export const Block = ({ dict }: Props) => {
 
       <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 8, lg: 0 }} minH="100vh">
         
-        {/* Left Column: Text */}
         <Flex
           align="center"
           justify={{ base: "center", lg: "flex-end" }} 
@@ -95,7 +99,6 @@ export const Block = ({ dict }: Props) => {
           </HeroHeader>
         </Flex>
 
-        {/* Right Column: 3D Scene */}
         <Box
           pos={{ lg: 'absolute' }}
           right="0"
@@ -108,36 +111,40 @@ export const Block = ({ dict }: Props) => {
           }}
           zIndex={1}
         >
-           {/* Shift the entire scene left by 15% to fix the offset */}
            <Box 
              pos="absolute" 
              inset="0" 
              pointerEvents={{ base: 'none', lg: 'auto' }}
              transform="translateX(-15%)"
            >
-              {/* @ts-ignore */}
-              <spline-viewer 
-                url={splineUrl} 
-                loading-reveal="true"
-              />
-              
-              <Badge 
-                pos="absolute" 
-                bottom={{ base: 6, lg: 10 }} 
-                left={{ base: "50%", lg: "54%" }} 
-                transform="translateX(-50%)"
-                colorPalette="gray"
-                variant="solid"
-                rounded="full"
-                px={4}
-                py={1.5}
-                pointerEvents="none"
-                zIndex={2}
-                shadow="md"
-                display={{ base: 'none', lg: 'block' }} // Hide hint on mobile
-              >
-                {dict?.dragText || "Press and drag to orbit"}
-              </Badge>
+              {mounted ? (
+                <>
+                  {/* @ts-ignore */}
+                  <spline-viewer 
+                    url={splineUrl} 
+                    loading-reveal="true"
+                  />
+                  <Badge 
+                    pos="absolute" 
+                    bottom={{ base: 6, lg: 10 }} 
+                    left={{ base: "50%", lg: "54%" }} 
+                    transform="translateX(-50%)"
+                    colorPalette="gray"
+                    variant="solid"
+                    rounded="full"
+                    px={4}
+                    py={1.5}
+                    pointerEvents="none"
+                    zIndex={2}
+                    shadow="md"
+                    display={{ base: 'none', lg: 'block' }}
+                  >
+                    {dict?.dragText || "Press and drag to orbit"}
+                  </Badge>
+                </>
+              ) : (
+                <Skeleton w="full" h="full" />
+              )}
            </Box>
         </Box>
 
@@ -149,7 +156,6 @@ export const Block = ({ dict }: Props) => {
           height: 100%;
           display: block;
         }
-        /* Completely disable interactions on mobile to allow normal page scrolling */
         @media (max-width: 991px) {
           spline-viewer {
             pointer-events: none !important;

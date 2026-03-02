@@ -70,9 +70,6 @@ export const Block = ({ badge, title, description, features, mockupType }: Featu
                   <Accordion.ItemBody>
                     <Stack gap="5">
                       {feature.description}
-                      {/* The massive mobile image block that used to be rendered inside 
-                        this accordion body has been removed to prevent the layout collapse jump! 
-                      */}
                     </Stack>
                   </Accordion.ItemBody>
                 </Accordion.ItemContent>
@@ -97,7 +94,14 @@ export const Block = ({ badge, title, description, features, mockupType }: Featu
                     zIndex={selected[0] === feature.value ? 1 : 0}
                   >
                     {feature.imageSrc && (
-                      <Image src={feature.imageSrc} alt={feature.title} fill style={{ objectFit: 'cover' }} priority={selected[0] === feature.value} />
+                      <Image 
+                        src={feature.imageSrc} 
+                        alt={feature.title} 
+                        fill 
+                        style={{ objectFit: 'cover' }} 
+                        priority={selected[0] === feature.value} 
+                        sizes="(max-width: 768px) 100vw, 50vw" // OPTIMIZATION: Prevents massive background image downloads
+                      />
                     )}
                   </Box>
                 ))}
@@ -110,6 +114,7 @@ export const Block = ({ badge, title, description, features, mockupType }: Featu
                   fill
                   unoptimized={true}
                   style={{ objectFit: 'contain' }}
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </Box>
             </Box>
@@ -125,7 +130,14 @@ export const Block = ({ badge, title, description, features, mockupType }: Featu
                   zIndex={selected[0] === feature.value ? 1 : 0}
                 >
                   {feature.imageSrc && (
-                    <Image src={feature.imageSrc} alt={feature.title} fill style={{ objectFit: 'cover' }} priority={selected[0] === feature.value} />
+                    <Image 
+                      src={feature.imageSrc} 
+                      alt={feature.title} 
+                      fill 
+                      style={{ objectFit: 'cover' }} 
+                      priority={selected[0] === feature.value} 
+                      sizes="(max-width: 768px) 100vw, 50vw" // OPTIMIZATION: Limits layout payload
+                    />
                   )}
                 </Box>
               ))}

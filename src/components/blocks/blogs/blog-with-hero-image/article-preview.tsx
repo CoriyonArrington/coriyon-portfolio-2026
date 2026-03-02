@@ -1,4 +1,9 @@
-import { AspectRatio, Avatar, Box, Heading, HStack, Stack, Text } from '@chakra-ui/react'
+'use client' // Added because we now need click state
+
+import { AspectRatio, Avatar, Box, Heading, HStack, Stack, Text, IconButton } from '@chakra-ui/react'
+import { LuPlay } from 'react-icons/lu'
+import { useState } from 'react'
+import NextImage from 'next/image'
 
 interface Props {
   post: any
@@ -7,6 +12,10 @@ interface Props {
 
 export const ArticlePreview = (props: Props) => {
   const { post, hero } = props
+  const [isPlaying, setIsPlaying] = useState(false)
+  
+  // Automatically grab the high-res YouTube thumbnail
+  const thumbnailUrl = `https://img.youtube.com/vi/${post.youtubeId}/maxresdefault.jpg`
   
   return (
     <Stack gap={{ base: '5', md: '6' }} align="flex-start" w="full">
@@ -18,15 +27,52 @@ export const ArticlePreview = (props: Props) => {
         overflow="hidden" 
         shadow="md" 
         bg="black"
+        position="relative"
       >
-        <iframe
-          src={`https://www.youtube.com/embed/${post.youtubeId}?rel=0`}
-          title={post.title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          loading="lazy"
-          style={{ width: '100%', height: '100%', border: 'none' }}
-        />
+        {isPlaying ? (
+          // The heavy iframe only mounts AFTER the user clicks!
+          <iframe
+            src={`https://www.youtube.com/embed/${post.youtubeId}?rel=0&autoplay=1`}
+            title={post.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            style={{ width: '100%', height: '100%', border: 'none' }}
+          />
+        ) : (
+          // The lightweight Facade
+          <Box position="relative" w="full" h="full" cursor="pointer" onClick={() => setIsPlaying(true)}>
+            <NextImage 
+              src={thumbnailUrl}
+              alt={post.title}
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes={hero ? "(max-width: 1024px) 100vw, 80vw" : "(max-width: 768px) 100vw, 33vw"}
+              priority={hero} // Only prioritize the featured image!
+            />
+            {/* Play Button Overlay */}
+            <Box 
+              position="absolute" 
+              inset="0" 
+              bg="blackAlpha.400" 
+              display="flex" 
+              alignItems="center" 
+              justifyContent="center"
+              transition="all 0.2s"
+              _hover={{ bg: "blackAlpha.200" }}
+            >
+              <IconButton 
+                aria-label="Play video" 
+                size="2xl" 
+                rounded="full" 
+                colorPalette="green" 
+                variant="solid"
+                pointerEvents="none" // Lets the parent box handle the click
+              >
+                <LuPlay fill="currentColor" size="24" />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
       </AspectRatio>
       
       <Stack gap="3" flex="1" w="full">
@@ -45,6 +91,7 @@ export const ArticlePreview = (props: Props) => {
       
       {post.author && (
         <HStack gap="3" mt="2">
+          {/* Using Avatar.Root here is totally fine for tiny icons */}
           <Avatar.Root size="sm">
             <Avatar.Fallback />
             <Avatar.Image src={post.author.avatarUrl} />

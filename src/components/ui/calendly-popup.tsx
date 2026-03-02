@@ -24,7 +24,8 @@ export function CalendlyPopup({ isOpen, onClose }: CalendlyPopupProps) {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  // CRITICAL OPTIMIZATION: Do not render (or load) the modal chunk until it's actually opened.
+  if (!mounted || !isOpen) return null;
 
   // These hex codes (without the #) control the INTERNAL colors of the calendar card itself
   const isDark = colorMode === 'dark';

@@ -4,7 +4,7 @@ import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Dialog, Simpl
 import { LuChevronDown, LuEye, LuX } from 'react-icons/lu'
 import Image from 'next/image'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 interface HeroProps {
   dict?: any;
@@ -32,8 +32,10 @@ export const Block = ({
   role, duration, year, teamRoles, deliverables, summary, industries, platforms
 }: HeroProps) => {
   const { playClick, playHover } = useUiSounds()
+  const [mounted, setMounted] = useState(false) // Added to prevent hydration mismatches
 
   useEffect(() => {
+    setMounted(true) // Marks when React has successfully hydrated on the client
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [])
 
@@ -158,102 +160,118 @@ export const Block = ({
             {dict?.exploreWork || "Read case study"} <LuChevronDown />
           </Button>
 
-          <Dialog.Root placement="center" motionPreset="slide-in-bottom">
-            <Dialog.Trigger asChild>
-              <Button 
-                size="xl" 
-                h={{ base: 14, md: 16 }}
-                px={{ base: 6, md: 8 }}
-                fontSize="lg"
-                colorPalette="gray" 
-                variant="solid" 
-                onClick={playClick} 
-                onMouseEnter={playHover}
-                w={{ base: 'full', md: 'auto' }}
-              >
-                {dict?.showOverview || "Show overview"} <LuEye />
-              </Button>
-            </Dialog.Trigger>
-            
-            <Portal>
-              <Dialog.Backdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
-              <Dialog.Positioner>
-                <Dialog.Content p={{ base: "6", md: "8" }} rounded="2xl" shadow="2xl" bg="bg.panel" color="fg.default" maxW="2xl" w="full" mx="4">
-                  
-                  <Dialog.Header pb="6" display="flex" justifyContent="space-between" alignItems="center">
-                    <Dialog.Title textStyle="2xl" fontWeight="bold">Project overview</Dialog.Title>
-                    <Dialog.CloseTrigger asChild position="static" inset="auto">
-                      <IconButton 
-                        aria-label="Close dialog"
-                        variant="ghost" 
-                        rounded="full" 
-                        size="sm" 
-                        onClick={playClick}
-                      >
-                        <LuX />
-                      </IconButton>
-                    </Dialog.CloseTrigger>
-                  </Dialog.Header>
-                  
-                  <Dialog.Body>
-                    <Stack gap="8">
-                      {displaySummary && (
-                        <Box>
-                          <Text fontWeight="semibold" color="fg.muted" mb="2" textTransform="uppercase" fontSize="xs" letterSpacing="widest">Summary</Text>
-                          <Text fontSize="lg" lineHeight="relaxed">{displaySummary}</Text>
-                        </Box>
-                      )}
-                      
-                      <SimpleGrid columns={{ base: 1, md: 2 }} gap="8">
-                        {displayRole && (
+          {/* FIX: Prevent Hydration Mismatch by rendering a static button on the server */}
+          {mounted ? (
+            <Dialog.Root placement="center" motionPreset="slide-in-bottom">
+              <Dialog.Trigger asChild>
+                <Button 
+                  size="xl" 
+                  h={{ base: 14, md: 16 }}
+                  px={{ base: 6, md: 8 }}
+                  fontSize="lg"
+                  colorPalette="gray" 
+                  variant="solid" 
+                  onClick={playClick} 
+                  onMouseEnter={playHover}
+                  w={{ base: 'full', md: 'auto' }}
+                >
+                  {dict?.showOverview || "Show overview"} <LuEye />
+                </Button>
+              </Dialog.Trigger>
+              
+              <Portal>
+                <Dialog.Backdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
+                <Dialog.Positioner>
+                  <Dialog.Content p={{ base: "6", md: "8" }} rounded="2xl" shadow="2xl" bg="bg.panel" color="fg.default" maxW="2xl" w="full" mx="4">
+                    
+                    <Dialog.Header pb="6" display="flex" justifyContent="space-between" alignItems="center">
+                      <Dialog.Title textStyle="2xl" fontWeight="bold">Project overview</Dialog.Title>
+                      <Dialog.CloseTrigger asChild position="static" inset="auto">
+                        <IconButton 
+                          aria-label="Close dialog"
+                          variant="ghost" 
+                          rounded="full" 
+                          size="sm" 
+                          onClick={playClick}
+                        >
+                          <LuX />
+                        </IconButton>
+                      </Dialog.CloseTrigger>
+                    </Dialog.Header>
+                    
+                    <Dialog.Body>
+                      <Stack gap="8">
+                        {displaySummary && (
                           <Box>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">My role</Text>
-                            <Text fontWeight="medium">{displayRole}</Text>
+                            <Text fontWeight="semibold" color="fg.muted" mb="2" textTransform="uppercase" fontSize="xs" letterSpacing="widest">Summary</Text>
+                            <Text fontSize="lg" lineHeight="relaxed">{displaySummary}</Text>
                           </Box>
                         )}
-                        {displayDuration && (
-                          <Box>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Duration</Text>
-                            <Text fontWeight="medium">{displayDuration}</Text>
-                          </Box>
-                        )}
-                        {displayYear && (
-                          <Box>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Year</Text>
-                            <Text fontWeight="medium">{displayYear}</Text>
-                          </Box>
-                        )}
-                        {displayIndustries && (
-                          <Box>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Industries</Text>
-                            <Text fontWeight="medium">{displayIndustries}</Text>
-                          </Box>
-                        )}
-                        {displayPlatforms && (
-                          <Box>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Platforms</Text>
-                            <Text fontWeight="medium">{displayPlatforms}</Text>
-                          </Box>
-                        )}
-                        {displayTeamRoles && (
-                          <Box>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team roles</Text>
-                            <Text fontWeight="medium">{displayTeamRoles}</Text>
-                          </Box>
-                        )}
-                        {displayDeliverables && (
-                          <Box gridColumn={{ md: "span 2" }}>
-                            <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Deliverables</Text>
-                            <Text fontWeight="medium">{displayDeliverables}</Text>
-                          </Box>
-                        )}
-                      </SimpleGrid>
-                    </Stack>
-                  </Dialog.Body>
-                </Dialog.Content>
-              </Dialog.Positioner>
-            </Portal>
-          </Dialog.Root>
+                        
+                        <SimpleGrid columns={{ base: 1, md: 2 }} gap="8">
+                          {displayRole && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">My role</Text>
+                              <Text fontWeight="medium">{displayRole}</Text>
+                            </Box>
+                          )}
+                          {displayDuration && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Duration</Text>
+                              <Text fontWeight="medium">{displayDuration}</Text>
+                            </Box>
+                          )}
+                          {displayYear && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Year</Text>
+                              <Text fontWeight="medium">{displayYear}</Text>
+                            </Box>
+                          )}
+                          {displayIndustries && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Industries</Text>
+                              <Text fontWeight="medium">{displayIndustries}</Text>
+                            </Box>
+                          )}
+                          {displayPlatforms && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Platforms</Text>
+                              <Text fontWeight="medium">{displayPlatforms}</Text>
+                            </Box>
+                          )}
+                          {displayTeamRoles && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team roles</Text>
+                              <Text fontWeight="medium">{displayTeamRoles}</Text>
+                            </Box>
+                          )}
+                          {displayDeliverables && (
+                            <Box gridColumn={{ md: "span 2" }}>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Deliverables</Text>
+                              <Text fontWeight="medium">{displayDeliverables}</Text>
+                            </Box>
+                          )}
+                        </SimpleGrid>
+                      </Stack>
+                    </Dialog.Body>
+                  </Dialog.Content>
+                </Dialog.Positioner>
+              </Portal>
+            </Dialog.Root>
+          ) : (
+            // Static placeholder button for SSR to guarantee perfect match
+            <Button 
+              size="xl" 
+              h={{ base: 14, md: 16 }}
+              px={{ base: 6, md: 8 }}
+              fontSize="lg"
+              colorPalette="gray" 
+              variant="solid" 
+              w={{ base: 'full', md: 'auto' }}
+            >
+              {dict?.showOverview || "Show overview"} <LuEye />
+            </Button>
+          )}
 
         </Stack>
       </Stack>

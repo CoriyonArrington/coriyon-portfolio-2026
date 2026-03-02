@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Link, Stack, type StackProps } from '@chakra-ui/react'
 import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { supabase } from '@/lib/supabase'
 
 interface NavbarLinksProps extends StackProps {
   dict?: any;
@@ -16,8 +14,9 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
   const { playHover, playWhoosh } = useUiSounds()
   const pathname = usePathname() || ''
   
-  // 1. Map initial SSR state from the dictionary to prevent load CLS
-  const initialLinks = dict?.links?.map((link: any) => ({
+  // OPTIMIZATION: Removed useEffect database call! 
+  // We rely entirely on the server-provided dictionary, guaranteeing zero layout shift.
+  const navLinks = dict?.links?.map((link: any) => ({
     id: link.href,
     slug: link.href.replace('/', ''),
     nav_title: link.label
@@ -27,54 +26,30 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
     { id: 'blog', slug: 'blog', nav_title: 'Videos' }
   ]
 
-  const [navLinks, setNavLinks] = useState<any[]>(initialLinks)
-
   const segments = pathname.split('/').filter(Boolean)
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
 
-  // 2. Fetch MAIN_MENU pages from Supabase to catch dynamic updates silently
-  useEffect(() => {
-    const fetchNavLinks = async () => {
-      const { data } = await supabase
-        .from('pages')
-        .select('id, slug, title, nav_title, sort_order')
-        .eq('status', 'PUBLISHED')
-        .eq('page_type', 'MAIN_MENU')
-        .order('sort_order', { ascending: true })
-
-      if (data && data.length > 0) {
-        setNavLinks(data)
-      }
-    }
-    fetchNavLinks()
-  }, [])
-
-  // Safely converts database slugs to valid, localized absolute hrefs
   const getHref = (slug: string) => {
     if (!slug) return homePath;
     if (slug === 'home' || slug === '/') return homePath;
     
-    // Handle direct hash links (e.g., "#process" meant for the home page)
     if (slug.startsWith('#')) {
       const base = homePath === '/' ? '' : homePath;
-      return `${base}/${slug}`; // e.g., /en/#process
+      return `${base}/${slug}`; 
     }
     
-    // Handle path + hash links (e.g., "about#services")
     if (slug.includes('#')) {
       const [pagePart, hashPart] = slug.split('#');
       const cleanPage = pagePart.startsWith('/') ? pagePart : `/${pagePart}`;
       const base = homePath === '/' ? cleanPage : `${homePath}${cleanPage}`;
-      return `${base}#${hashPart}`; // e.g., /en/about#services
+      return `${base}#${hashPart}`; 
     }
 
-    // Standard pages
     const cleanPath = slug.startsWith('/') ? slug : `/${slug}`;
     return homePath === '/' ? cleanPath : `${homePath}${cleanPath}`;
   }
 
   const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
-    // If it's a standard link, just let NextLink route normally
     if (!href.includes('#')) {
       playWhoosh();
       onLinkClick?.()
@@ -83,11 +58,9 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
 
     const [pathPart, hashPart] = href.split('#')
     
-    // Normalize paths to ensure accurate matching (e.g. '/en/' matches '/en')
     const normalizePath = (p: string) => p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : (p || '/');
     const isCurrentPage = normalizePath(pathPart) === normalizePath(pathname);
 
-    // If the hash is on the current page, scroll smoothly
     if (hashPart && isCurrentPage) {
       e.preventDefault()
       const element = document.getElementById(hashPart)
@@ -109,7 +82,6 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
         }, 150)
       }
     } else {
-      // If the hash is on a DIFFERENT page, let NextLink handle the hard navigation
       playWhoosh()
       onLinkClick?.()
     }
@@ -119,17 +91,12 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
     <Stack direction={props.direction || { base: 'column', md: 'row' }} alignItems="center" gap={{ base: '6', md: '8' }} {...props}>
       {navLinks.map((page: any) => {
         const href = getHref(page.slug)
-        
-        // Extract the translation from the navbar dictionary array by matching the slug
-        const dictLink = dict?.links?.find((l: any) => l.href.includes(page.slug))
-        const label = dictLink?.label || dict?.[`${page.slug}Link`] || page.nav_title || page.title
+        const label = page.nav_title
 
-        // Simple active state check
         const isActive = href !== homePath 
-          ? pathname.includes(href.split('#')[0]) // Ignore hash when checking active state
+          ? pathname.includes(href.split('#')[0]) 
           : pathname === homePath || pathname === `${homePath}/`
 
-        // Skip rendering the home page link in the top nav (since the Logo handles that)
         if (page.slug === 'home' || page.slug === '/') return null;
 
         return (

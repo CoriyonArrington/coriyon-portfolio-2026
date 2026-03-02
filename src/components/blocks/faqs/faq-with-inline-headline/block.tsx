@@ -8,7 +8,6 @@ import {
   AccordionItemTrigger,
   AccordionRoot,
 } from '@/components/ui/accordion'
-import { useState } from 'react'
 
 interface FaqProps {
   dict?: any;
@@ -16,22 +15,18 @@ interface FaqProps {
 }
 
 export const Block = ({ dict, faqs }: FaqProps) => {
-  // Initialize state with 'item-0' so the first accordion item is open by default
-  const [value, setValue] = useState<string[]>(['item-0'])
-
   if (!faqs || faqs.length === 0) return null
 
   return (
-    // Removed the manual padding wrapper so it naturally aligns with page.tsx
     <Box>
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={{ base: 8, md: 12 }}>
         <SectionHeader dict={dict} />
         
+        {/* OPTIMIZATION: Used native defaultValue instead of React state */}
         <AccordionRoot 
           collapsible 
           multiple 
-          value={value}
-          onValueChange={(e) => setValue(e.value)}
+          defaultValue={['item-0']}
         >
           {faqs.map((item, index) => (
             <AccordionItem key={index} value={`item-${index}`}>

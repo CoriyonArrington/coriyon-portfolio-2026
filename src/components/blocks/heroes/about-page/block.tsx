@@ -53,12 +53,10 @@ export const Block = ({ dict, title, description, videoUrl }: BlockProps) => {
     document.body.removeChild(link)
   }
 
-  // Determine if the URL is a YouTube link
   const targetVideoUrl = videoUrl || dict?.videoUrl || dict?.introVideoUrl
   const ytVideoId = getYouTubeVideoId(targetVideoUrl || "")
   const isYouTube = !!ytVideoId
   
-  // Format YouTube URL to show controls natively
   const finalVideoUrl = isYouTube 
     ? `https://www.youtube.com/embed/${ytVideoId}?controls=1&rel=0` 
     : targetVideoUrl
@@ -71,6 +69,7 @@ export const Block = ({ dict, title, description, videoUrl }: BlockProps) => {
         {isYouTube ? (
           <iframe
             src={finalVideoUrl}
+            title="Introduction Video" // Added for Accessibility/Lighthouse
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             style={{ width: '100%', height: '100%', border: 'none' }}
@@ -80,6 +79,7 @@ export const Block = ({ dict, title, description, videoUrl }: BlockProps) => {
             src={finalVideoUrl}
             controls
             playsInline
+            preload="metadata" // OPTIMIZATION: Prevents massive data download on load
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         ) : (
