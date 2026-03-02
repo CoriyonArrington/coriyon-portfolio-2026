@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import { Provider } from "@/components/ui/provider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -9,20 +8,7 @@ import "../globals.css";
 import { supabase } from "@/lib/supabase";
 import { FloatingContact } from "@/components/ui/floating-contact";
 import { Block as BannerBlock } from "@/components/blocks/banners/banner-with-link/block";
-
-const montserrat = localFont({
-  src: "../../fonts/Montserrat/Montserrat-VariableFont_wght.ttf",
-  variable: "--font-heading",
-  display: "swap",
-  weight: "100 900",
-});
-
-const nunitoSans = localFont({
-  src: "../../fonts/Nunito-Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf",
-  variable: "--font-body",
-  display: "swap",
-  weight: "200 1000",
-});
+import { montserrat, nunitoSans } from "../fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.coriyon.com'), 
@@ -52,7 +38,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default async function LocaleLayout({
   children,
   params,
 }: Readonly<{
@@ -68,7 +54,7 @@ export default async function RootLayout({
 
   return (
     <html 
-      lang={locale || "en"} 
+      lang={currentLocale} 
       className={`${montserrat.variable} ${nunitoSans.variable}`} 
       suppressHydrationWarning
     >
