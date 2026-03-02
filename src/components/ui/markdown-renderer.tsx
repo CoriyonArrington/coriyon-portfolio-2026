@@ -1,43 +1,81 @@
-'use client';
+'use client'
 
-import React from 'react';
-import ReactMarkdown, { type Components } from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { Heading, Text, Code, Box, Link } from '@chakra-ui/react';
-
-const MarkdownChakraComponents: Components = {
-  h1: ({ children }) => <Heading as="h1" size="xl" my={4} fontWeight="bold">{children}</Heading>,
-  h2: ({ children }) => <Heading as="h2" size="lg" my={3} fontWeight="bold">{children}</Heading>,
-  h3: ({ children }) => <Heading as="h3" size="md" my={2} fontWeight="bold">{children}</Heading>,
-  p: ({ children }) => <Text my={2} lineHeight="relaxed">{children}</Text>,
-  // Safe rendering for lists in Chakra v3
-  ul: ({ children }) => <Box as="ul" pl={6} my={2} css={{ listStyleType: 'disc' }}>{children}</Box>,
-  ol: ({ children }) => <Box as="ol" pl={6} my={2} css={{ listStyleType: 'decimal' }}>{children}</Box>,
-  li: ({ children }) => <Box as="li" my={1} lineHeight="relaxed">{children}</Box>,
-  a: ({ href, children }) => <Link href={href} color="green.500" target="_blank" textDecoration="underline">{children}</Link>,
-  strong: ({ children }) => <Box as="strong" fontWeight="bold" color="fg.default">{children}</Box>,
-  code: ({ className, children }) => {
-    const isInline = !className;
-    return isInline ? (
-      <Code p={1} fontSize="0.85em" rounded="md" bg="bg.muted">{children}</Code>
-    ) : (
-      <Box as="pre" p={4} my={4} borderRadius="md" bg="bg.muted" overflowX="auto" fontSize="sm">
-        <Code bg="transparent" p={0}>{children}</Code>
-      </Box>
-    );
-  },
-};
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { Box } from '@chakra-ui/react'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 
 interface MarkdownRendererProps {
   content: string;
 }
 
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  const params = useParams();
+
   return (
-    <Box className="markdown-body" css={{ '& > *:first-of-type': { mt: 0 }, '& > *:last-child': { mb: 0 } }}>
-      <ReactMarkdown components={MarkdownChakraComponents} remarkPlugins={[remarkGfm]}>
+    <Box
+      css={{
+        '& > *:first-of-type': { mt: 0 },
+        '& > *:last-of-type': { mb: 0 },
+        '& p': { mb: 4, lineHeight: '1.6' },
+        '& ul': { pl: 6, mb: 4, listStyleType: 'disc' },
+        '& ol': { pl: 6, mb: 4, listStyleType: 'decimal' },
+        '& li': { mb: 2 },
+        '& strong': { fontWeight: '600' }
+      }}
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          a: ({ href, children }) => {
+            const isInternal = href?.startsWith('/') || href?.startsWith('#');
+            let finalHref = href || '/';
+            
+            if (isInternal) {
+              const currentLocale = params?.locale as string || 'en';
+              
+              // Correctly format absolute internal links to include the current locale
+              if (href?.startsWith('/')) {
+                // If it doesn't already have the locale prepended
+                if (!href.startsWith(`/${currentLocale}/`) && href !== `/${currentLocale}`) {
+                  if (href.startsWith('/#')) {
+                    // Turn /#process into /en/#process
+                    finalHref = `/${currentLocale}${href.substring(1)}`;
+                  } else {
+                    // Turn /about#services into /en/about#services
+                    finalHref = `/${currentLocale}${href}`;
+                  }
+                }
+              }
+
+              // FIX: We MUST use the Next.js <Link> component for ALL internal navigation.
+              // Using a native <a> tag causes a hard page reload, which destroys the chat history!
+              return (
+                <Link 
+                  href={finalHref} 
+                  style={{ color: 'var(--chakra-colors-green-600)', textDecoration: 'underline', textUnderlineOffset: '2px', fontWeight: '500' }}
+                >
+                  {children}
+                </Link>
+              );
+            }
+            
+            return (
+              <a 
+                href={href} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                style={{ color: 'var(--chakra-colors-green-600)', textDecoration: 'underline', textUnderlineOffset: '2px', fontWeight: '500' }}
+              >
+                {children}
+              </a>
+            );
+          }
+        }}
+      >
         {content}
       </ReactMarkdown>
     </Box>
-  );
+  )
 }

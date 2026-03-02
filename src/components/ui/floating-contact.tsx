@@ -6,7 +6,6 @@ import { Box, IconButton } from '@chakra-ui/react'
 import { LuMessageSquare, LuX } from 'react-icons/lu'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 
-// Import your newly polished AI Block!
 import { Block as AIChatBlock } from '@/components/blocks/ai/ai-prompt-with-action-02/block'
 
 export function FloatingContact() {
@@ -23,20 +22,18 @@ export function FloatingContact() {
 
   return (
     <>
-      {/* The Global Chat Widget Window */}
       <Box
         position="fixed"
-        // FIX: Moved the widget window up to account for the bottom banner
-        bottom={{ base: 0, md: '120px' }}
+        bottom={{ base: 0, md: '100px' }}
         right={{ base: 0, md: '8' }}
         w={{ base: '100vw', md: '450px' }}
         h={{ base: '100dvh', md: '750px' }}
-        maxH={{ base: '100dvh', md: 'calc(100vh - 140px)' }}
+        maxH={{ base: '100dvh', md: 'calc(100vh - 120px)' }}
         bg="white"
         _dark={{ bg: "gray.900" }}
         rounded={{ base: 'none', md: '2xl' }}
         shadow="2xl"
-        zIndex="1400"
+        zIndex="2100"
         borderWidth={{ base: 0, md: '1px' }}
         borderColor="border.subtle"
         overflow="hidden"
@@ -47,42 +44,40 @@ export function FloatingContact() {
         display="flex"
         flexDirection="column"
       >
-        {/* Close Button Overlay */}
         <IconButton
           aria-label="Close chat"
-          variant="ghost"
+          variant="outline"
+          // FIX: Solid background to block out scrolling text and subtle shadow for depth
           bg="white"
-          _dark={{ bg: "bg.panel" }}
+          _dark={{ bg: 'gray.800' }}
           color="fg.default"
           rounded="full"
           size="sm"
           position="absolute"
-          top={{ base: '4', md: '4' }}
-          right={{ base: '4', md: '4' }}
-          zIndex="2000"
+          // FIX: Aligned perfectly with the header row
+          top={{ base: '8', md: '8' }}
+          right={{ base: '6', md: '8' }}
+          zIndex="2102"
           onClick={toggleChat}
           shadow="sm"
           borderWidth="1px"
           borderColor="border.subtle"
-          _hover={{ bg: 'gray.100', _dark: { bg: 'bg.muted' }, transform: 'scale(1.05)' }}
+          _hover={{ bg: 'gray.50', _dark: { bg: 'gray.700' }, transform: 'scale(1.05)' }}
           transition="all 0.2s"
         >
-          <LuX />
+          <LuX size="20px" />
         </IconButton>
 
-        {/* The AI Block - Scales perfectly to fit the container */}
         <Box flex="1" overflow="hidden" position="relative" w="full" h="full">
           <AIChatBlock locale={locale} />
         </Box>
       </Box>
 
-      {/* The Floating Action Button */}
       <Box 
         position="fixed" 
-        // FIX: Elevated the FAB to avoid banner overlap
-        bottom={{ base: '24', md: '28' }} 
+        bottom={{ base: '16', md: '8' }} 
         right={{ base: '4', md: '8' }} 
-        zIndex={isOpen ? "1399" : "1401"} 
+        zIndex={isOpen ? "2099" : "2101"} 
       >
         <IconButton
           aria-label={isOpen ? "Close Chat" : "Open Chat"}
@@ -94,10 +89,10 @@ export function FloatingContact() {
           transition="all 0.2s"
           onClick={toggleChat}
           onMouseEnter={playHover}
-          w={{ base: '56px', md: '64px' }}
-          h={{ base: '56px', md: '64px' }}
+          w="64px"
+          h="64px"
         >
-          {isOpen ? <LuX size="24px" /> : <LuMessageSquare size="24px" />}
+          {isOpen ? <LuX size="28px" /> : <LuMessageSquare size="28px" />}
         </IconButton>
       </Box>
     </>
