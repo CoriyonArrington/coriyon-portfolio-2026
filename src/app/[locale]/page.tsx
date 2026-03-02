@@ -72,7 +72,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        <Box py={{ base: "16", md: "24" }} bg="bg.emphasized">
+        {/* FIX: Added id="testimonials" so the hero header click target resolves correctly */}
+        <Box id="testimonials" py={{ base: "16", md: "24" }} bg="bg.emphasized">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               {featuredTestimonial && <FeaturedTestimonial testimonial={featuredTestimonial} />}
@@ -80,7 +81,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots">
+        <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots" suppressHydrationWarning>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <CategoryGrid 
@@ -93,7 +94,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
+        <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle" suppressHydrationWarning>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <CategoryGrid 
@@ -110,7 +111,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <ProcessTimeline dict={content.process} />
         </Box>
 
-        <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
+        <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle" suppressHydrationWarning>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <Cta dict={content.contact} />
