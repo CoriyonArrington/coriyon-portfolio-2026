@@ -17,9 +17,6 @@ importers:
       '@lottiefiles/dotlottie-react':
         specifier: ^0.18.2
         version: 0.18.2(react@19.2.3)
-      '@microsoft/clarity':
-        specifier: ^1.0.2
-        version: 1.0.2
       '@supabase/supabase-js':
         specifier: ^2.97.0
         version: 2.97.0
@@ -453,9 +450,6 @@ packages:
 
   '@lottiefiles/dotlottie-web@0.64.2':
     resolution: {integrity: sha512-/TdyBZBgRR15OWw9odt3MzSfHCetfE53FjMbxc+wtycPXIX07TJZGE2YxwYdtL3OCX4cTUWYp8t6ZXSSo++OyQ==}
-
-  '@microsoft/clarity@1.0.2':
-    resolution: {integrity: sha512-9EZYROFpJxEGmQpHvUFqvD3ZJ7QQSqnibYSWmS+1xusoZfG1QQ1/Al9yVBBc11DWMbJrs1pe1hLT273it/skJg==}
 
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
@@ -2784,8 +2778,6 @@ snapshots:
       react: 19.2.3
 
   '@lottiefiles/dotlottie-web@0.64.2': {}
-
-  '@microsoft/clarity@1.0.2': {}
 
   '@napi-rs/wasm-runtime@0.2.12':
     dependencies:

@@ -6,16 +6,11 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["@chakra-ui/react"],
   },
   images: {
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'kkegducuyzwdmxlzhxcm.supabase.co', // Project 1 (Mockups)
-        port: '',
-        pathname: '/storage/v1/object/public/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'skcxtrqsvlnrocstsvgx.supabase.co', // Project 2 (Project Assets)
+        hostname: 'kkegducuyzwdmxlzhxcm.supabase.co',
         port: '',
         pathname: '/storage/v1/object/public/**',
       },
