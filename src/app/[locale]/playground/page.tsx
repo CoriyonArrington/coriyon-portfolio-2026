@@ -7,15 +7,23 @@ import { Block as CategoryGrid } from "@/components/blocks/product-categories/ca
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-export const revalidate = 0 
+// OPTIMIZATION: ISR caching instead of dynamic rendering
+export const revalidate = 3600 
 
 export default async function PlaygroundPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  const { data: playgroundData } = await supabase.from('pages').select('*').eq('slug', 'playground').single()
-  const { data: homeData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
-  const { data: projects } = await supabase.from('projects').select('*').order('sort_order', { ascending: true })
+  // OPTIMIZATION: Parallel data fetching
+  const [
+    { data: playgroundData },
+    { data: homeData },
+    { data: projects }
+  ] = await Promise.all([
+    supabase.from('pages').select('*').eq('slug', 'playground').single(),
+    supabase.from('pages').select('*').eq('slug', 'home').single(),
+    supabase.from('projects').select('*').order('sort_order', { ascending: true })
+  ]);
 
   const playgroundContent = playgroundData?.[`content_${currentLocale}`] || playgroundData?.content_en || {}
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {}
@@ -40,9 +48,8 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
       <NavbarIsland dict={homeContent.navbar} />
       
       <Stack gap="0">
-        <FadeIn>
-          <PlaygroundHero dict={playgroundContent.hero} />
-        </FadeIn>
+        {/* OPTIMIZATION: Removed FadeIn to fix LCP blocking */}
+        <PlaygroundHero dict={playgroundContent.hero} />
 
         {/* Playground Projects Section */}
         {playgroundProjects.length > 0 && (

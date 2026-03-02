@@ -21,7 +21,8 @@ import { Block as ProjectCta } from "@/components/blocks/cta/cta-08/block"
 import { Block as TableOfContents, type TocItem } from "@/components/blocks/docs-toc/toc-mobile/block"
 import { Block as TimelineSection } from "@/components/blocks/process/timeline-section"
 
-export const revalidate = 0 
+// OPTIMIZATION: Enable ISR caching to serve pages instantly
+export const revalidate = 3600 
 
 export async function generateMetadata(
   { params }: { params: Promise<{ locale: string, slug: string }> },
@@ -199,7 +200,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     whyItWorked: isEs ? "Por qué funcionó" : "Why It Worked",
   }
 
-  const { data: allProjectsData } = await supabase.from('projects').select('*').order('sort_order', { ascending: true })
+  // OPTIMIZATION: Parallel data fetching
+  const [
+    { data: allProjectsData },
+    { data: pageData },
+    { data: allTestimonials }
+  ] = await Promise.all([
+    supabase.from('projects').select('*').order('sort_order', { ascending: true }),
+    supabase.from('pages').select('*').eq('slug', 'home').single(),
+    supabase.from('testimonials').select('*')
+  ]);
+
   const allProjects = allProjectsData || []
   const currentIndex = allProjects.findIndex(p => p.slug === slug)
   const project = allProjects[currentIndex]
@@ -216,9 +227,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (currentIndex > 0) prevProject = { slug: allProjects[currentIndex - 1].slug, title: (allProjects[currentIndex - 1] as any)[`title_${currentLocale}`] || allProjects[currentIndex - 1].title_en || allProjects[currentIndex - 1].title }
   if (currentIndex < allProjects.length - 1 && currentIndex !== -1) nextProject = { slug: allProjects[currentIndex + 1].slug, title: (allProjects[currentIndex + 1] as any)[`title_${currentLocale}`] || allProjects[currentIndex + 1].title_en || allProjects[currentIndex + 1].title }
 
-  const { data: pageData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
-  const { data: allTestimonials } = await supabase.from('testimonials').select('*')
   
   const companyTestimonials = allTestimonials?.filter(t => project.company && t.company === project.company) || []
   let rawFeaturedTestimonial = project.testimonial_id ? allTestimonials?.find(t => t.id === project.testimonial_id) : null
@@ -321,7 +330,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     }
   }) : []
 
-  // FIX: Override synthesized bento features if a custom 'bento_grid' object exists in the JSON
   const bentoData = projectContentJson.bento_grid || {}
   const bentoFeatures = bentoData.features || []
   const hasBentoGrid = bentoFeatures.length > 0
@@ -377,7 +385,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     }
   }
 
-  // Use the explicit bento grid from JSON if it exists, otherwise fall back to the synthesized bullet points
   const unifiedBentoFeatures = hasBentoGrid ? bentoFeatures : synthesizedBentoFeatures;
 
   const hasLearningsData = pmLearnings?.scoping || pmLearnings?.stakeholderAlignment || pmLearnings?.timing || pmLearnings?.imageSrc || pmLearnings?.heading;
@@ -402,7 +409,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const dynamicToc: TocItem[] = [];
   if (!isProtected) {
     if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: t.resultsBadge, level: 1 });
-    // Use custom bento badge in TOC if provided
     if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: hasBentoGrid && bentoData.badge ? bentoData.badge : t.learningsBadge, level: 1 });
     if (hasContextData) dynamicToc.push({ id: 'context', text: t.contextBadge, level: 1 });
     if (hasProblemData) dynamicToc.push({ id: 'problem', text: t.problemBadge, level: 1 });
@@ -417,34 +423,30 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       
       <Stack gap="0">
         
-        {/* HERO: Always visible */}
+        {/* HERO: Optimized for Instant LCP by removing FadeIn */}
         <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
-          <FadeIn>
-            <Hero 
-              dict={{ ...content.hero }}
-              title={projectContentJson.hero?.title || title}
-              description={projectContentJson.hero?.subtitle || description}
-              tagline={category}
-              videoUrl={videoUrl}
-              imageUrl={imageUrl} 
-              bgColor={bgColor}
-              mockupType={mockupType || "browser"}
-              primaryCtaText={t.readCaseStudy}
-              secondaryCtaText={t.showOverview}
-              primaryScrollTo="outcomes"
-              isProtected={isProtected}
-              overviewData={overviewDataPayload}
-            />
-          </FadeIn>
+          <Hero 
+            dict={{ ...content.hero }}
+            title={projectContentJson.hero?.title || title}
+            description={projectContentJson.hero?.subtitle || description}
+            tagline={category}
+            videoUrl={videoUrl}
+            imageUrl={imageUrl} 
+            bgColor={bgColor}
+            mockupType={mockupType || "browser"}
+            primaryCtaText={t.readCaseStudy}
+            secondaryCtaText={t.showOverview}
+            primaryScrollTo="outcomes"
+            isProtected={isProtected}
+            overviewData={overviewDataPayload}
+          />
         </Box>
 
-        {/* FEATURED TESTIMONIAL: Always visible */}
+        {/* FEATURED TESTIMONIAL: Optimized for instant visibility */}
         {localizedFeaturedTestimonial && (
           <Box bg="bg.emphasized" w="full" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-              <FadeIn>
-                <FeaturedTestimonial testimonial={localizedFeaturedTestimonial} />
-              </FadeIn>
+              <FeaturedTestimonial testimonial={localizedFeaturedTestimonial} />
             </Container>
           </Box>
         )}
@@ -472,11 +474,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Box>
         ) : (
           <>
-            {/* 🆕 FLOATING BOTTOM TOC: Perfect height alignment with the floating contact button */}
             {dynamicToc.length > 0 && (
               <Box 
                 position="fixed" 
-                bottom={{ base: "6", md: "8" }} // Matches floating contact bottom perfectly
+                bottom={{ base: "6", md: "8" }}
                 left="0"
                 right="0"
                 zIndex="100" 
@@ -488,7 +489,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <Box 
                   pointerEvents="auto" 
                   w="full" 
-                  maxW={{ base: "calc(100% - 88px)", md: "460px" }} // Safe zone on right
+                  maxW={{ base: "calc(100% - 88px)", md: "460px" }}
                 >
                   <TableOfContents tocData={dynamicToc} title={t.tocTitle} />
                 </Box>
@@ -522,7 +523,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <Box id="learnings" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
                   <FadeIn>
                     <StoryHeroBlock 
-                      // FIX: Inherit the custom bento grid title and badge if provided
                       badge={hasBentoGrid && bentoData.badge ? bentoData.badge : t.learningsBadge} 
                       title={hasBentoGrid && bentoData.title ? bentoData.title : (pmLearnings?.heading || t.learningsTitle)} 
                       description={hasBentoGrid && bentoData.description ? bentoData.description : (pmLearnings?.description || null)}
@@ -653,7 +653,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </>
         )}
 
-        {/* INTERSTITIAL NAV & FOOTER: Always visible */}
+        {/* INTERSTITIAL NAV & FOOTER */}
         <Box py={{ base: "12", md: "20" }} bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="5xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
@@ -666,7 +666,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <Footer dict={content.footer} />
         </FadeIn>
 
-        {/* SPACER: Kept small to match the newly reduced bottom blur mask */}
         <Box h={{ base: "28", md: "16" }} w="full" />
         
       </Stack>
