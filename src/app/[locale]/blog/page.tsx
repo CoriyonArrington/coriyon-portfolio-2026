@@ -6,15 +6,23 @@ import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-export const revalidate = 0 
+// OPTIMIZATION: Enable ISR caching
+export const revalidate = 3600 
 
 export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  const { data: blogData } = await supabase.from('pages').select('*').eq('slug', 'blog').single()
-  const { data: homeData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
-  const { data: videos } = await supabase.from('videos').select('*').order('sort_order', { ascending: true })
+  // OPTIMIZATION: Parallelize Data Fetching
+  const [
+    { data: blogData },
+    { data: homeData },
+    { data: videos }
+  ] = await Promise.all([
+    supabase.from('pages').select('*').eq('slug', 'blog').single(),
+    supabase.from('pages').select('*').eq('slug', 'home').single(),
+    supabase.from('videos').select('*').order('sort_order', { ascending: true })
+  ]);
 
   const blogContent = blogData?.[`content_${currentLocale}`] || blogData?.content_en || {}
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {}
@@ -39,14 +47,12 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
       
       <Stack gap="0">
         
-        {/* The BlogBlock is now the very first element on the page */}
-        <FadeIn>
-          <BlogBlock 
-            dict={{ ...homeContent.blog, ...blogContent.header }} 
-            posts={localizedVideos || []} 
-            locale={currentLocale} 
-          />
-        </FadeIn>
+        {/* OPTIMIZATION: Removed FadeIn to unblock LCP */}
+        <BlogBlock 
+          dict={{ ...homeContent.blog, ...blogContent.header }} 
+          posts={localizedVideos || []} 
+          locale={currentLocale} 
+        />
 
         <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>

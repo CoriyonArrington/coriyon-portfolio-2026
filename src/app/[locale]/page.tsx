@@ -9,16 +9,24 @@ import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-export const revalidate = 0 
+// OPTIMIZATION 3: ISR (Cache for 1 hour). 
+// Next.js will serve a blazing-fast cached page and update it in the background if data changes.
+export const revalidate = 3600 
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  const { data: pageData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
-  const { data: projects } = await supabase.from('projects').select('*').order('sort_order', { ascending: true })
-  
-  const { data: featuredTestimonials } = await supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
+  // OPTIMIZATION 2: Parallelize data fetching to eliminate the waterfall delay
+  const [
+    { data: pageData },
+    { data: projects },
+    { data: featuredTestimonials }
+  ] = await Promise.all([
+    supabase.from('pages').select('*').eq('slug', 'home').single(),
+    supabase.from('projects').select('*').order('sort_order', { ascending: true }),
+    supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
+  ]);
 
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
 
@@ -52,16 +60,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         
         <Box className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <FadeIn>
-              <HomeHero 
-                dict={content.hero}
-                title={content.hero?.title || featuredProject?.[`title_${currentLocale}`] || featuredProject?.title_en}
-                description={content.hero?.description || featuredProject?.[`description_${currentLocale}`] || featuredProject?.description_en}
-                tagline={content.hero?.tagline}
-                videoUrl={featuredProject?.featured_video_url}
-                imageUrl={featuredProject?.featured_image_url} 
-              />
-            </FadeIn>
+            {/* OPTIMIZATION 1: Removed FadeIn wrapper to ensure instant LCP painting */}
+            <HomeHero 
+              dict={content.hero}
+              title={content.hero?.title || featuredProject?.[`title_${currentLocale}`] || featuredProject?.title_en}
+              description={content.hero?.description || featuredProject?.[`description_${currentLocale}`] || featuredProject?.description_en}
+              tagline={content.hero?.tagline}
+              videoUrl={featuredProject?.featured_video_url}
+              imageUrl={featuredProject?.featured_image_url} 
+            />
           </Container>
         </Box>
 

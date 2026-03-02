@@ -1,7 +1,6 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
-// FIX: Updated to the new renamed about-page hero component
 import { Block as AboutHero } from "@/components/blocks/heroes/about-page/block"
 import { Block as ServicesBlock } from "@/components/blocks/features/feature-10/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
@@ -11,18 +10,27 @@ import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-export const revalidate = 0 
+// OPTIMIZATION: Enable ISR caching
+export const revalidate = 3600 
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  const { data: aboutData } = await supabase.from('pages').select('*').eq('slug', 'about').single()
-  const { data: homeData } = await supabase.from('pages').select('*').eq('slug', 'home').single()
-  
-  const { data: services } = await supabase.from('services').select('*').order('sort_order', { ascending: true })
-  const { data: allTestimonials } = await supabase.from('testimonials').select('*')
-  const { data: faqs } = await supabase.from('faqs').select('*').order('id', { ascending: true })
+  // OPTIMIZATION: Parallelize Data Fetching for all 5 queries
+  const [
+    { data: aboutData },
+    { data: homeData },
+    { data: services },
+    { data: allTestimonials },
+    { data: faqs }
+  ] = await Promise.all([
+    supabase.from('pages').select('*').eq('slug', 'about').single(),
+    supabase.from('pages').select('*').eq('slug', 'home').single(),
+    supabase.from('services').select('*').order('sort_order', { ascending: true }),
+    supabase.from('testimonials').select('*'),
+    supabase.from('faqs').select('*').order('id', { ascending: true })
+  ]);
 
   const aboutContent = aboutData?.[`content_${currentLocale}`] || aboutData?.content_en || {}
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {}
@@ -53,17 +61,15 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       
       <Stack gap="0">
         
-        {/* FIX: Applied padding so the rounded hero clears the nav bar perfectly */}
         <Box pt={{ base: "32", md: "40" }} pb={{ base: "8", md: "12" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <FadeIn>
-              <AboutHero 
-                dict={aboutContent.hero}
-                title={aboutContent.hero?.title}
-                description={aboutContent.hero?.description}
-                videoUrl={aboutContent.hero?.videoUrl}
-              />
-            </FadeIn>
+            {/* OPTIMIZATION: Removed FadeIn to unblock LCP */}
+            <AboutHero 
+              dict={aboutContent.hero}
+              title={aboutContent.hero?.title}
+              description={aboutContent.hero?.description}
+              videoUrl={aboutContent.hero?.videoUrl}
+            />
           </Container>
         </Box>
 
