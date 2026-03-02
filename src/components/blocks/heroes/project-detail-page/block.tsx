@@ -1,126 +1,64 @@
 'use client'
 
-import { 
-  Badge, 
-  Box, 
-  Button, 
-  Flex, 
-  Stack, 
-  chakra, 
-  Highlight,
-  Dialog,
-  Portal,
-  IconButton,
-  Heading,
-  Text,
-  Skeleton,
-  SimpleGrid
-} from '@chakra-ui/react'
-import { LuArrowDown, LuX, LuEye, LuLock } from 'react-icons/lu'
-import { HeroHeader } from '../home-page/hero-header'
+import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Dialog, SimpleGrid, Portal, IconButton, Highlight } from '@chakra-ui/react'
+import { LuChevronDown, LuEye, LuX } from 'react-icons/lu'
+import Image from 'next/image'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { useMemo } from 'react'
-import Image from 'next/image' // Swapped Chakra Image for Next Image
+import { useEffect, useMemo, useState } from 'react'
 
-const Video = chakra('video')
-
-const PhoneFrame = ({ children }: { children: React.ReactNode }) => (
-  <Box position="relative" mx="auto" width="300px" height="600px" zIndex={1}>
-    <Image
-      src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup.png"
-      alt="iPhone Mockup"
-      fill
-      style={{ objectFit: 'contain' }}
-      sizes="(max-width: 768px) 100vw, 300px"
-      priority // Ensures the frame paints quickly
-      className="z-10 pointer-events-none"
-    />
-    <Box 
-      position="absolute"
-      top="1.8%"    
-      bottom="1.8%" 
-      left="5%" 
-      right="5%"
-      borderRadius="3rem" 
-      overflow="hidden"
-      zIndex={1}
-      bg="black"
-    >
-      {children}
-    </Box>
-  </Box>
-)
-
-const getYouTubeEmbedUrl = (url: string) => {
-  if (!url) return ""
-  if (url.includes("youtube.com/embed/")) return url
-
-  let videoId = ""
-  if (url.includes("youtu.be/")) {
-    videoId = url.split("youtu.be/")[1]?.split("?")[0]
-  } else if (url.includes("youtube.com/watch")) {
-    try {
-      const urlParams = new URL(url).searchParams
-      videoId = urlParams.get("v") || ""
-    } catch (e) {
-      // Ignore parsing errors
-    }
-  }
-
-  return videoId ? `https://www.youtube.com/embed/${videoId}` : url
-}
-
-interface ProjectHeroProps {
-  dict?: any
-  title?: string
-  description?: string
-  tagline?: string 
-  videoUrl?: string
-  imageUrl?: string
-  primaryCtaText?: string
-  secondaryCtaText?: string
-  primaryScrollTo?: string
-  bgColor?: string
-  mockupType?: string 
-  isProtected?: boolean
-  overviewData?: {
-    role?: string;
-    duration?: string;
-    teamRoles?: string;
-    deliverables?: string;
-    summary?: string;
-    year?: string;
-    industries?: string;
-    labels?: {
-      role?: string;
-      duration?: string;
-      team?: string;
-      deliverables?: string;
-      year?: string;
-      industry?: string;
-      overview?: string;
-    }
-  }
+interface HeroProps {
+  dict?: any;
+  title?: string;
+  description?: string;
+  tagline?: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+  mockupType?: string | null;
+  bgColor?: string | null; 
+  buttonColor?: string; 
+  primaryCtaText?: string; 
+  secondaryCtaText?: string; 
+  primaryScrollTo?: string;
+  isProtected?: boolean;
+  overviewData?: any;
+  interactiveElement?: React.ReactNode; 
+  
+  // Case Study Overview Data
+  role?: string | null;
+  duration?: string | null;
+  year?: string | number | null;
+  teamRoles?: string | null;
+  deliverables?: string | null;
+  summary?: string | null;
+  industries?: string | null;
+  platforms?: string | null;
 }
 
 export const Block = ({ 
-  dict,
-  title,
-  description,
-  tagline = "Case Study", 
-  videoUrl, 
-  imageUrl,
-  primaryCtaText,
-  secondaryCtaText,
-  primaryScrollTo = "outcomes",
-  bgColor,
-  mockupType, 
-  isProtected,
-  overviewData
-}: ProjectHeroProps) => {
-  const { playHover, playClick } = useUiSounds()
+  dict, title, description, tagline, imageUrl, videoUrl, mockupType, bgColor,
+  buttonColor, primaryCtaText, secondaryCtaText, primaryScrollTo, isProtected, overviewData, interactiveElement,
+  role, duration, year, teamRoles, deliverables, summary, industries, platforms
+}: HeroProps) => {
+  const { playClick, playHover } = useUiSounds()
+  const [mounted, setMounted] = useState(false) 
 
-  const rawTitle = title || dict?.title || ""
+  useEffect(() => {
+    setMounted(true) 
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [])
+
+  const handleScroll = () => {
+    playClick()
+    const element = document.getElementById(primaryScrollTo || 'projects') || document.getElementById('playground-projects')
+    if (element) {
+      const offset = 120
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.scrollY - offset
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
+    }
+  }
+
+  const rawTitle = title || dict?.title || 'Project title'
   const { displayTitle, highlightQueries } = useMemo(() => {
     const matches = rawTitle.match(/\*(.*?)\*/g)
     const queries = matches ? matches.map((m: string) => m.replace(/\*/g, '')) : []
@@ -128,297 +66,295 @@ export const Block = ({
     return { displayTitle: cleanText, highlightQueries: queries }
   }, [rawTitle])
 
-  const scrollToPrimary = () => {
-    playClick()
-    const targetId = isProtected ? 'unlock-section' : primaryScrollTo
-    const element = document.getElementById(targetId)
-    if (element) {
-      const offset = 120 
-      const elementPosition = element.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.scrollY - offset
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
-    }
-  }
+  const finalTagline = tagline || dict?.tagline;
+  const finalDescription = description || dict?.description || 'Project description goes here.';
+  const finalImageUrl = imageUrl || dict?.imageUrl;
+  const finalVideoUrl = videoUrl || dict?.videoUrl;
+  const finalMockupType = mockupType || dict?.mockupType;
+  
+  const displayRole = role || overviewData?.role || dict?.stats?.role;
+  const displayDuration = duration || overviewData?.duration || dict?.stats?.duration;
+  const displayYear = year || overviewData?.year || dict?.stats?.year;
+  const displayTeamRoles = teamRoles || overviewData?.teamRoles || dict?.stats?.teamRoles;
+  const displayDeliverables = deliverables || overviewData?.deliverables || dict?.stats?.deliverables;
+  const displaySummary = summary || overviewData?.summary || dict?.stats?.summary;
+  const displayIndustries = industries || overviewData?.industries || dict?.stats?.industries;
+  const displayPlatforms = platforms || overviewData?.platforms || dict?.stats?.platforms;
 
-  const isPhoneMockup = mockupType?.toLowerCase() === 'iphone' || mockupType?.toLowerCase() === 'phone';
+  const normalizedMockupType = finalMockupType?.toString().toLowerCase().trim()
+  const isTablet = normalizedMockupType === 'tablet' || normalizedMockupType === 'ipad'
+  const isPhone = normalizedMockupType === 'phone' || normalizedMockupType === 'mobile' || normalizedMockupType === 'iphone'
+  const isPadded = normalizedMockupType === 'padded'
 
-  const renderMediaContent = (isPhone: boolean) => {
-    const isYouTube = videoUrl?.includes('youtube.com') || videoUrl?.includes('youtu.be')
-    const finalVideoUrl = isYouTube ? getYouTubeEmbedUrl(videoUrl!) : videoUrl
-
-    // 1. Phone Render
-    if (isPhone) {
-      return (
-        <Box w="full" maxW="300px" mx="auto">
-          <PhoneFrame>
-            <Box w="full" h="full" position="absolute" inset="0" bg="black">
-              {isYouTube ? (
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={finalVideoUrl}
-                  title="Video"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ border: 'none', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                />
-              ) : videoUrl ? (
-                <Video 
-                   src={videoUrl} 
-                   poster={imageUrl} 
-                   autoPlay muted loop controls playsInline 
-                   objectFit="cover" width="100%" height="100%" position="absolute" inset="0" 
-                 />
-              ) : (
-                <Box position="relative" width="100%" height="100%">
-                  <Image 
-                    src={imageUrl || ""} 
-                    alt="Project Preview" 
-                    fill
-                    style={{ objectFit: 'contain' }}
-                    sizes="(max-width: 768px) 100vw, 300px"
-                    priority
-                  />
-                </Box>
-              )}
-            </Box>
-          </PhoneFrame>
-        </Box>
-      )
-    }
-
-    // 2. Pure Browser Render
-    if (isYouTube) {
-      return (
-        <Box w="full" position="relative" aspectRatio={16/9}>
-          <iframe
-            width="100%"
-            height="100%"
-            src={finalVideoUrl}
-            title="Video"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            style={{ border: 'none', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+  const MediaContent = () => (
+    <>
+      {finalImageUrl && !finalVideoUrl && (
+        <Box position="absolute" inset="0" zIndex="0">
+          <Image
+            src={finalImageUrl}
+            alt={rawTitle || "Project media"}
+            fill
+            priority
+            style={{ objectFit: isPadded ? 'contain' : 'cover' }}
+            sizes="(max-width: 768px) 100vw, 80vw"
           />
         </Box>
-      )
-    }
+      )}
 
-    if (videoUrl) {
-      return (
-        <Video 
-          src={videoUrl} 
-          poster={imageUrl} 
-          autoPlay 
-          muted 
-          loop 
+      {finalVideoUrl && (
+        <video
+          src={finalVideoUrl}
+          autoPlay
+          loop
+          muted
           controls
-          playsInline 
-          w="full" 
-          h="auto"
+          playsInline
+          poster={finalImageUrl || undefined}
+          style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            width: '100%', 
+            height: '100%', 
+            objectFit: isPadded ? 'contain' : 'cover', 
+            zIndex: 1 
+          }}
         />
-      )
-    }
-
-    return (
-      <Box position="relative" w="full" aspectRatio={16/9}>
-        <Image 
-          src={imageUrl || ""} 
-          alt="Project Preview" 
-          fill
-          style={{ objectFit: 'contain' }}
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          priority
-        />
-      </Box>
-    )
-  }
+      )}
+    </>
+  )
 
   return (
-    <Box position="relative" w="full" overflow="hidden">
-      <Stack 
-        direction={{ base: 'column', lg: 'row' }} 
-        w="full"
-        minH={{ base: 'auto', lg: '100vh' }} 
-        alignItems="stretch" 
-        gap="0" 
-      >
+    // FIX: Removed inline bg="transparent" so the pattern-dots class can render its background correctly
+    <VStack className="pattern-dots" position="relative" gap={{ base: '8', md: '12' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={{ base: '8', md: '12' }}>
+      <Stack gap="6" align="center" px={{ base: '4', md: '8' }}>
+        {finalTagline && (
+          <Badge size="lg" variant="subtle" colorPalette="green" alignSelf="center" rounded="full" px="4" py="1">
+            {finalTagline}
+          </Badge>
+        )}
         
-        {/* LEFT COLUMN: Text and CTA */}
-        <Flex
-          flex="1"
-          align="center"
-          justify={{ base: "center", lg: "flex-end" }}
-          pt={{ base: '32', md: '40' }} 
-          pb={{ base: '12', lg: '32' }} 
-          zIndex="1"
+        <Heading
+          as="h1"
+          textStyle={{ base: '5xl', md: '6xl', lg: '7xl' }}
+          maxW="4xl"
+          mx="auto"
+          lineHeight={{ base: '1.2', md: '1.1' }}
+          fontWeight="bold"
+          letterSpacing="tight"
         >
-          <Box w="full" maxW={{ lg: "calc(var(--chakra-sizes-7xl) / 2)" }} px={{ base: 4, md: 8 }} pr={{ lg: 12 }}>
-            <HeroHeader
-              tagline={
-                <Box width="fit-content" mx={{ base: 'auto', lg: '0' }}>
-                  <Badge 
-                    size="lg" 
-                    colorPalette="gray" 
-                    variant="subtle" 
-                    px="3" 
-                    py="1" 
-                    borderRadius="full"
-                    cursor="default"
-                  >
-                    {tagline}
-                  </Badge>
-                </Box>
-              }
-              headline={
-                <Highlight 
-                  query={highlightQueries} 
-                  styles={{ color: "green.600" }}
-                >
-                  {displayTitle}
-                </Highlight>
-              }
-              description={description || dict?.description}
-              alignItems={{ base: "center", lg: "flex-start" }}
-              textAlign={{ base: "center", lg: "start" }}
-            >
-              <Stack gap="6" mt="2" alignItems={{ base: "center", lg: "flex-start" }} w="full">
-                
-                <Stack direction={{ base: 'column', md: 'row' }} gap="4" w={{ base: "full", md: "auto" }}>
-                  <Button 
-                    size="xl" 
-                    h={{ base: 14, md: 16 }}
-                    px={{ base: 6, md: 8 }}
-                    fontSize="lg"
-                    onClick={scrollToPrimary} 
-                    onMouseEnter={playHover} 
-                    w={{ base: "full", md: "auto" }}
-                    bg={bgColor || "bg.emphasized"}
-                    color={bgColor ? "white" : "fg.default"}
-                    _hover={bgColor ? { opacity: 0.9, transform: "translateY(-1px)", shadow: "md" } : { bg: "bg.muted" }}
-                  >
-                    {isProtected ? "Unlock case study" : (primaryCtaText || "Read case study")} 
-                    {isProtected ? <LuLock /> : <LuArrowDown />} 
-                  </Button>
-                  
-                  <Dialog.Root placement="center" motionPreset="slide-in-bottom">
-                    <Dialog.Trigger asChild>
-                      <Button 
-                        variant="solid" 
-                        colorPalette="gray"
-                        size="xl" 
-                        h={{ base: 14, md: 16 }}
-                        px={{ base: 6, md: 8 }}
-                        fontSize="lg"
-                        onClick={playClick}
-                        onMouseEnter={playHover}
-                        w={{ base: "full", md: "auto" }}
-                      >
-                        {secondaryCtaText || "Show overview"} <LuEye />
-                      </Button>
-                    </Dialog.Trigger>
-                    
-                    <Portal>
-                      <Dialog.Backdrop bg="blackAlpha.800" backdropFilter="blur(4px)" />
-                      <Dialog.Positioner>
-                        <Dialog.Content bg="bg.panel" shadow="2xl" maxW="xl" w="full" mx="4" rounded="3xl" p={{ base: 6, md: 8 }}>
-                          <Dialog.CloseTrigger asChild position="absolute" top="4" right="4">
-                            <IconButton aria-label="Close" variant="ghost" rounded="full" onClick={playClick}>
-                              <LuX />
-                            </IconButton>
-                          </Dialog.CloseTrigger>
-                          <Stack gap="8" pt="2">
-                            <Heading size="2xl" color="fg.default">{overviewData?.labels?.overview || "Project Overview"}</Heading>
-                            {overviewData?.summary && (
-                              <Text color="fg.muted" fontSize="lg" lineHeight="relaxed">
-                                {overviewData.summary}
-                              </Text>
-                            )}
-                            <SimpleGrid columns={{ base: 1, md: 2 }} gap="6">
-                              {overviewData?.role && (
-                                <Box>
-                                  <Text fontWeight="semibold" color="fg.default" mb="1">{overviewData?.labels?.role || "Role"}</Text>
-                                  <Text color="fg.muted" fontSize="sm">{overviewData.role}</Text>
-                                </Box>
-                              )}
-                              {overviewData?.duration && (
-                                <Box>
-                                  <Text fontWeight="semibold" color="fg.default" mb="1">{overviewData?.labels?.duration || "Duration"}</Text>
-                                  <Text color="fg.muted" fontSize="sm">{overviewData.duration}</Text>
-                                </Box>
-                              )}
-                              {overviewData?.teamRoles && (
-                                <Box>
-                                  <Text fontWeight="semibold" color="fg.default" mb="1">{overviewData?.labels?.team || "Team"}</Text>
-                                  <Text color="fg.muted" fontSize="sm">{overviewData.teamRoles}</Text>
-                                </Box>
-                              )}
-                              {overviewData?.deliverables && (
-                                <Box>
-                                  <Text fontWeight="semibold" color="fg.default" mb="1">{overviewData?.labels?.deliverables || "Deliverables"}</Text>
-                                  <Text color="fg.muted" fontSize="sm">{overviewData.deliverables}</Text>
-                                </Box>
-                              )}
-                              {overviewData?.year && (
-                                <Box>
-                                  <Text fontWeight="semibold" color="fg.default" mb="1">{overviewData?.labels?.year || "Year"}</Text>
-                                  <Text color="fg.muted" fontSize="sm">{overviewData.year}</Text>
-                                </Box>
-                              )}
-                              {overviewData?.industries && (
-                                <Box>
-                                  <Text fontWeight="semibold" color="fg.default" mb="1">{overviewData?.labels?.industry || "Industry"}</Text>
-                                  <Text color="fg.muted" fontSize="sm">{overviewData.industries}</Text>
-                                </Box>
-                              )}
-                            </SimpleGrid>
-                          </Stack>
-                        </Dialog.Content>
-                      </Dialog.Positioner>
-                    </Portal>
-                  </Dialog.Root>
-                </Stack>
-              </Stack>
-            </HeroHeader>
-          </Box>
-        </Flex>
+          <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
+            {displayTitle}
+          </Highlight>
+        </Heading>
         
-        {/* RIGHT COLUMN: Media Block */}
-        <Flex 
-          flex="1"
-          align="center" 
-          justify={isPhoneMockup ? { base: "center", lg: "flex-start" } : "center"} 
-          position="relative" 
-          py={{ base: 12, lg: 16 }} 
-          px={{ base: 4, md: 8, lg: isPhoneMockup ? 12 : 8 }} 
-          zIndex="0"
-        >
-          <Box 
-            position="absolute"
-            top="0"
-            bottom="0"
-            left="0"
-            right="0"
-            bg={bgColor || "bg.muted"}
-            zIndex="-1"
-          />
+        <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} maxW="2xl" mx="auto">
+          {finalDescription}
+        </Text>
 
-          <Box 
-            w="full" 
-            maxW={isPhoneMockup ? { lg: "calc(var(--chakra-sizes-7xl) / 2)" } : "100%"}
-            mx="auto"
+        <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="2" w={{ base: 'full', md: 'auto' }}>
+          <Button 
+            size="xl" 
+            h={{ base: 14, md: 16 }}
+            px={{ base: 6, md: 8 }}
+            fontSize="lg"
+            bg={buttonColor || "green.600"} 
+            color="white"
+            _hover={{ opacity: 0.85 }} 
+            onClick={handleScroll} 
+            onMouseEnter={playHover}
+            w={{ base: 'full', md: 'auto' }}
           >
-            {videoUrl || imageUrl ? (
-               renderMediaContent(isPhoneMockup)
-            ) : (
-              <Skeleton w="full" minH={{ base: '96', lg: '3xl' }} height="100%" borderRadius="3xl" />
-            )}
-          </Box>
-        </Flex>
+            {primaryCtaText || dict?.exploreWork || "Read case study"} <LuChevronDown />
+          </Button>
 
+          {mounted ? (
+            <Dialog.Root placement="center" motionPreset="slide-in-bottom">
+              <Dialog.Trigger asChild>
+                <Button 
+                  size="xl" 
+                  h={{ base: 14, md: 16 }}
+                  px={{ base: 6, md: 8 }}
+                  fontSize="lg"
+                  colorPalette="gray" 
+                  variant="solid" 
+                  onClick={playClick} 
+                  onMouseEnter={playHover}
+                  w={{ base: 'full', md: 'auto' }}
+                >
+                  {secondaryCtaText || dict?.showOverview || "Show overview"} <LuEye />
+                </Button>
+              </Dialog.Trigger>
+              
+              <Portal>
+                <Dialog.Backdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
+                <Dialog.Positioner>
+                  <Dialog.Content p={{ base: "6", md: "8" }} rounded="2xl" shadow="2xl" bg="bg.panel" color="fg.default" maxW="2xl" w="full" mx="4">
+                    
+                    <Dialog.Header pb="6" display="flex" justifyContent="space-between" alignItems="center">
+                      <Dialog.Title textStyle="2xl" fontWeight="bold">Project overview</Dialog.Title>
+                      <Dialog.CloseTrigger asChild position="static" inset="auto">
+                        <IconButton 
+                          aria-label="Close dialog"
+                          variant="ghost" 
+                          rounded="full" 
+                          size="sm" 
+                          onClick={playClick}
+                        >
+                          <LuX />
+                        </IconButton>
+                      </Dialog.CloseTrigger>
+                    </Dialog.Header>
+                    
+                    <Dialog.Body>
+                      <Stack gap="8">
+                        {displaySummary && (
+                          <Box>
+                            <Text fontWeight="semibold" color="fg.muted" mb="2" textTransform="uppercase" fontSize="xs" letterSpacing="widest">Summary</Text>
+                            <Text fontSize="lg" lineHeight="relaxed">{displaySummary}</Text>
+                          </Box>
+                        )}
+                        
+                        <SimpleGrid columns={{ base: 1, md: 2 }} gap="8">
+                          {displayRole && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">My role</Text>
+                              <Text fontWeight="medium">{displayRole}</Text>
+                            </Box>
+                          )}
+                          {displayDuration && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Duration</Text>
+                              <Text fontWeight="medium">{displayDuration}</Text>
+                            </Box>
+                          )}
+                          {displayYear && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Year</Text>
+                              <Text fontWeight="medium">{displayYear}</Text>
+                            </Box>
+                          )}
+                          {displayIndustries && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Industries</Text>
+                              <Text fontWeight="medium">{displayIndustries}</Text>
+                            </Box>
+                          )}
+                          {displayPlatforms && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Platforms</Text>
+                              <Text fontWeight="medium">{displayPlatforms}</Text>
+                            </Box>
+                          )}
+                          {displayTeamRoles && (
+                            <Box>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team roles</Text>
+                              <Text fontWeight="medium">{displayTeamRoles}</Text>
+                            </Box>
+                          )}
+                          {displayDeliverables && (
+                            <Box gridColumn={{ md: "span 2" }}>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Deliverables</Text>
+                              <Text fontWeight="medium">{displayDeliverables}</Text>
+                            </Box>
+                          )}
+                        </SimpleGrid>
+                      </Stack>
+                    </Dialog.Body>
+                  </Dialog.Content>
+                </Dialog.Positioner>
+              </Portal>
+            </Dialog.Root>
+          ) : (
+            <Button 
+              size="xl" 
+              h={{ base: 14, md: 16 }}
+              px={{ base: 6, md: 8 }}
+              fontSize="lg"
+              colorPalette="gray" 
+              variant="solid" 
+              w={{ base: 'full', md: 'auto' }}
+            >
+              {secondaryCtaText || dict?.showOverview || "Show overview"} <LuEye />
+            </Button>
+          )}
+
+        </Stack>
       </Stack>
-    </Box>
+
+      {isPhone ? (
+        <Center w="full" mt={{ base: '8', md: '12' }} px={{ base: '4', md: '8' }}>
+          <Box position="relative" w="full" maxW="300px" aspectRatio="422/862">
+            <Box position="absolute" inset="2.2% 5.2% 2.2% 5.2%" borderRadius="3xl" overflow="hidden" bg="black" zIndex="0">
+              {interactiveElement ? (
+                <Box w="full" h="full">{interactiveElement}</Box>
+              ) : (
+                <MediaContent />
+              )}
+            </Box>
+            <Box position="relative" h="full" w="full" zIndex="1" pointerEvents="none">
+              <Image
+                src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup-optimized.png"
+                alt={`${normalizedMockupType} mockup`}
+                fill
+                priority
+                unoptimized={true}
+                style={{ objectFit: 'contain', pointerEvents: 'none' }}
+              />
+            </Box>
+          </Box>
+        </Center>
+      ) : (
+        <Box 
+          maxW="5xl" 
+          mx="auto" 
+          w="full" 
+          mt={{ base: '8', md: '12' }} 
+          position="relative" 
+          borderRadius="l3" 
+          overflow="hidden" 
+          borderWidth="1px" 
+          borderColor="border.subtle" 
+          bg={bgColor || "transparent"} 
+          shadow="md"
+          aspectRatio={{ base: "4/3", md: "16/9" }}
+        >
+          {interactiveElement ? (
+            <Box position="absolute" inset="0" zIndex="0" w="full" h="full" bg="transparent">
+              {interactiveElement}
+            </Box>
+          ) : isTablet ? (
+            <Center position="absolute" inset="0" p={{ base: '8', md: '16' }} zIndex="0">
+              <Box position="relative" h="full" w="full" display="flex" justifyContent="center" alignItems="center">
+                <Box position="relative" h="full" aspectRatio="1106/814">
+                  <Box position="absolute" inset="4.8% 4.2%" borderRadius="sm" overflow="hidden" bg="black" zIndex="0">
+                    <MediaContent />
+                  </Box>
+                  <Box position="relative" h="full" w="auto" aspectRatio="1106/814" zIndex="1">
+                    <Image
+                      src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/ipad-mockup-optimized.png"
+                      alt={`${normalizedMockupType} mockup`}
+                      fill
+                      priority
+                      unoptimized={true}
+                      style={{ objectFit: 'contain', pointerEvents: 'none' }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            </Center>
+          ) : isPadded ? (
+            <Box position="absolute" inset="0" p={{ base: '8', md: '12', lg: '16' }}>
+               <Box position="relative" w="full" h="full">
+                 <MediaContent />
+               </Box>
+            </Box>
+          ) : (
+            <Box position="absolute" inset="0" zIndex="0">
+              <MediaContent />
+            </Box>
+          )}
+        </Box>
+      )}
+    </VStack>
   )
 }

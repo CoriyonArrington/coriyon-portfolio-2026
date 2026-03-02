@@ -456,7 +456,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <Box 
             id="unlock-section" 
             py={{ base: "20", md: "32" }} 
-            bgColor="bg.emphasized" 
             className="pattern-dots"
           >
             <Container maxW="2xl">
