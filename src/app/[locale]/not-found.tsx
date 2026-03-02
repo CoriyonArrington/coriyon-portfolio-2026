@@ -1,21 +1,20 @@
-import { Flex, Heading, Stack, Text, Button } from "@chakra-ui/react";
+import { Flex, Heading, Stack, Text, Button, Box } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { supabase } from "@/lib/supabase";
 import { headers, cookies } from "next/headers";
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block";
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block";
+import { ErrorLottie } from "@/components/ui/error-lottie"; // Imported our new wrapper
 
 export default async function NotFound() {
   const headersList = await headers();
   const cookieStore = await cookies();
   
-  // 1. Advanced Locale Detection: Check middleware, cookies, referer, and browser
   const nextIntlHeader = headersList.get('x-next-intl-locale');
   const localeCookie = cookieStore.get('NEXT_LOCALE')?.value;
   const referer = headersList.get('referer') || '';
   const acceptLanguage = headersList.get('accept-language') || '';
   
-  // FIX: Explicitly type currentLocale to guarantee it matches our translation keys
   let currentLocale: 'en' | 'es' = 'en';
   if (nextIntlHeader) {
     currentLocale = nextIntlHeader === 'es' ? 'es' : 'en';
@@ -25,11 +24,9 @@ export default async function NotFound() {
     currentLocale = 'es';
   }
 
-  // 2. Fetch the corresponding localized content for Navbar & Footer
   const { data: pageData } = await supabase.from('pages').select('*').eq('slug', 'home').maybeSingle();
   const content = currentLocale === 'es' ? (pageData?.content_es || {}) : (pageData?.content_en || {});
 
-  // 3. Define the translations
   const t = {
     en: {
       heading: "Looks like you've wandered off the path 😅",
@@ -63,19 +60,15 @@ export default async function NotFound() {
           textAlign="center"
           align="center"
         >
+          <Box position="relative" w="full" maxW="320px" h="320px" mx="auto">
+            <ErrorLottie />
+          </Box>
+
           <Stack gap={6}>
-            <Heading 
-              fontSize={{ base: "3xl", md: "4xl" }} 
-              color="fg.default"
-              lineHeight="1.4" 
-            >
+            <Heading fontSize={{ base: "3xl", md: "4xl" }} color="fg.default" lineHeight="1.4">
               {t.heading}
             </Heading>
-            <Text 
-              fontSize="lg" 
-              color="fg.muted"
-              lineHeight="1.6"
-            >
+            <Text fontSize="lg" color="fg.muted" lineHeight="1.6">
               {t.description}
             </Text>
           </Stack>
