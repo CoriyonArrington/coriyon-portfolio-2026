@@ -1,20 +1,23 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  reactCompiler: true,
-  experimental: {
-    optimizePackageImports: ["@chakra-ui/react"],
-  },
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+        port: '',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: 'kkegducuyzwdmxlzhxcm.supabase.co',
         port: '',
-        pathname: '/storage/v1/object/public/**',
+        pathname: '/**',
       },
     ],
+  },
+  experimental: {
+    optimizePackageImports: ["@chakra-ui/react", "react-icons"],
   },
 };
 
