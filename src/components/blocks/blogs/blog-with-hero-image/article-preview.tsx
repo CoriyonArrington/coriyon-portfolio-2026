@@ -1,4 +1,4 @@
-'use client' // Added because we now need click state
+'use client'
 
 import { AspectRatio, Avatar, Box, Heading, HStack, Stack, Text, IconButton } from '@chakra-ui/react'
 import { LuPlay } from 'react-icons/lu'
@@ -14,7 +14,7 @@ export const ArticlePreview = (props: Props) => {
   const { post, hero } = props
   const [isPlaying, setIsPlaying] = useState(false)
   
-  // Automatically grab the high-res YouTube thumbnail
+  // Use hqdefault as a fallback if maxresdefault isn't available for older videos
   const thumbnailUrl = `https://img.youtube.com/vi/${post.youtubeId}/maxresdefault.jpg`
   
   return (
@@ -30,24 +30,30 @@ export const ArticlePreview = (props: Props) => {
         position="relative"
       >
         {isPlaying ? (
-          // The heavy iframe only mounts AFTER the user clicks!
           <iframe
             src={`https://www.youtube.com/embed/${post.youtubeId}?rel=0&autoplay=1`}
             title={post.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            style={{ width: '100%', height: '100%', border: 'none' }}
+            style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', inset: 0 }}
           />
         ) : (
-          // The lightweight Facade
-          <Box position="relative" w="full" h="full" cursor="pointer" onClick={() => setIsPlaying(true)}>
+          <Box 
+            position="relative" 
+            w="full" 
+            h="full" 
+            cursor="pointer" 
+            onClick={() => setIsPlaying(true)}
+            role="button"
+            aria-label={`Play video: ${post.title}`}
+          >
             <NextImage 
               src={thumbnailUrl}
               alt={post.title}
               fill
               style={{ objectFit: 'cover' }}
               sizes={hero ? "(max-width: 1024px) 100vw, 80vw" : "(max-width: 768px) 100vw, 33vw"}
-              priority={hero} // Only prioritize the featured image!
+              priority={hero}
             />
             {/* Play Button Overlay */}
             <Box 
@@ -66,7 +72,7 @@ export const ArticlePreview = (props: Props) => {
                 rounded="full" 
                 colorPalette="green" 
                 variant="solid"
-                pointerEvents="none" // Lets the parent box handle the click
+                pointerEvents="none"
               >
                 <LuPlay fill="currentColor" size="24" />
               </IconButton>
@@ -91,7 +97,6 @@ export const ArticlePreview = (props: Props) => {
       
       {post.author && (
         <HStack gap="3" mt="2">
-          {/* Using Avatar.Root here is totally fine for tiny icons */}
           <Avatar.Root size="sm">
             <Avatar.Fallback />
             <Avatar.Image src={post.author.avatarUrl} />
