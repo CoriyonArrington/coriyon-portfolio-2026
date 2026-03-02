@@ -116,28 +116,41 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
   return (
     <Flex direction="column" h="full" bg="transparent">
       
-      <Box flex="1" overflowY="auto" ref={scrollRef} className="pattern-dots" px="4" display="flex" flexDirection="column">
-        <Container maxW="4xl" flex="1" display="flex" flexDirection="column" pt={{ base: "24", md: "12" }} pb="8">
+      <Box flex="1" overflowY="auto" ref={scrollRef} px="4" display="flex" flexDirection="column">
+        <Container maxW="4xl" flex="1" display="flex" flexDirection="column" pt={{ base: "8", md: "8" }} pb="4">
           
           {messages.length === 0 ? (
-            <Stack gap="10" my="auto">
-              <Heading size={{ base: "3xl", md: "4xl" }} fontWeight="bold" letterSpacing="tight" textAlign="center">
+            <Stack gap="8" my="auto" w="full">
+              {/* FIX: Left aligned, smaller font sizes, concise text, and green highlighted name */}
+              <Heading size={{ base: "2xl", md: "3xl" }} fontWeight="bold" letterSpacing="tight" textAlign="left" lineHeight="1.3">
                 <Span color="fg.default">
-                  {dict?.greeting || (locale === 'es' ? 'Hola, soy Coriyon AI' : 'Hello, I am Coriyon AI')}
+                  {locale === 'es' ? "Hola, soy la " : "Hi, I'm "}
+                  <Span color="green.600">
+                    {locale === 'es' ? "IA de Coriyon." : "Coriyon's AI."}
+                  </Span>
                 </Span> 
                 <br />
-                <Span color="fg.muted">
-                  {dict?.subGreeting || (locale === 'es' ? '¿Cómo puedo ayudarte hoy?' : 'How can I help you today?')}
+                <Span color="fg.muted" fontWeight="medium" fontSize={{ base: "xl", md: "2xl" }}>
+                  {locale === 'es' ? "¿Cómo puedo ayudarte?" : "How can I help you?"}
                 </Span>
               </Heading>
 
-              <SimpleGrid columns={{ base: 1, sm: 2 }} gap="4" mt="4">
+              <SimpleGrid columns={{ base: 1, sm: 2 }} gap="4" mt="2" w="full">
                 {prompts.map((prompt: any, index: number) => (
                   <PromptButton 
                     key={index} 
                     icon={prompt.icon} 
                     onClick={() => handlePromptClick(prompt.text)}
                     onMouseEnter={() => playHover()}
+                    // FIX: Allows text to wrap naturally without clipping
+                    h="auto"
+                    minH="4rem"
+                    py="4"
+                    px="5"
+                    whiteSpace="normal"
+                    textAlign="left"
+                    justifyContent="flex-start"
+                    alignItems="flex-start"
                   >
                     {prompt.text}
                   </PromptButton>
@@ -186,8 +199,7 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
         </Container>
       </Box>
 
-      {/* Increased pb massively to push everything up, creating physical height */}
-      <Box flex="0" bg="bg.panel" borderTopWidth="1px" borderColor="border.subtle" pt="6" pb={{ base: "28", md: "12" }} zIndex="10">
+      <Box flex="0" bg="bg.panel" borderTopWidth="1px" borderColor="border.subtle" pt="4" pb={{ base: "6", md: "6" }} zIndex="10">
         <Container maxW="4xl">
           <form onSubmit={handleSend}>
             <Flex 
@@ -237,8 +249,7 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
               </HStack>
             </Flex>
           </form>
-          {/* Maintained a clean margin above the disclaimer text */}
-          <Center mt="4">
+          <Center mt="3">
             <Text fontSize="xs" color="fg.subtle">
               {locale === 'es' ? "Conectado a Gemini 2.5 Flash. La IA de Coriyon puede cometer errores." : "Connected to Gemini 2.5 Flash. Coriyon AI can make mistakes."}
             </Text>
