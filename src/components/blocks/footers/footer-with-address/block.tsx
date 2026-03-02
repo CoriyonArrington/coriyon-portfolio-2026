@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Box, Container, HStack, Stack, Text, IconButton, Link as ChakraLink, Avatar, SimpleGrid, Separator } from '@chakra-ui/react'
+import { Box, Container, HStack, Stack, Text, IconButton, Link as ChakraLink, Avatar, SimpleGrid, Separator, Skeleton } from '@chakra-ui/react'
 import { LuLinkedin, LuGithub, LuYoutube, LuCopy, LuCheck, LuDownload } from 'react-icons/lu'
 import { LanguageSwitcher } from '@/components/blocks/marketing-navbars/navbar-island/language-switcher'
 import { ColorModeButton } from '@/components/ui/color-mode'
@@ -18,26 +18,30 @@ interface FooterProps {
 }
 
 export const Block = ({ dict }: FooterProps) => {
-  const currentYear = new Date().getFullYear();
   const { playHover, playWhoosh, playClick, playSuccess } = useUiSounds()
   const [hasCopied, setHasCopied] = useState(false)
   const pathname = usePathname() || ''
   
   const [pagesList, setPagesList] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true) 
+  const [year, setYear] = useState<number | null>(null) 
 
   const emailAddress = "coriyonarrington@gmail.com"
 
   useEffect(() => {
+    setYear(new Date().getFullYear())
+
     const fetchPages = async () => {
       const { data } = await supabase
         .from('pages')
         .select('id, slug, title, nav_title, sort_order, page_type, status')
         .eq('status', 'PUBLISHED')
-        .order('sort_order', { ascending: true }) // Initial DB sort
+        .order('sort_order', { ascending: true }) 
       
       if (data) {
         setPagesList(data)
       }
+      setIsLoading(false) 
     }
     fetchPages()
   }, [])
@@ -45,12 +49,10 @@ export const Block = ({ dict }: FooterProps) => {
   const mainMenuPages = pagesList.filter(p => p.page_type === 'MAIN_MENU' || p.page_type === 'STANDARD')
   const explorePages = pagesList.filter(p => p.page_type === 'EXPLORE')
   
-  // FIX: Group pages sequentially by category to prevent "Playground" from jumping ahead of "Work"
   const mainMenuNav = mainMenuPages.filter(p => !p.slug.includes('#'))
   const exploreNav = explorePages.filter(p => !p.slug.includes('#'))
   const otherNav = pagesList.filter(p => !['MAIN_MENU', 'STANDARD', 'EXPLORE'].includes(p.page_type) && !p.slug.includes('#'))
   
-  // Final linear array: Main Menu -> Explore -> Everything Else
   const navPages = [...mainMenuNav, ...exploreNav, ...otherNav]
 
   const handleCopyEmail = (e: React.MouseEvent) => {
@@ -167,10 +169,18 @@ export const Block = ({ dict }: FooterProps) => {
 
   return (
     <>
-      {!isProjectDetail && (navPrev || navNext) && (
+      {!isProjectDetail && (
         <Box py={{ base: "12", md: "20" }} bg="bg.canvas">
           <Container maxW="5xl" px={{ base: "4", md: "8" }}>
-             <PageNav prev={navPrev} next={navNext} dict={navDict} />
+             {isLoading ? (
+               // FIX: Removed startColor and endColor to satisfy Chakra UI v3 types
+               <SimpleGrid columns={{ base: 1, md: 2 }} gap="4" w="full">
+                 <Skeleton h={{ base: "116px", md: "144px" }} borderRadius="2xl" />
+                 <Skeleton h={{ base: "116px", md: "144px" }} borderRadius="2xl" />
+               </SimpleGrid>
+             ) : (navPrev || navNext) ? (
+               <PageNav prev={navPrev} next={navNext} dict={navDict} />
+             ) : null}
           </Container>
         </Box>
       )}
@@ -254,34 +264,49 @@ export const Block = ({ dict }: FooterProps) => {
               <Stack gap="4" minW={{ md: '40' }}>
                 <Text fontWeight="medium" color="fg">{dict?.mainMenu || "Main Menu"}</Text>
                 <Stack gap="3" alignItems="start">
-                  {mainMenuPages.map((page) => {
-                    const href = getHref(page.slug);
-                    const dictKey = page.slug.includes('#') ? page.slug.split('#')[1] : page.slug;
-                    const label = dict?.[`${dictKey}Link`] || page.nav_title || page.title;
-                    
-                    return (
-                      <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
-                        <NextLink href={href}>{label}</NextLink>
-                      </ChakraLink>
-                    )
-                  })}
+                  {isLoading ? (
+                    <>
+                      <Skeleton h="5" w="20" />
+                      <Skeleton h="5" w="24" />
+                      <Skeleton h="5" w="16" />
+                    </>
+                  ) : (
+                    mainMenuPages.map((page) => {
+                      const href = getHref(page.slug);
+                      const dictKey = page.slug.includes('#') ? page.slug.split('#')[1] : page.slug;
+                      const label = dict?.[`${dictKey}Link`] || page.nav_title || page.title;
+                      
+                      return (
+                        <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
+                          <NextLink href={href}>{label}</NextLink>
+                        </ChakraLink>
+                      )
+                    })
+                  )}
                 </Stack>
               </Stack>
 
               <Stack gap="4" minW={{ md: '40' }}>
                 <Text fontWeight="medium" color="fg">{dict?.explore || "Explore"}</Text>
                 <Stack gap="3" alignItems="start">
-                  {explorePages.map((page) => {
-                    const href = getHref(page.slug);
-                    const dictKey = page.slug.includes('#') ? page.slug.split('#')[1] : page.slug;
-                    const label = dict?.[`${dictKey}Link`] || page.nav_title || page.title;
+                  {isLoading ? (
+                    <>
+                      <Skeleton h="5" w="24" />
+                      <Skeleton h="5" w="20" />
+                    </>
+                  ) : (
+                    explorePages.map((page) => {
+                      const href = getHref(page.slug);
+                      const dictKey = page.slug.includes('#') ? page.slug.split('#')[1] : page.slug;
+                      const label = dict?.[`${dictKey}Link`] || page.nav_title || page.title;
 
-                    return (
-                      <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
-                        <NextLink href={href}>{label}</NextLink>
-                      </ChakraLink>
-                    )
-                  })}
+                      return (
+                        <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
+                          <NextLink href={href}>{label}</NextLink>
+                        </ChakraLink>
+                      )
+                    })
+                  )}
                 </Stack>
               </Stack>
 
@@ -300,7 +325,7 @@ export const Block = ({ dict }: FooterProps) => {
           >
             <Box flex={{ lg: 1 }} textAlign="left" w="full">
               <Text fontSize="sm" color="fg.subtle">
-                {dict?.copyright || `© ${currentYear} Coriyon Arrington. Based in Minneapolis.`}
+                {dict?.copyright || `© ${year || 2026} Coriyon Arrington. Based in Minneapolis.`}
               </Text>
             </Box>
 
