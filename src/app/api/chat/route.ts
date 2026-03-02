@@ -12,7 +12,6 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    // 1. Fetch all dynamic data, including ALL pages
     const [
       { data: services },
       { data: faqs },
@@ -21,24 +20,20 @@ export async function POST(req: Request) {
     ] = await Promise.all([
       supabase.from('services').select('title_en, description_en').order('sort_order'),
       supabase.from('faqs').select('question_en, answer_en'),
-      supabase.from('projects').select('title_en, description_en').eq('status', 'PUBLISHED').limit(3),
-      // Fetch the slug and both languages for every page
+      supabase.from('projects').select('title_en, description_en, slug').eq('status', 'PUBLISHED').limit(3),
       supabase.from('pages').select('slug, content_en, content_es')
     ]);
 
-    // 2. Format standard tables into markdown
     const servicesText = services?.map(s => `- **${s.title_en}**: ${s.description_en}`).join('\n') || 'App Design, App Development, Product Strategy';
     const faqsText = faqs?.map(f => `- **Q:** ${f.question_en}\n  **A:** ${f.answer_en}`).join('\n') || 'Typical project takes 2-3 months.';
-    const projectsText = projects?.map(p => `- **${p.title_en}**: ${p.description_en}`).join('\n') || 'Smarter Patient Portal, AI-Built Therapy App';
+    const projectsText = projects?.map(p => `- **[${p.title_en}](/projects/${p.slug})**: ${p.description_en}`).join('\n') || '- [Smarter Patient Portal](/projects)\n- [AI-Built Therapy App](/projects)';
     
-    // 3. Stringify all page content so the AI knows everything on the site
     const allPagesText = pages?.map(page => 
       `--- Page: ${page.slug} ---\n` +
       `Content (EN): ${JSON.stringify(page.content_en)}\n` +
       `Content (ES): ${JSON.stringify(page.content_es)}`
     ).join('\n\n') || 'No additional page content.';
 
-    // 4. Inject into the prompt
     const DYNAMIC_SYSTEM_PROMPT = `
 You are Coriyon AI, the personal AI assistant for Coriyon Arrington's portfolio website.
 Your goal is to help visitors learn about Coriyon's work, process, and services based on the provided database context.
@@ -49,6 +44,31 @@ Your goal is to help visitors learn about Coriyon's work, process, and services 
 - 2026 President for UXPA Minnesota.
 - Expert in Next.js, Supabase, Chakra UI, and AI-driven development.
 - Focuses on bridging the gap between design, technology, and business to bring high-impact digital products to life fast.
+
+**Site Map & Linking Rules:**
+- ALWAYS provide Markdown links when recommending a page, service, or project.
+- Services: [Services](/about#services)
+- Process: [Process](/#process)
+- Testimonials: [Testimonials](/about#testimonials)
+- FAQs: [FAQs](/about#faqs)
+- Projects Page: [Projects](/projects)
+- Playground Page (Experiments/3D): [Creative Playground](/playground)
+- About Page: [About Coriyon](/about)
+- For specific projects, use the pre-formatted links provided in the Key Projects list below.
+
+**Follow-up Suggestions (CRITICAL RULE):**
+You MUST provide 2 to 3 relevant follow-up questions at the absolute end of EVERY response to keep the conversation going.
+You MUST separate your main response from the questions using exactly "---SUGGESTIONS---".
+Do NOT use suggestion tags anywhere else in your text.
+
+Example format:
+Here is the 6-step design process Coriyon uses to build products quickly.
+1. Rapid Discovery...
+2. Strategy...
+
+---SUGGESTIONS---
+What services do you offer?
+Can you show me an example project?
 
 **Services Offered:**
 ${servicesText}
@@ -79,6 +99,11 @@ ${allPagesText}
     return result.toTextStreamResponse();
   } catch (error: any) {
     console.error("🔥 API Route Error:", error);
-    return new Response(error.message || "Internal Server Error", { status: 500 });
+    const errorMessage = error.message || "";
+    const isRateLimit = errorMessage.toLowerCase().includes('quota') || errorMessage.includes('429');
+    
+    return new Response(errorMessage || "Internal Server Error", { 
+      status: isRateLimit ? 429 : 500 
+    });
   }
 }

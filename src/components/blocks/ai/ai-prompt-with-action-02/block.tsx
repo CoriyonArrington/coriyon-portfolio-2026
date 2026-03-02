@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { Box, Center, Container, Flex, Heading, HStack, IconButton, SimpleGrid, Span, Stack, Text, Textarea } from '@chakra-ui/react'
+import { Box, Button, Center, Container, Flex, Heading, HStack, IconButton, SimpleGrid, Span, Stack, Text, Textarea } from '@chakra-ui/react'
 import { HiBookOpen, HiLightBulb, HiTerminal } from 'react-icons/hi'
 import { LuSendHorizontal, LuUser, LuBot } from 'react-icons/lu'
 import { PromptButton } from './prompt-button'
@@ -31,7 +31,12 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
     if (!text.trim() || isLoading) return;
 
     playWhoosh();
-    const userMsg = { id: Date.now().toString(), role: 'user', content: text };
+    
+    // FIX: Generate mathematically unique IDs to guarantee React keys never collide
+    const userMsgId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const assistantMsgId = `ai-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+    const userMsg = { id: userMsgId, role: 'user', content: text };
     const newMessages = [...messages, userMsg];
     
     setMessages(newMessages);
@@ -46,6 +51,9 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
       });
 
       if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error('RATE_LIMIT_EXCEEDED');
+        }
         const errorText = await res.text();
         console.error('🔥 Server Error:', res.status, errorText);
         throw new Error('Network response was not ok');
@@ -56,8 +64,7 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       
-      const assistantMsgId = (Date.now() + 1).toString();
-      
+      // Insert the empty assistant bubble that will receive the stream
       setMessages(prev => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
 
       let fullText = '';
@@ -65,7 +72,9 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
-          console.log('✅ Stream complete.');
+          if (fullText.trim() === '') {
+            throw new Error('RATE_LIMIT_EXCEEDED');
+          }
           break;
         }
 
@@ -78,13 +87,31 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
           )
         );
       }
-    } catch (error) {
-      console.error('❌ Failed to send message:', error);
-      setMessages(prev => [...prev, { 
-        id: Date.now().toString(), 
-        role: 'assistant', 
-        content: 'Sorry, I encountered an error connecting to the server. Please ensure the API route is correctly configured.' 
-      }]);
+    } catch (error: any) {
+      // FIX: Only log real errors to the console, suppressing the expected quota limit warnings
+      if (error.message !== 'RATE_LIMIT_EXCEEDED') {
+        console.error('❌ Failed to send message:', error);
+      }
+      
+      let fallbackMessage = locale === 'es' 
+        ? 'Lo siento, encontré un error al conectarme al servidor. Por favor, inténtalo de nuevo más tarde.' 
+        : 'Sorry, I encountered an error connecting to the server. Please try again later.';
+
+      if (error.message === 'RATE_LIMIT_EXCEEDED') {
+        fallbackMessage = locale === 'es'
+          ? '¡He alcanzado mi límite de mensajes por ahora! La IA está tomando un descanso. Mientras tanto, puedes **[ver los servicios](/about#services)** o contactar a Coriyon directamente.'
+          : 'I have reached my message quota for right now! The AI is taking a quick nap. In the meantime, feel free to **[browse services](/about#services)** or contact Coriyon directly.';
+      }
+
+      // FIX: Intelligently check if the empty bubble was already created. 
+      // If it exists, overwrite it with the fallback message. If not, append a new one.
+      setMessages(prev => {
+        const exists = prev.some(m => m.id === assistantMsgId);
+        if (exists) {
+          return prev.map(msg => msg.id === assistantMsgId ? { ...msg, content: fallbackMessage } : msg);
+        }
+        return [...prev, { id: `err-${Date.now()}`, role: 'assistant', content: fallbackMessage }];
+      });
     } finally {
       setIsLoading(false);
     }
@@ -121,8 +148,7 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
           
           {messages.length === 0 ? (
             <Stack gap="8" my="auto" w="full">
-              {/* FIX: Left aligned, smaller font sizes, concise text, and green highlighted name */}
-              <Heading size={{ base: "2xl", md: "3xl" }} fontWeight="bold" letterSpacing="tight" textAlign="left" lineHeight="1.3">
+              <Heading size={{ base: "2xl", md: "3xl" }} fontWeight="bold" letterSpacing="tight" textAlign="left" lineHeight="1.3" pr="12">
                 <Span color="fg.default">
                   {locale === 'es' ? "Hola, soy la " : "Hi, I'm "}
                   <Span color="green.600">
@@ -142,7 +168,6 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
                     icon={prompt.icon} 
                     onClick={() => handlePromptClick(prompt.text)}
                     onMouseEnter={() => playHover()}
-                    // FIX: Allows text to wrap naturally without clipping
                     h="auto"
                     minH="4rem"
                     py="4"
@@ -159,35 +184,86 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
             </Stack>
           ) : (
             <Stack gap="8" justify="flex-end" flex="1">
-              {messages.map((msg: any) => (
-                <HStack key={msg.id} align="flex-start" gap="4" maxW="3xl" alignSelf={msg.role === 'user' ? 'flex-end' : 'flex-start'}>
-                  {msg.role === 'assistant' && (
-                    <Box p="2" bg="green.600" rounded="lg" color="white" flexShrink={0}><LuBot /></Box>
-                  )}
-                  <Box 
-                    bg={msg.role === 'user' ? 'green.600' : 'bg.panel'} 
-                    color={msg.role === 'user' ? 'white' : 'fg.default'}
-                    borderWidth={msg.role === 'user' ? '0' : '1px'}
-                    borderColor="border.subtle"
-                    p="4" 
-                    rounded="2xl" 
-                    borderBottomLeftRadius={msg.role === 'assistant' ? '0' : '2xl'}
-                    borderBottomRightRadius={msg.role === 'user' ? '0' : '2xl'}
-                    shadow="sm"
-                    maxW="full"
-                    overflowX="auto"
-                  >
-                    {msg.role === 'user' ? (
-                      <Text lineHeight="relaxed" whiteSpace="pre-wrap">{msg.content}</Text>
-                    ) : (
-                      <MarkdownRenderer content={msg.content} />
+              {messages.map((msg: any, index: number) => {
+                const isAssistant = msg.role === 'assistant';
+                const isLastMessage = index === messages.length - 1;
+                
+                let displayText = msg.content;
+                let suggestions: string[] = [];
+
+                if (isAssistant) {
+                  const splitIndex = displayText.indexOf('---SUGGESTIONS---');
+                  
+                  if (splitIndex !== -1) {
+                    const suggestionsText = displayText.substring(splitIndex + '---SUGGESTIONS---'.length);
+                    displayText = displayText.substring(0, splitIndex).trim();
+                    
+                    suggestions = suggestionsText
+                      .split('\n')
+                      .map((s: string) => s.replace(/^[-*•]\s*/, '').trim())
+                      .filter((s: string) => s.length > 0);
+                  } else {
+                    displayText = displayText.replace(/-{1,3}[A-Z]*$/, '').trim();
+                  }
+                }
+
+                return (
+                  <Stack key={msg.id} gap="2" alignSelf={msg.role === 'user' ? 'flex-end' : 'flex-start'} maxW="3xl">
+                    <HStack align="flex-start" gap="4">
+                      {msg.role === 'assistant' && (
+                        <Box p="2" bg="green.600" rounded="lg" color="white" flexShrink={0} mt="1"><LuBot /></Box>
+                      )}
+                      <Box 
+                        bg={msg.role === 'user' ? 'green.600' : 'bg.panel'} 
+                        color={msg.role === 'user' ? 'white' : 'fg.default'}
+                        borderWidth={msg.role === 'user' ? '0' : '1px'}
+                        borderColor="border.subtle"
+                        p="4" 
+                        rounded="2xl" 
+                        borderBottomLeftRadius={msg.role === 'assistant' ? '0' : '2xl'}
+                        borderBottomRightRadius={msg.role === 'user' ? '0' : '2xl'}
+                        shadow="sm"
+                        maxW="full"
+                        overflowX="auto"
+                      >
+                        {msg.role === 'user' ? (
+                          <Text lineHeight="relaxed" whiteSpace="pre-wrap">{msg.content}</Text>
+                        ) : (
+                          <MarkdownRenderer content={displayText} />
+                        )}
+                      </Box>
+                      {msg.role === 'user' && (
+                        <Box p="2" bg="bg.subtle" rounded="lg" flexShrink={0} mt="1" borderWidth="1px" borderColor="border.subtle"><LuUser /></Box>
+                      )}
+                    </HStack>
+
+                    {isAssistant && suggestions.length > 0 && isLastMessage && !isLoading && (
+                      <Flex wrap="wrap" gap="2" ml="12" mt="1">
+                        {suggestions.map((suggestion, i) => (
+                          <Button
+                            key={i}
+                            size="sm"
+                            variant="outline"
+                            colorPalette="green"
+                            rounded="full"
+                            onClick={() => handlePromptClick(suggestion)}
+                            fontSize="xs"
+                            fontWeight="medium"
+                            h="auto"
+                            py="1.5"
+                            px="3"
+                            whiteSpace="normal"
+                            textAlign="left"
+                            _hover={{ bg: 'green.50', _dark: { bg: 'green.900' } }}
+                          >
+                            {suggestion}
+                          </Button>
+                        ))}
+                      </Flex>
                     )}
-                  </Box>
-                  {msg.role === 'user' && (
-                    <Box p="2" bg="bg.subtle" rounded="lg" flexShrink={0} borderWidth="1px" borderColor="border.subtle"><LuUser /></Box>
-                  )}
-                </HStack>
-              ))}
+                  </Stack>
+                )
+              })}
               {isLoading && (
                 <HStack gap="4" align="center">
                   <Box p="2" bg="green.600" rounded="lg" color="white"><LuBot /></Box>
