@@ -49,7 +49,11 @@ export const Block = ({
 
   const handleScroll = () => {
     playClick()
-    const element = document.getElementById(primaryScrollTo || 'projects') || document.getElementById('playground-projects')
+    
+    // Target the password section if protected, otherwise use the standard scroll targets
+    const targetId = isProtected ? 'unlock-section' : (primaryScrollTo || 'projects')
+    const element = document.getElementById(targetId) || document.getElementById('playground-projects')
+    
     if (element) {
       const offset = 120
       const elementPosition = element.getBoundingClientRect().top
@@ -157,14 +161,14 @@ export const Block = ({
             h={{ base: 14, md: 16 }}
             px={{ base: 6, md: 8 }}
             fontSize="lg"
-            bg={buttonColor || "green.600"} 
+            bg={bgColor || buttonColor || "green.600"} 
             color="white"
             _hover={{ opacity: 0.85 }} 
             onClick={handleScroll} 
             onMouseEnter={playHover}
             w={{ base: 'full', md: 'auto' }}
           >
-            {primaryCtaText || dict?.exploreWork || "Read case study"} <LuChevronDown />
+            {isProtected ? "Unlock case study" : (primaryCtaText || dict?.exploreWork || "Read case study")} <LuChevronDown />
           </Button>
 
           {mounted ? (
