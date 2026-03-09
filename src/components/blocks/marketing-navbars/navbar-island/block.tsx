@@ -45,13 +45,13 @@ export const Block = ({ dict }: NavbarBlockProps) => {
 
   return (
     <>
-      {/* Top background blur mask - Reduced intensity */}
+      {/* Top background blur mask - Adjusted height to fit new nav position */}
       <Box 
         position="fixed" 
         top="0" 
         left="0" 
         right="0" 
-        height="calc(48px + var(--banner-height, 44px))" 
+        height="96px" 
         bg="bg.canvas/30" 
         backdropFilter="blur(4px)" 
         style={{ maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} 
@@ -82,7 +82,7 @@ export const Block = ({ dict }: NavbarBlockProps) => {
       <Center 
         position="fixed" 
         zIndex={100} 
-        top="calc(8px + var(--banner-height, 44px))" 
+        top="6" 
         left="4" 
         right="4"
         transition="top 0.3s ease"

@@ -5,9 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ClarityAnalytics } from "@/components/ui/clarity";
 import "../globals.css";
 
-import { supabase } from "@/lib/supabase";
 import { FloatingContact } from "@/components/ui/floating-contact";
-import { Block as BannerBlock } from "@/components/blocks/banners/banner-with-link/block";
 import { montserrat, nunitoSans } from "../fonts";
 
 export const metadata: Metadata = {
@@ -48,10 +46,6 @@ export default async function LocaleLayout({
   const { locale } = await params;
   const currentLocale = locale || 'en';
 
-  // Fetch the home page data to pass the dictionary to the global banner
-  const { data: homeData } = await supabase.from('pages').select('*').eq('slug', 'home').single();
-  const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {};
-
   return (
     <html 
       lang={currentLocale} 
@@ -61,10 +55,7 @@ export default async function LocaleLayout({
       <body>
         <Provider>
           {children}
-          
           <FloatingContact />
-          <BannerBlock dict={homeContent.banner} />
-          
         </Provider>
         <Analytics />
         <SpeedInsights />

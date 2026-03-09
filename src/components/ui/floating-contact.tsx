@@ -47,14 +47,12 @@ export function FloatingContact() {
         <IconButton
           aria-label="Close chat"
           variant="outline"
-          // FIX: Solid background to block out scrolling text and subtle shadow for depth
           bg="white"
           _dark={{ bg: 'gray.800' }}
           color="fg.default"
           rounded="full"
           size="sm"
           position="absolute"
-          // FIX: Aligned perfectly with the header row
           top={{ base: '8', md: '8' }}
           right={{ base: '6', md: '8' }}
           zIndex="2102"
@@ -75,7 +73,8 @@ export function FloatingContact() {
 
       <Box 
         position="fixed" 
-        bottom={{ base: '16', md: '8' }} 
+        // FIX: Adjusted bottom value on mobile from '16' to '6' to perfectly match the Case Study Nav's vertical alignment
+        bottom={{ base: '6', md: '8' }} 
         right={{ base: '4', md: '8' }} 
         zIndex={isOpen ? "2099" : "2101"} 
       >
