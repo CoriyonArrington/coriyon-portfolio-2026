@@ -4,6 +4,8 @@ import { Link, Stack, type StackProps } from '@chakra-ui/react'
 import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
 interface NavbarLinksProps extends StackProps {
   dict?: any;
@@ -14,9 +16,8 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
   const { playHover, playWhoosh } = useUiSounds()
   const pathname = usePathname() || ''
   
-  // OPTIMIZATION: Removed useEffect database call! 
-  // We rely entirely on the server-provided dictionary, guaranteeing zero layout shift.
-  const navLinks = dict?.links?.map((link: any) => ({
+  // Set initial state using the server dictionary to prevent layout shifts
+  const defaultLinks = dict?.links?.map((link: any) => ({
     id: link.href,
     slug: link.href.replace('/', ''),
     nav_title: link.label
@@ -25,6 +26,30 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
     { id: 'about', slug: 'about', nav_title: 'About' },
     { id: 'blog', slug: 'blog', nav_title: 'Videos' }
   ]
+
+  const [navLinks, setNavLinks] = useState<any[]>(defaultLinks)
+
+  useEffect(() => {
+    const fetchNavLinks = async () => {
+      const { data, error } = await supabase
+        .from('pages')
+        .select('slug, nav_title')
+        .eq('page_type', 'MAIN_MENU')
+        .eq('status', 'PUBLISHED')
+        .order('sort_order', { ascending: true })
+      
+      if (data && data.length > 0) {
+        setNavLinks(data.map(page => ({
+          id: page.slug,
+          // Format home routing correctly
+          slug: page.slug === 'home' ? '/' : page.slug,
+          nav_title: page.nav_title || page.slug
+        })))
+      }
+    }
+    
+    fetchNavLinks()
+  }, [])
 
   const segments = pathname.split('/').filter(Boolean)
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
