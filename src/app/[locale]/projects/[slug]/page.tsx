@@ -3,6 +3,7 @@ import type { Metadata, ResolvingMetadata } from 'next'
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
+import { unstable_cache } from "next/cache"
 import { PasswordGate } from "@/components/ui/password-gate"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
 import { Block as Hero } from "@/components/blocks/heroes/project-detail-page/block"
@@ -21,8 +22,34 @@ import { Block as ProjectCta } from "@/components/blocks/cta/cta-08/block"
 import { Block as TableOfContents, type TocItem } from "@/components/blocks/docs-toc/toc-mobile/block"
 import { Block as TimelineSection } from "@/components/blocks/process/timeline-section"
 
-// OPTIMIZATION: Enable ISR caching to serve pages instantly
 export const revalidate = 3600 
+
+const getCachedProjects = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
+    return data || []
+  },
+  ['published-projects-list'],
+  { revalidate: 3600, tags: ['projects'] }
+)
+
+const getCachedPage = unstable_cache(
+  async (slug: string) => {
+    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+    return data || {}
+  },
+  ['page-data'],
+  { revalidate: 3600, tags: ['pages'] }
+)
+
+const getCachedTestimonials = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('testimonials').select('*')
+    return data || []
+  },
+  ['testimonials-list'],
+  { revalidate: 3600, tags: ['testimonials'] }
+)
 
 export async function generateMetadata(
   { params }: { params: Promise<{ locale: string, slug: string }> },
@@ -31,11 +58,8 @@ export async function generateMetadata(
   const { locale, slug } = await params;
   const currentLocale = locale || 'en'
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('slug', slug)
-    .maybeSingle()
+  const allProjects = await getCachedProjects()
+  const project = allProjects.find((p: any) => p.slug === slug)
 
   if (!project) return { title: 'Project Not Found' }
 
@@ -96,7 +120,7 @@ const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark
       className={className}
       pt={pt || { base: "16", md: "24" }} 
       pb={pb || { base: "16", md: "24" }} 
-      bg={isDark ? "bg.emphasized" : "bg.canvas"} 
+      bg={isDark ? { base: "bg.emphasized", _dark: "black" } : "bg.canvas"} 
       borderTopWidth={borderTopWidth !== undefined ? borderTopWidth : (isDark ? "0" : "1px")} 
       borderColor="border.subtle"
     >
@@ -200,24 +224,21 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     whyItWorked: isEs ? "Por qué funcionó" : "Why It Worked",
   }
 
-  // OPTIMIZATION: Parallel data fetching
   const [
-    { data: allProjectsData },
-    { data: pageData },
-    { data: allTestimonials }
+    allProjects,
+    pageData,
+    allTestimonials
   ] = await Promise.all([
-    supabase.from('projects').select('*').order('sort_order', { ascending: true }),
-    supabase.from('pages').select('*').eq('slug', 'home').single(),
-    supabase.from('testimonials').select('*')
+    getCachedProjects(),
+    getCachedPage('home'),
+    getCachedTestimonials()
   ]);
 
-  const allProjects = allProjectsData || []
-  const currentIndex = allProjects.findIndex(p => p.slug === slug)
+  const currentIndex = allProjects.findIndex((p: any) => p.slug === slug)
   const project = allProjects[currentIndex]
 
   if (!project) notFound()
 
-  // Security Check
   const cookieStore = await cookies()
   const isUnlocked = cookieStore.get(`unlocked_${slug}`)?.value === 'true'
   const isProtected = !!project.password && !isUnlocked
@@ -229,13 +250,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
   
-  const companyTestimonials = allTestimonials?.filter(t => project.company && t.company === project.company) || []
-  let rawFeaturedTestimonial = project.testimonial_id ? allTestimonials?.find(t => t.id === project.testimonial_id) : null
+  const companyTestimonials = allTestimonials?.filter((t: any) => project.company && t.company === project.company) || []
+  let rawFeaturedTestimonial = project.testimonial_id ? allTestimonials?.find((t: any) => t.id === project.testimonial_id) : null
   if (!rawFeaturedTestimonial && companyTestimonials.length > 0) rawFeaturedTestimonial = companyTestimonials[0]
   
-  const remainingTestimonials = companyTestimonials.filter(t => t.id !== rawFeaturedTestimonial?.id)
+  const remainingTestimonials = companyTestimonials.filter((t: any) => t.id !== rawFeaturedTestimonial?.id)
   const localizedFeaturedTestimonial = rawFeaturedTestimonial ? { ...rawFeaturedTestimonial, quote: (rawFeaturedTestimonial as any)[`quote_${currentLocale}`] || rawFeaturedTestimonial.quote_en || rawFeaturedTestimonial.quote, role: (rawFeaturedTestimonial as any)[`role_${currentLocale}`] || rawFeaturedTestimonial.role_en || rawFeaturedTestimonial.role } : null
-  const localizedRemainingTestimonials = remainingTestimonials.map(t => ({ ...t, quote: (t as any)[`quote_${currentLocale}`] || t.quote_en || t.quote, role: (t as any)[`role_${currentLocale}`] || t.role_en || t.role }))
+  const localizedRemainingTestimonials = remainingTestimonials.map((t: any) => ({ ...t, quote: (t as any)[`quote_${currentLocale}`] || t.quote_en || t.quote, role: (t as any)[`role_${currentLocale}`] || t.role_en || t.role }))
 
   const title = (project as any)[`title_${currentLocale}`] || project.title_en || project.title
   const description = (project as any)[`description_${currentLocale}`] || project.description_en || project.description
@@ -252,7 +273,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const duration = overviewData.timeframe?.total || overviewData.duration || projectContentJson.project_meta?.duration
   const summary = overviewData.oneLiner || overviewData.summary || description
   const year = overviewData.year || projectContentJson.project_meta?.year || (project.project_date ? new Date(project.project_date).getFullYear() : null)
-  const teamRoles = overviewData.users ? overviewData.users.join(', ') : (overviewData.team_roles || projectContentJson.project_meta?.team)
+  
+  // FIX: Explicitly separated Users from Team Roles so they render independently
+  const usersList = overviewData.users ? (Array.isArray(overviewData.users) ? overviewData.users.join(', ') : overviewData.users) : null;
+  const teamRoles = overviewData.teamRoles || overviewData.team_roles || projectContentJson.project_meta?.team;
   const deliverables = overviewData.deliverables || (Array.isArray(projectContentJson.project_meta?.deliverables) ? projectContentJson.project_meta.deliverables.join(', ') : projectContentJson.project_meta?.deliverables)
   const industries = overviewData.industries || projectContentJson.project_meta?.industries
 
@@ -260,6 +284,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     role,
     duration,
     teamRoles,
+    users: usersList,
     deliverables,
     summary,
     year: year ? String(year) : undefined,
@@ -268,6 +293,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       role: isEs ? "Rol" : "Role",
       duration: isEs ? "Duración" : "Duration",
       team: isEs ? "Equipo" : "Team",
+      users: isEs ? "Usuarios" : "Users",
       deliverables: isEs ? "Entregables" : "Deliverables",
       year: isEs ? "Año" : "Year",
       industry: isEs ? "Industria" : "Industry",
@@ -285,9 +311,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const cleanStr = (val: any) => typeof val === 'string' ? val.replace(/^"|"$/g, '') : val;
 
-  const hasContextData = pmContext?.whatExisted || pmContext?.whatChanged || pmContext?.imageSrc || pmContext?.heading;
-  const hasProblemData = pmProblem?.businessProblem || pmProblem?.productProblem || pmProblem?.risk || pmProblem?.imageSrc || pmProblem?.heading;
-  const hasStrategyData = pmStrategy?.initialBet || pmStrategy?.northStarMetric || pmStrategy?.imageSrc || pmStrategy?.heading;
+  const hasContextData = pmContext?.whatExisted || pmContext?.whatChanged || pmContext?.imageSrc || pmContext?.heading || pmContext?.description;
+  const hasProblemData = pmProblem?.businessProblem || pmProblem?.productProblem || pmProblem?.risk || pmProblem?.imageSrc || pmProblem?.heading || pmProblem?.description;
+  const hasStrategyData = pmStrategy?.initialBet || pmStrategy?.northStarMetric || pmStrategy?.imageSrc || pmStrategy?.heading || pmStrategy?.description;
   
   let statsData = projectContentJson.stats || {}
   if (!statsData.items && pmOutcomes?.estimatedROI?.math) {
@@ -444,7 +470,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
         {/* FEATURED TESTIMONIAL: Optimized for instant visibility */}
         {localizedFeaturedTestimonial && (
-          <Box bg="bg.emphasized" w="full" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
+          <Box bg={{ base: "bg.emphasized", _dark: "black" }} w="full" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
               <FeaturedTestimonial testimonial={localizedFeaturedTestimonial} />
             </Container>
@@ -482,13 +508,14 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 zIndex="100" 
                 pointerEvents="none" 
                 display="flex"
+                alignItems="flex-end"
                 justifyContent={{ base: "flex-start", md: "center" }}
                 px={{ base: "4", md: "0" }}
               >
                 <Box 
                   pointerEvents="auto" 
                   w="full" 
-                  maxW={{ base: "calc(100% - 88px)", md: "460px" }}
+                  maxW={{ base: "calc(100% - 88px)", md: "460px" }} 
                 >
                   <TableOfContents tocData={dynamicToc} title={t.tocTitle} />
                 </Box>
@@ -519,7 +546,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               )}
 
               {shouldRenderLearnings && (
-                <Box id="learnings" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
+                <Box id="learnings" borderTopWidth="1px" borderColor="border.subtle">
                   <FadeIn>
                     <StoryHeroBlock 
                       badge={hasBentoGrid && bentoData.badge ? bentoData.badge : t.learningsBadge} 
@@ -546,6 +573,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     className="pattern-dots"
                     badge={t.contextBadge} 
                     title={pmContext?.heading || t.contextTitle} 
+                    description={pmContext?.description}
                     items={[
                       ...(pmContext?.whatExisted ? [{ label: t.whatExisted, value: pmContext.whatExisted }] : []),
                       ...(pmContext?.whatChanged ? [{ label: t.whatChanged, value: pmContext.whatChanged }] : [])
@@ -562,7 +590,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     id="problem"
                     badge={t.problemBadge} 
                     title={pmProblem?.heading || t.problemTitle} 
-                    description={pmProblem?.risk}
+                    description={pmProblem?.risk || pmProblem?.description}
                     items={[
                       ...(pmProblem?.businessProblem ? [{ label: t.businessProblem, value: pmProblem.businessProblem }] : []),
                       ...(pmProblem?.productProblem ? [{ label: t.productProblem, value: pmProblem.productProblem }] : [])
@@ -580,6 +608,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     className="pattern-dots"
                     badge={t.strategyBadge} 
                     title={pmStrategy?.heading || t.strategyTitle} 
+                    description={pmStrategy?.description}
                     items={[
                       ...(pmStrategy?.initialBet ? [{ label: t.initialBet, value: pmStrategy.initialBet }] : []),
                       ...(pmStrategy?.northStarMetric ? [{ label: t.northStar, value: `${pmStrategy.northStarMetric.metric} — ${pmStrategy.northStarMetric.definition}` }] : [])
@@ -591,7 +620,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               )}
 
               {hasApproach && (
-                <Box id="execution" bg="bg.emphasized" borderTopWidth="1px" borderColor="border.subtle">
+                <Box id="execution" bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
                   <FadeIn>
                     <TimelineSection 
                       dict={{

@@ -1,5 +1,6 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
+import { unstable_cache } from "next/cache"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
 import { Block as AboutHero } from "@/components/blocks/heroes/about-page/block"
 import { Block as ServicesBlock } from "@/components/blocks/features/feature-10/block"
@@ -13,29 +14,67 @@ import { FadeIn } from "@/components/ui/fade-in"
 // OPTIMIZATION: Enable ISR caching
 export const revalidate = 3600 
 
+// --- OPTIMIZATION: Next.js memory cache for DB queries to eliminate FCP delay ---
+const getCachedPage = unstable_cache(
+  async (slug: string) => {
+    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+    return data || {}
+  },
+  ['page-data'],
+  { revalidate: 3600, tags: ['pages'] }
+)
+
+const getCachedServices = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('services').select('*').order('sort_order', { ascending: true })
+    return data || []
+  },
+  ['services-list'],
+  { revalidate: 3600, tags: ['services'] }
+)
+
+const getCachedTestimonials = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('testimonials').select('*')
+    return data || []
+  },
+  ['testimonials-list'],
+  { revalidate: 3600, tags: ['testimonials'] }
+)
+
+const getCachedFaqs = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('faqs').select('*').order('id', { ascending: true })
+    return data || []
+  },
+  ['faqs-list'],
+  { revalidate: 3600, tags: ['faqs'] }
+)
+// ---------------------------------------------------------------------------------
+
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION: Parallelize Data Fetching for all 5 queries
+  // OPTIMIZATION: Parallelize Data Fetching using the lightning-fast memory cache
   const [
-    { data: aboutData },
-    { data: homeData },
-    { data: services },
-    { data: allTestimonials },
-    { data: faqs }
+    aboutData,
+    homeData,
+    services,
+    allTestimonials,
+    faqs
   ] = await Promise.all([
-    supabase.from('pages').select('*').eq('slug', 'about').single(),
-    supabase.from('pages').select('*').eq('slug', 'home').single(),
-    supabase.from('services').select('*').order('sort_order', { ascending: true }),
-    supabase.from('testimonials').select('*'),
-    supabase.from('faqs').select('*').order('id', { ascending: true })
+    getCachedPage('about'),
+    getCachedPage('home'),
+    getCachedServices(),
+    getCachedTestimonials(),
+    getCachedFaqs()
   ]);
 
   const aboutContent = aboutData?.[`content_${currentLocale}`] || aboutData?.content_en || {}
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {}
 
-  const localizedServices = services?.map(s => ({
+  const localizedServices = services?.map((s: any) => ({
     id: s.id,
     title: s[`title_${currentLocale}`] || s.title_en || s.title,
     description: s[`description_${currentLocale}`] || s.description_en || s.description,
@@ -43,13 +82,13 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     url: s.url
   }))
 
-  const localizedTestimonials = allTestimonials?.map(t => ({
+  const localizedTestimonials = allTestimonials?.map((t: any) => ({
     ...t,
     quote: t[`quote_${currentLocale}`] || t.quote_en || t.quote,
     role: t[`role_${currentLocale}`] || t.role_en || t.role
   }))
 
-  const localizedFaqs = faqs?.map(faq => ({
+  const localizedFaqs = faqs?.map((faq: any) => ({
     id: faq.id,
     question: faq[`question_${currentLocale}`] || faq.question_en || faq.question,
     answer: faq[`answer_${currentLocale}`] || faq.answer_en || faq.answer
@@ -81,7 +120,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           </Container>
         </Box>
 
-        <Box id="services" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
+        {/* FIX: Updated background to pure black in dark mode */}
+        <Box id="services" py={{ base: "16", md: "24" }} bg={{ base: "bg.subtle", _dark: "black" }} borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <ServicesBlock dict={homeContent.services} services={localizedServices || []} />
@@ -97,7 +137,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           </Container>
         </Box>
 
-        <Box id="faqs" bg="bg.subtle" py={{ base: "16", md: "24" }} className="pattern-grid" borderTopWidth="1px" borderColor="border.subtle">
+        {/* FIX: Updated background to pure black in dark mode */}
+        <Box id="faqs" bg={{ base: "bg.subtle", _dark: "black" }} py={{ base: "16", md: "24" }} className="pattern-grid" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <Faq dict={homeContent.faq} faqs={localizedFaqs || []} />

@@ -14,7 +14,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION: Parallelize Data Fetching
+  // OPTIMIZATION: Parallelize Data Fetching & Filter for published status at the DB level
   const [
     { data: projectsPageData },
     { data: homeData },
@@ -22,7 +22,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
   ] = await Promise.all([
     supabase.from('pages').select('*').eq('slug', 'projects').single(),
     supabase.from('pages').select('*').eq('slug', 'home').single(),
-    supabase.from('projects').select('*').order('sort_order', { ascending: true })
+    supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
   ]);
 
   const projectsContent = projectsPageData?.[`content_${currentLocale}`] || projectsPageData?.content_en || {}
@@ -37,11 +37,13 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
     link_url: `/${currentLocale}/projects/${p.slug}`,
     bgColor: p.bg_color,
     mockupType: p.mockup_type,
-    category: p.project_category 
+    category: p.project_category,
+    projectType: p.project_type 
   }))
   
-  const regularProjects = localizedProjects?.filter(p => !p.category?.includes('Playground')) || []
-  const playgroundProjects = localizedProjects?.filter(p => p.category?.includes('Playground')) || []
+  // Split sections using the new project_type enum instead of category
+  const regularProjects = localizedProjects?.filter(p => p.projectType !== 'playground') || []
+  const playgroundProjects = localizedProjects?.filter(p => p.projectType === 'playground') || []
 
   return (
     <Box bg="bg.canvas" minH="100vh">
@@ -85,7 +87,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
         )}
 
         {playgroundProjects.length > 0 && (
-          <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
+          <Box id="playground" py={{ base: "16", md: "24" }} bg={{ base: "bg.subtle", _dark: "black" }} borderTopWidth="1px" borderColor="border.subtle">
             <Container maxW="7xl" px={{ base: "4", md: "8" }}>
               <FadeIn>
                 <CategoryGrid 

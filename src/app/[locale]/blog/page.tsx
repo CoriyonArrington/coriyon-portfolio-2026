@@ -1,5 +1,6 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
+import { unstable_cache } from "next/cache"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
 import { Block as BlogBlock } from "@/components/blocks/blogs/blog-with-hero-image/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
@@ -9,25 +10,45 @@ import { FadeIn } from "@/components/ui/fade-in"
 // OPTIMIZATION: Enable ISR caching
 export const revalidate = 3600 
 
+// --- OPTIMIZATION: Next.js memory cache for DB queries to eliminate FCP delay ---
+const getCachedPage = unstable_cache(
+  async (slug: string) => {
+    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+    return data || {}
+  },
+  ['page-data'],
+  { revalidate: 3600, tags: ['pages'] }
+)
+
+const getCachedVideos = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('videos').select('*').order('sort_order', { ascending: true })
+    return data || []
+  },
+  ['videos-list'],
+  { revalidate: 3600, tags: ['videos'] }
+)
+// ---------------------------------------------------------------------------------
+
 export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION: Parallelize Data Fetching
+  // OPTIMIZATION: Parallelize Data Fetching using the lightning-fast memory cache
   const [
-    { data: blogData },
-    { data: homeData },
-    { data: videos }
+    blogData,
+    homeData,
+    videos
   ] = await Promise.all([
-    supabase.from('pages').select('*').eq('slug', 'blog').single(),
-    supabase.from('pages').select('*').eq('slug', 'home').single(),
-    supabase.from('videos').select('*').order('sort_order', { ascending: true })
+    getCachedPage('blog'),
+    getCachedPage('home'),
+    getCachedVideos()
   ]);
 
   const blogContent = blogData?.[`content_${currentLocale}`] || blogData?.content_en || {}
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {}
 
-  const localizedVideos = videos?.map(v => ({
+  const localizedVideos = videos?.map((v: any) => ({
     id: v.id,
     title: v[`title_${currentLocale}`] || v.title_en || v.title,
     excerpt: v[`excerpt_${currentLocale}`] || v.excerpt_en || v.excerpt,

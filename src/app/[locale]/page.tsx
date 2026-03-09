@@ -18,13 +18,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const currentLocale = locale || 'en'
 
   // OPTIMIZATION 2: Parallelize data fetching to eliminate the waterfall delay
+  // Added .eq('status', 'published') to ensure drafts don't leak into the UI
   const [
     { data: pageData },
     { data: projects },
     { data: featuredTestimonials }
   ] = await Promise.all([
     supabase.from('pages').select('*').eq('slug', 'home').single(),
-    supabase.from('projects').select('*').order('sort_order', { ascending: true }),
+    supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true }),
     supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
   ]);
 
@@ -39,11 +40,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     link_url: `/${currentLocale}/projects/${p.slug}`,
     bgColor: p.bg_color,
     mockupType: p.mockup_type,
-    category: p.project_category 
+    category: p.project_category,
+    projectType: p.project_type
   }))
   
-  const regularProjects = localizedProjects?.filter(p => !p.category?.includes('Playground'))
-  const playgroundProjects = localizedProjects?.filter(p => p.category?.includes('Playground'))
+  // Split using projectType instead of string matching
+  const regularProjects = localizedProjects?.filter(p => p.projectType !== 'playground') || []
+  const playgroundProjects = localizedProjects?.filter(p => p.projectType === 'playground') || []
   
   const featuredProject = projects?.find(p => p.featured === true)
 
@@ -73,7 +76,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </Box>
 
         {/* FIX: Added id="testimonials" so the hero header click target resolves correctly */}
-        <Box id="testimonials" py={{ base: "16", md: "24" }} bg="bg.emphasized">
+        <Box id="testimonials" py={{ base: "16", md: "24" }} bg={{ base: "bg.emphasized", _dark: "black" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               {featuredTestimonial && <FeaturedTestimonial testimonial={featuredTestimonial} />}
@@ -81,31 +84,35 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots" suppressHydrationWarning>
-          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <FadeIn>
-              <CategoryGrid 
-                dict={content.project} 
-                projects={regularProjects || []} 
-                viewAllHref={`/${currentLocale}/projects`}
-                viewAllText={currentLocale === 'es' ? 'Ver todos los proyectos' : 'View all projects'}
-              />
-            </FadeIn>
-          </Container>
-        </Box>
+        {regularProjects.length > 0 && (
+          <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots" suppressHydrationWarning>
+            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+              <FadeIn>
+                <CategoryGrid 
+                  dict={content.project} 
+                  projects={regularProjects} 
+                  viewAllHref={`/${currentLocale}/projects`}
+                  viewAllText={currentLocale === 'es' ? 'Ver todos los proyectos' : 'View all projects'}
+                />
+              </FadeIn>
+            </Container>
+          </Box>
+        )}
 
-        <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle" suppressHydrationWarning>
-          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <FadeIn>
-              <CategoryGrid 
-                dict={content.playground} 
-                projects={playgroundProjects || []} 
-                viewAllHref={`/${currentLocale}/playground`}
-                viewAllText={currentLocale === 'es' ? 'Ver todos los experimentos' : 'View all experiments'}
-              />
-            </FadeIn>
-          </Container>
-        </Box>
+        {playgroundProjects.length > 0 && (
+          <Box id="playground" py={{ base: "16", md: "24" }} bg={{ base: "bg.subtle", _dark: "black" }} borderTopWidth="1px" borderColor="border.subtle" suppressHydrationWarning>
+            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+              <FadeIn>
+                <CategoryGrid 
+                  dict={content.playground} 
+                  projects={playgroundProjects} 
+                  viewAllHref={`/${currentLocale}/playground`}
+                  viewAllText={currentLocale === 'es' ? 'Ver todos los experimentos' : 'View all experiments'}
+                />
+              </FadeIn>
+            </Container>
+          </Box>
+        )}
 
         <Box id="process" w="full" pt={{ base: "16", md: "24" }}>
             <ProcessTimeline dict={content.process} />
