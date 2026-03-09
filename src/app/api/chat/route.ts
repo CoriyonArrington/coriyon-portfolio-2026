@@ -18,17 +18,20 @@ export async function POST(req: Request) {
       { data: projects },
       { data: pages }
     ] = await Promise.all([
-      supabase.from('services').select('title_en, description_en').order('sort_order'),
+      // Fetching all relevant EN and ES fields from the current services schema
+      supabase.from('services').select('title_en, title_es, description_en, description_es, url').order('sort_order'),
       supabase.from('faqs').select('question_en, answer_en'),
-      // FIX: Changed 'PUBLISHED' to 'published' to match DB enum, and ordered by sort_order
       supabase.from('projects').select('title_en, description_en, slug').eq('status', 'published').order('sort_order', { ascending: true }),
       supabase.from('pages').select('slug, content_en, content_es')
     ]);
 
-    const servicesText = services?.map(s => `- **${s.title_en}**: ${s.description_en}`).join('\n') || 'App Design, App Development, Product Strategy';
+    // Format services text to be bilingual and include the URL
+    const servicesText = services?.map(s => 
+      `- **${s.title_en}** (ES: ${s.title_es || 'N/A'}): ${s.description_en} (ES: ${s.description_es || 'N/A'}) - Link: ${s.url || '/services'}`
+    ).join('\n') || 'App Design, App Development, Product Strategy';
+
     const faqsText = faqs?.map(f => `- **Q:** ${f.question_en}\n  **A:** ${f.answer_en}`).join('\n') || 'Typical project takes 2-3 months.';
     
-    // FIX: Removed the hallucinated fallback string so it never injects "Smarter Patient Portal" again
     const projectsText = projects && projects.length > 0 
       ? projects.map(p => `- **[${p.title_en}](/projects/${p.slug})**: ${p.description_en}`).join('\n') 
       : 'No specific projects loaded right now. Please check the [Projects](/projects) page.';
@@ -52,7 +55,7 @@ Your goal is to help visitors learn about Coriyon's work, process, and services 
 
 **Site Map & Linking Rules:**
 - ALWAYS provide Markdown links when recommending a page, service, or project.
-- Services: [Services](/about#services)
+- Services: [Services](/services)
 - Process: [Process](/#process)
 - Testimonials: [Testimonials](/about#testimonials)
 - FAQs: [FAQs](/about#faqs)

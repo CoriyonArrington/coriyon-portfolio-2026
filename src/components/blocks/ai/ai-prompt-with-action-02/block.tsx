@@ -11,9 +11,10 @@ import MarkdownRenderer from '@/components/ui/markdown-renderer'
 interface AIBlockProps {
   dict?: any;
   locale?: string;
+  isHero?: boolean;
 }
 
-export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
+export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => {
   const { playHover, playWhoosh } = useUiSounds()
   
   const [messages, setMessages] = useState<any[]>([])
@@ -121,7 +122,6 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
     sendMessage(text);
   };
 
-  // FIX: Updated to high-value prompts targeting hiring managers and modern product needs
   const defaultPrompts = locale === 'es' ? [
     { text: "¿Cómo utilizas la IA en el diseño de productos?", icon: <HiSparkles /> },
     { text: "Cuéntame sobre tu caso de estudio más impactante", icon: <HiBookOpen /> },
@@ -143,8 +143,17 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
         <Container maxW="4xl" flex="1" display="flex" flexDirection="column" pt={{ base: "8", md: "8" }} pb="4">
           
           {messages.length === 0 ? (
-            <Stack gap="8" my="auto" w="full">
-              <Heading size={{ base: "2xl", md: "3xl" }} fontWeight="bold" letterSpacing="tight" textAlign="left" lineHeight="1.3" pr="12">
+            <Stack gap={isHero ? { base: "8", md: "12" } : "8"} my="auto" w="full" align={isHero ? "center" : "flex-start"} textAlign={isHero ? "center" : "left"}>
+              <Heading 
+                as={isHero ? "h1" : "h2"}
+                size={isHero ? { base: "4xl", md: "5xl", lg: "6xl" } : { base: "2xl", md: "3xl" }} 
+                fontWeight="bold" 
+                letterSpacing="tight" 
+                lineHeight={{ base: "1.2", md: "1.1" }}
+                maxW="4xl"
+                mx={isHero ? "auto" : "0"}
+                pr={isHero ? "0" : "12"}
+              >
                 <Span color="fg.default">
                   {locale === 'es' ? "Hola, soy la " : "Hi, I'm "}
                   <Span color="green.600">
@@ -152,7 +161,7 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
                   </Span>
                 </Span> 
                 <br />
-                <Span color="fg.muted" fontWeight="medium" fontSize={{ base: "xl", md: "2xl" }}>
+                <Span color="fg.muted" fontWeight="medium" fontSize={isHero ? { base: "2xl", md: "3xl" } : { base: "xl", md: "2xl" }} mt={isHero ? "4" : "0"} display="block">
                   {locale === 'es' ? "¿Cómo puedo ayudarte?" : "How can I help you?"}
                 </Span>
               </Heading>
@@ -164,14 +173,7 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
                     icon={prompt.icon} 
                     onClick={() => handlePromptClick(prompt.text)}
                     onMouseEnter={() => playHover()}
-                    h="auto"
-                    minH="4rem"
-                    py="4"
-                    px="5"
-                    whiteSpace="normal"
-                    textAlign="left"
-                    justifyContent="flex-start"
-                    alignItems="flex-start"
+                    isLarge={isHero}
                   >
                     {prompt.text}
                   </PromptButton>
