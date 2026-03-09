@@ -23,7 +23,13 @@ export default async function ChatPage({
   const locale = resolvedParams.locale;
   const currentLocale = locale || 'en';
   
-  const homeData = await getCachedPage('home');
+  // Fetch both home data (for navbar/footer) and chat data (for the AI hero)
+  const [chatData, homeData] = await Promise.all([
+    getCachedPage('chat'),
+    getCachedPage('home')
+  ]);
+  
+  const chatContent = chatData?.[`content_${currentLocale}`] || chatData?.content_en || {};
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {};
 
   return (
@@ -36,7 +42,8 @@ export default async function ChatPage({
         pt={{ base: 28, md: 32 }}
         className="pattern-dots"
       >
-        <AiBlock locale={currentLocale} isHero={true} />
+        {/* Pass the specific chat content down to the AI block */}
+        <AiBlock locale={currentLocale} isHero={true} dict={chatContent} />
       </Box>
 
       <FooterBlock dict={homeContent.footer} />

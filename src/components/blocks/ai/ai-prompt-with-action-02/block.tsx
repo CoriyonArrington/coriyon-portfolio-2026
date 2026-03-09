@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
-import { Box, Button, Center, Container, Flex, Heading, HStack, IconButton, SimpleGrid, Span, Stack, Text, Textarea } from '@chakra-ui/react'
+import { useRef, useEffect, useState, useMemo } from 'react'
+import { Box, Button, Center, Container, Flex, Heading, HStack, IconButton, SimpleGrid, Span, Stack, Text, Textarea, Highlight } from '@chakra-ui/react'
 import { HiBookOpen, HiLightBulb, HiTerminal, HiSparkles } from 'react-icons/hi'
 import { LuSendHorizontal, LuUser, LuBot } from 'react-icons/lu'
 import { PromptButton } from './prompt-button'
@@ -27,6 +27,17 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  // Extract hero text from dict or use widget fallbacks
+  const rawTitle = dict?.hero?.title || (locale === 'es' ? "Hola, soy la *IA de Coriyon.*" : "Hi, I'm *Coriyon's AI.*")
+  const rawDescription = dict?.hero?.description || (locale === 'es' ? "¿Cómo puedo ayudarte?" : "How can I help you?")
+
+  const { displayTitle, highlightQueries } = useMemo(() => {
+    const matches = rawTitle.match(/\*(.*?)\*/g)
+    const queries = matches ? matches.map((m: string) => m.replace(/\*/g, '')) : []
+    const cleanText = rawTitle.replace(/\*/g, '')
+    return { displayTitle: cleanText, highlightQueries: queries }
+  }, [rawTitle])
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
@@ -97,8 +108,8 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
 
       if (error.message === 'RATE_LIMIT_EXCEEDED') {
         fallbackMessage = locale === 'es'
-          ? '¡He alcanzado mi límite de mensajes por ahora! La IA está tomando un descanso. Mientras tanto, puedes **[ver los servicios](/about#services)** o contactar a Coriyon directamente.'
-          : 'I have reached my message quota for right now! The AI is taking a quick nap. In the meantime, feel free to **[browse services](/about#services)** or contact Coriyon directly.';
+          ? '¡He alcanzado mi límite de mensajes por ahora! La IA está tomando un descanso. Mientras tanto, puedes **[ver los servicios](/services)** o contactar a Coriyon directamente.'
+          : 'I have reached my message quota for right now! The AI is taking a quick nap. In the meantime, feel free to **[browse services](/services)** or contact Coriyon directly.';
       }
 
       setMessages(prev => {
@@ -154,15 +165,12 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
                 mx={isHero ? "auto" : "0"}
                 pr={isHero ? "0" : "12"}
               >
-                <Span color="fg.default">
-                  {locale === 'es' ? "Hola, soy la " : "Hi, I'm "}
-                  <Span color="green.600">
-                    {locale === 'es' ? "IA de Coriyon." : "Coriyon's AI."}
-                  </Span>
-                </Span> 
+                <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
+                  {displayTitle}
+                </Highlight>
                 <br />
                 <Span color="fg.muted" fontWeight="medium" fontSize={isHero ? { base: "2xl", md: "3xl" } : { base: "xl", md: "2xl" }} mt={isHero ? "4" : "0"} display="block">
-                  {locale === 'es' ? "¿Cómo puedo ayudarte?" : "How can I help you?"}
+                  {rawDescription}
                 </Span>
               </Heading>
 
