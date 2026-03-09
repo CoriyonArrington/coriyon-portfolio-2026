@@ -19,7 +19,12 @@ export function useScrollSpy<T extends { id: string }>(options: HookOptions<T>) 
     const observer = new win.IntersectionObserver(
       (entries) => {
         const intersectingEntries = entries.filter((entry) => entry.isIntersecting)
-        setActiveId(intersectingEntries.map((entry) => entry.target.id))
+        // FIX: Only update activeId if there is actually a new intersecting entry.
+        // This prevents the active state from clearing and resetting to the first item
+        // when scrolling fast between the rootMargin gaps.
+        if (intersectingEntries.length > 0) {
+          setActiveId(intersectingEntries.map((entry) => entry.target.id))
+        }
       },
       { rootMargin },
     )

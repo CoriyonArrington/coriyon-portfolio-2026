@@ -44,7 +44,6 @@ export const Block = ({ tocData, title }: BlockProps) => {
     <Box position="relative" w="full">
       <Collapsible.Root open={isOpen} onOpenChange={(details) => setIsOpen(details.open)}>
         
-        {/* Pop-up Menu Content */}
         <Collapsible.Content
           style={{
             position: 'absolute',
@@ -91,10 +90,10 @@ export const Block = ({ tocData, title }: BlockProps) => {
           </Box>
         </Collapsible.Content>
 
-        {/* Trigger Pill - Exact pixel height to match FAB perfectly */}
+        {/* Trigger Pill */}
         <Box 
           px={{ base: "5", md: "6" }} 
-          h={{ base: "56px", md: "64px" }}
+          h="64px"
           w="full" 
           bg="bg.panel/90" 
           backdropFilter="blur(16px) saturate(180%)" 
@@ -105,8 +104,9 @@ export const Block = ({ tocData, title }: BlockProps) => {
           transition="all 0.2s"
           _hover={{ shadow: 'xl', bg: 'bg.panel' }}
         >
-          <Collapsible.Trigger width="full" height="full" display="flex" alignItems="center" justifyContent="space-between" cursor="pointer">
-            <HStack gap="3" overflow="hidden">
+          {/* FIX: Aligned left on all screen sizes to balance the FAB */}
+          <Collapsible.Trigger width="full" height="full" display="flex" alignItems="center" justifyContent="flex-start" cursor="pointer">
+            <HStack gap="3" overflow="hidden" flex="1">
               <LuList color="var(--chakra-colors-fg-muted)" style={{ flexShrink: 0 }} />
               <Heading textStyle="sm" fontWeight="semibold" color="fg.default" whiteSpace="nowrap" display={{ base: isOpen ? "block" : "none", md: "block" }}>
                 {title || "Case Study Navigation"}
@@ -123,7 +123,7 @@ export const Block = ({ tocData, title }: BlockProps) => {
                 </>
               )}
             </HStack>
-            <Box transition="transform 0.2s" transform={isOpen ? 'rotate(180deg)' : 'rotate(0deg)'} color="fg.muted" style={{ flexShrink: 0 }} ml="2">
+            <Box transition="transform 0.2s" transform={isOpen ? 'rotate(180deg)' : 'rotate(0deg)'} color="fg.muted" style={{ flexShrink: 0 }} ml="4">
               <LuChevronUp />
             </Box>
           </Collapsible.Trigger>
