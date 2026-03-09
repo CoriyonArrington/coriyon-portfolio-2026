@@ -19,7 +19,6 @@ import { DownloadTrigger } from '@/components/ui/download-trigger'
 import NextImage from 'next/image'
 import dynamic from 'next/dynamic'
 
-// Dynamically import the Lottie player to prevent it from blocking the main thread!
 const LottiePlayer = dynamic(
   () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact), 
   { ssr: false }
@@ -72,17 +71,13 @@ export const Block = ({ dict }: TimelineSectionProps) => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        html, body {
-          overflow-x: clip !important;
-        }
-      `}} />
-
       <Box 
         as="section" 
         py={{ base: '16', md: '24', lg: '32' }} 
         ref={sectionRef as unknown as React.RefObject<HTMLDivElement>} 
         className="pattern-dots"
+        overflowX="clip" // FIX: Localized clipping prevents horizontal scroll without breaking anchor links
+        w="full"
       >
         <Container maxW="7xl">
           <SimpleGrid 

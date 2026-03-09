@@ -1,5 +1,6 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
+import { unstable_cache } from "next/cache"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
 import { Block as HomeHero } from "@/components/blocks/heroes/home-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
@@ -9,46 +10,66 @@ import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-// OPTIMIZATION 3: ISR (Cache for 1 hour). 
-// Next.js will serve a blazing-fast cached page and update it in the background if data changes.
 export const revalidate = 3600 
+
+const getCachedPage = unstable_cache(
+  async (slug: string) => {
+    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+    return data || {}
+  },
+  ['page-data'],
+  { revalidate: 3600, tags: ['pages'] }
+)
+
+const getCachedProjects = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
+    return data || []
+  },
+  ['published-projects-list'],
+  { revalidate: 3600, tags: ['projects'] }
+)
+
+const getCachedFeaturedTestimonials = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
+    return data || []
+  },
+  ['featured-testimonials'],
+  { revalidate: 3600, tags: ['testimonials'] }
+)
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION 2: Parallelize data fetching to eliminate the waterfall delay
-  // Added .eq('status', 'published') to ensure drafts don't leak into the UI
-  const [
-    { data: pageData },
-    { data: projects },
-    { data: featuredTestimonials }
-  ] = await Promise.all([
-    supabase.from('pages').select('*').eq('slug', 'home').single(),
-    supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true }),
-    supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
+  const [pageData, projects, featuredTestimonials] = await Promise.all([
+    getCachedPage('home'),
+    getCachedProjects(),
+    getCachedFeaturedTestimonials()
   ]);
 
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
 
-  const localizedProjects = projects?.map(p => ({
+  const localizedProjects = projects?.map((p: any) => ({
     id: p.id,
     title: p[`title_${currentLocale}`] || p.title_en || p.title,
     description: p[`description_${currentLocale}`] || p.description_en || p.description,
-    image_url: p.featured_image_url, 
+    image_url: p.featured_image_url, // Satisfies Project interface
+    src: p.featured_image_url,       // Satisfies CategoryItem usage
     videoUrl: p.featured_video_url, 
-    link_url: `/${currentLocale}/projects/${p.slug}`,
+    link_url: `/${currentLocale}/projects/${p.slug}`, // Satisfies Project interface
+    url: `/${currentLocale}/projects/${p.slug}`,      // Satisfies CategoryItem usage
     bgColor: p.bg_color,
     mockupType: p.mockup_type,
     category: p.project_category,
     projectType: p.project_type
   }))
   
-  // Split using projectType instead of string matching
-  const regularProjects = localizedProjects?.filter(p => p.projectType !== 'playground') || []
-  const playgroundProjects = localizedProjects?.filter(p => p.projectType === 'playground') || []
+  const regularProjects = localizedProjects?.filter((p: any) => p.projectType !== 'playground') || []
+  const playgroundProjects = localizedProjects?.filter((p: any) => p.projectType === 'playground') || []
   
-  const featuredProject = projects?.find(p => p.featured === true)
+  const featuredProject = projects?.find((p: any) => p.featured === true)
 
   const featuredTestimonial = featuredTestimonials?.[0] ? {
     ...featuredTestimonials[0],
@@ -63,7 +84,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         
         <Box className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            {/* OPTIMIZATION 1: Removed FadeIn wrapper to ensure instant LCP painting */}
             <HomeHero 
               dict={content.hero}
               title={content.hero?.title || featuredProject?.[`title_${currentLocale}`] || featuredProject?.title_en}
@@ -75,7 +95,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </Container>
         </Box>
 
-        {/* FIX: Added id="testimonials" so the hero header click target resolves correctly */}
         <Box id="testimonials" py={{ base: "16", md: "24" }} bg={{ base: "bg.emphasized", _dark: "black" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>

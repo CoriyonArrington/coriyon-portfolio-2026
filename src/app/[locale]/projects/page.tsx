@@ -1,5 +1,6 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
+import { unstable_cache } from "next/cache"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
 import { Block as ProjectsHero } from "@/components/blocks/heroes/projects-page/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
@@ -7,43 +8,56 @@ import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-// OPTIMIZATION: Enable ISR caching
 export const revalidate = 3600 
+
+const getCachedPage = unstable_cache(
+  async (slug: string) => {
+    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+    return data || {}
+  },
+  ['page-data'],
+  { revalidate: 3600, tags: ['pages'] }
+)
+
+const getCachedProjects = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
+    return data || []
+  },
+  ['published-projects-list'],
+  { revalidate: 3600, tags: ['projects'] }
+)
 
 export default async function ProjectsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION: Parallelize Data Fetching & Filter for published status at the DB level
-  const [
-    { data: projectsPageData },
-    { data: homeData },
-    { data: projects }
-  ] = await Promise.all([
-    supabase.from('pages').select('*').eq('slug', 'projects').single(),
-    supabase.from('pages').select('*').eq('slug', 'home').single(),
-    supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
+  const [projectsPageData, homeData, projects] = await Promise.all([
+    getCachedPage('projects'),
+    getCachedPage('home'),
+    getCachedProjects()
   ]);
 
   const projectsContent = projectsPageData?.[`content_${currentLocale}`] || projectsPageData?.content_en || {}
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {}
 
-  const localizedProjects = projects?.map(p => ({
+  const localizedProjects = projects?.map((p: any) => ({
     id: p.id,
     title: p[`title_${currentLocale}`] || p.title_en || p.title,
     description: p[`description_${currentLocale}`] || p.description_en || p.description,
     image_url: p.featured_image_url, 
+    src: p.featured_image_url, 
     videoUrl: p.featured_video_url, 
-    link_url: `/${currentLocale}/projects/${p.slug}`,
+    link_url: `/${currentLocale}/projects/${p.slug}`, 
+    url: `/${currentLocale}/projects/${p.slug}`, 
     bgColor: p.bg_color,
     mockupType: p.mockup_type,
     category: p.project_category,
     projectType: p.project_type 
   }))
   
-  // Split sections using the new project_type enum instead of category
-  const regularProjects = localizedProjects?.filter(p => p.projectType !== 'playground') || []
-  const playgroundProjects = localizedProjects?.filter(p => p.projectType === 'playground') || []
+  const regularProjects = localizedProjects?.filter((p: any) => p.projectType !== 'playground') || []
+  const playgroundProjects = localizedProjects?.filter((p: any) => p.projectType === 'playground') || []
 
   return (
     <Box bg="bg.canvas" minH="100vh">
@@ -52,7 +66,6 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
       <Stack gap="0">
         <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            {/* OPTIMIZATION: Removed FadeIn to unblock LCP */}
             <ProjectsHero 
               dict={{ 
                 ...projectsContent.hero, 
