@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { Box, Button, Center, Container, Flex, Heading, HStack, IconButton, SimpleGrid, Span, Stack, Text, Textarea } from '@chakra-ui/react'
-import { HiBookOpen, HiLightBulb, HiTerminal } from 'react-icons/hi'
+import { HiBookOpen, HiLightBulb, HiTerminal, HiSparkles } from 'react-icons/hi'
 import { LuSendHorizontal, LuUser, LuBot } from 'react-icons/lu'
 import { PromptButton } from './prompt-button'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
@@ -32,7 +32,6 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
 
     playWhoosh();
     
-    // FIX: Generate mathematically unique IDs to guarantee React keys never collide
     const userMsgId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const assistantMsgId = `ai-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -64,7 +63,6 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       
-      // Insert the empty assistant bubble that will receive the stream
       setMessages(prev => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
 
       let fullText = '';
@@ -88,7 +86,6 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
         );
       }
     } catch (error: any) {
-      // FIX: Only log real errors to the console, suppressing the expected quota limit warnings
       if (error.message !== 'RATE_LIMIT_EXCEEDED') {
         console.error('❌ Failed to send message:', error);
       }
@@ -103,8 +100,6 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
           : 'I have reached my message quota for right now! The AI is taking a quick nap. In the meantime, feel free to **[browse services](/about#services)** or contact Coriyon directly.';
       }
 
-      // FIX: Intelligently check if the empty bubble was already created. 
-      // If it exists, overwrite it with the fallback message. If not, append a new one.
       setMessages(prev => {
         const exists = prev.some(m => m.id === assistantMsgId);
         if (exists) {
@@ -126,16 +121,17 @@ export const Block = ({ dict, locale = 'en' }: AIBlockProps) => {
     sendMessage(text);
   };
 
+  // FIX: Updated to high-value prompts targeting hiring managers and modern product needs
   const defaultPrompts = locale === 'es' ? [
-    { text: "¿Qué servicios ofreces?", icon: <HiLightBulb /> },
-    { text: "Cuéntame sobre tu proceso de diseño", icon: <HiTerminal /> },
-    { text: "Muéstrame tus experimentos técnicos", icon: <HiBookOpen /> },
-    { text: "Reserva una llamada de introducción", icon: <HiLightBulb /> }
+    { text: "¿Cómo utilizas la IA en el diseño de productos?", icon: <HiSparkles /> },
+    { text: "Cuéntame sobre tu caso de estudio más impactante", icon: <HiBookOpen /> },
+    { text: "¿Cuál es tu enfoque para la estrategia de producto?", icon: <HiTerminal /> },
+    { text: "¿Qué impacto comercial has impulsado?", icon: <HiLightBulb /> }
   ] : [
-    { text: "What services do you offer?", icon: <HiLightBulb /> },
-    { text: "Tell me about your design process", icon: <HiTerminal /> },
-    { text: "Show me your technical experiments", icon: <HiBookOpen /> },
-    { text: "Book an intro call", icon: <HiLightBulb /> }
+    { text: "How do you use AI in product design?", icon: <HiSparkles /> },
+    { text: "Tell me about your most impactful case study", icon: <HiBookOpen /> },
+    { text: "What is your approach to product strategy?", icon: <HiTerminal /> },
+    { text: "What business impact have you driven?", icon: <HiLightBulb /> }
   ]
 
   const prompts = dict?.prompts || defaultPrompts

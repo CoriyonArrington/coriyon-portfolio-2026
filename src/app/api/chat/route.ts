@@ -20,13 +20,18 @@ export async function POST(req: Request) {
     ] = await Promise.all([
       supabase.from('services').select('title_en, description_en').order('sort_order'),
       supabase.from('faqs').select('question_en, answer_en'),
-      supabase.from('projects').select('title_en, description_en, slug').eq('status', 'PUBLISHED').limit(3),
+      // FIX: Changed 'PUBLISHED' to 'published' to match DB enum, and ordered by sort_order
+      supabase.from('projects').select('title_en, description_en, slug').eq('status', 'published').order('sort_order', { ascending: true }),
       supabase.from('pages').select('slug, content_en, content_es')
     ]);
 
     const servicesText = services?.map(s => `- **${s.title_en}**: ${s.description_en}`).join('\n') || 'App Design, App Development, Product Strategy';
     const faqsText = faqs?.map(f => `- **Q:** ${f.question_en}\n  **A:** ${f.answer_en}`).join('\n') || 'Typical project takes 2-3 months.';
-    const projectsText = projects?.map(p => `- **[${p.title_en}](/projects/${p.slug})**: ${p.description_en}`).join('\n') || '- [Smarter Patient Portal](/projects)\n- [AI-Built Therapy App](/projects)';
+    
+    // FIX: Removed the hallucinated fallback string so it never injects "Smarter Patient Portal" again
+    const projectsText = projects && projects.length > 0 
+      ? projects.map(p => `- **[${p.title_en}](/projects/${p.slug})**: ${p.description_en}`).join('\n') 
+      : 'No specific projects loaded right now. Please check the [Projects](/projects) page.';
     
     const allPagesText = pages?.map(page => 
       `--- Page: ${page.slug} ---\n` +
