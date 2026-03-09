@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Dialog, SimpleGrid, Portal, IconButton, Highlight } from '@chakra-ui/react'
+import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Dialog, SimpleGrid, Portal, IconButton } from '@chakra-ui/react'
 import { LuChevronDown, LuEye, LuX } from 'react-icons/lu'
 import Image from 'next/image'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
@@ -28,6 +28,7 @@ interface HeroProps {
   duration?: string | null;
   year?: string | number | null;
   teamRoles?: string | null;
+  users?: string | null;
   deliverables?: string | null;
   summary?: string | null;
   industries?: string | null;
@@ -37,21 +38,18 @@ interface HeroProps {
 export const Block = ({ 
   dict, title, description, tagline, imageUrl, videoUrl, mockupType, bgColor,
   buttonColor, primaryCtaText, secondaryCtaText, primaryScrollTo, isProtected, overviewData, interactiveElement,
-  role, duration, year, teamRoles, deliverables, summary, industries, platforms
+  role, duration, year, teamRoles, users, deliverables, summary, industries, platforms
 }: HeroProps) => {
   const { playClick, playHover } = useUiSounds()
   const [mounted, setMounted] = useState(false) 
 
   useEffect(() => {
     setMounted(true) 
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [])
 
   const handleScroll = () => {
     playClick()
-    
-    // Target the password section if protected, otherwise use the standard scroll targets
-    const targetId = isProtected ? 'unlock-section' : (primaryScrollTo || 'projects')
+    const targetId = isProtected ? 'password-section' : (primaryScrollTo || 'projects')
     const element = document.getElementById(targetId) || document.getElementById('playground-projects')
     
     if (element) {
@@ -63,11 +61,9 @@ export const Block = ({
   }
 
   const rawTitle = title || dict?.title || 'Project title'
-  const { displayTitle, highlightQueries } = useMemo(() => {
-    const matches = rawTitle.match(/\*(.*?)\*/g)
-    const queries = matches ? matches.map((m: string) => m.replace(/\*/g, '')) : []
-    const cleanText = rawTitle.replace(/\*/g, '')
-    return { displayTitle: cleanText, highlightQueries: queries }
+  
+  const titleParts = useMemo(() => {
+    return rawTitle.split(/(\*[^*]+\*)/g)
   }, [rawTitle])
 
   const finalTagline = tagline || dict?.tagline;
@@ -80,6 +76,7 @@ export const Block = ({
   const displayDuration = duration || overviewData?.duration || dict?.stats?.duration;
   const displayYear = year || overviewData?.year || dict?.stats?.year;
   const displayTeamRoles = teamRoles || overviewData?.teamRoles || dict?.stats?.teamRoles;
+  const displayUsers = users || overviewData?.users || dict?.stats?.users;
   const displayDeliverables = deliverables || overviewData?.deliverables || dict?.stats?.deliverables;
   const displaySummary = summary || overviewData?.summary || dict?.stats?.summary;
   const displayIndustries = industries || overviewData?.industries || dict?.stats?.industries;
@@ -89,6 +86,9 @@ export const Block = ({
   const isTablet = normalizedMockupType === 'tablet' || normalizedMockupType === 'ipad'
   const isPhone = normalizedMockupType === 'phone' || normalizedMockupType === 'mobile' || normalizedMockupType === 'iphone'
   const isPadded = normalizedMockupType === 'padded'
+
+  // FIX: Protects against "transparent" being used as the actual button/text color while still allowing dynamic overrides
+  const themeColor = (bgColor && bgColor !== 'transparent') ? bgColor : (buttonColor || "green.600")
 
   const MediaContent = () => (
     <>
@@ -128,7 +128,6 @@ export const Block = ({
   )
 
   return (
-    // FIX: Removed inline bg="transparent" so the pattern-dots class can render its background correctly
     <VStack className="pattern-dots" position="relative" gap={{ base: '8', md: '12' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={{ base: '8', md: '12' }}>
       <Stack gap="6" align="center" px={{ base: '4', md: '8' }}>
         {finalTagline && (
@@ -146,9 +145,16 @@ export const Block = ({
           fontWeight="bold"
           letterSpacing="tight"
         >
-          <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
-            {displayTitle}
-          </Highlight>
+          {titleParts.map((part: string, index: number) => {
+            if (part.startsWith('*') && part.endsWith('*')) {
+              return (
+                <Box as="span" key={index} color={themeColor}>
+                  {part.slice(1, -1)}
+                </Box>
+              )
+            }
+            return <span key={index}>{part}</span>
+          })}
         </Heading>
         
         <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} maxW="2xl" mx="auto">
@@ -161,7 +167,7 @@ export const Block = ({
             h={{ base: 14, md: 16 }}
             px={{ base: 6, md: 8 }}
             fontSize="lg"
-            bg={bgColor || buttonColor || "green.600"} 
+            bg={themeColor} 
             color="white"
             _hover={{ opacity: 0.85 }} 
             onClick={handleScroll} 
@@ -253,6 +259,12 @@ export const Block = ({
                             <Box>
                               <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Team roles</Text>
                               <Text fontWeight="medium">{displayTeamRoles}</Text>
+                            </Box>
+                          )}
+                          {displayUsers && (
+                            <Box gridColumn={{ md: "span 2" }}>
+                              <Text fontWeight="semibold" color="fg.muted" mb="1" fontSize="sm">Target Users</Text>
+                              <Text fontWeight="medium">{displayUsers}</Text>
                             </Box>
                           )}
                           {displayDeliverables && (
