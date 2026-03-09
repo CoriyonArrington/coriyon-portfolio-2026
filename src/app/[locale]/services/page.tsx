@@ -6,16 +6,16 @@ import { Block as FaqBlock } from '@/components/blocks/faqs/faq-with-inline-head
 import { Block as CtaBlock } from '@/components/blocks/cta/cta-08/block'
 import { Block as FooterBlock } from '@/components/blocks/footers/footer-with-address/block'
 import { supabase } from '@/lib/supabase'
-import { unstable_cache } from 'next/cache'
 
-const getCachedPage = unstable_cache(
-  async (slug: string) => {
-    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
-    return data || {}
-  },
-  ['page-data'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+// OPTIMIZATION: Force dynamic rendering so pricing updates show immediately
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+// Removed unstable_cache to ensure we pull fresh data dynamically on every load
+const getPageData = async (slug: string) => {
+  const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+  return data || {}
+}
 
 export default async function ServicesPage({
   params
@@ -27,8 +27,8 @@ export default async function ServicesPage({
   const currentLocale = locale || 'en';
   
   const [servicesData, homeData] = await Promise.all([
-    getCachedPage('services'),
-    getCachedPage('home')
+    getPageData('services'),
+    getPageData('home')
   ]);
     
   const content = servicesData?.[`content_${currentLocale}`] || servicesData?.content_en || {};
