@@ -4,6 +4,7 @@ import { Box, Button, Heading, Stack, Text, Center } from '@chakra-ui/react'
 import Image from 'next/image'
 import NextLink from 'next/link'
 import { m } from 'motion/react'
+import { useUiSounds } from '@/hooks/use-ui-sounds'
 
 interface CategoryItemProps {
   dict?: any
@@ -22,6 +23,7 @@ interface CategoryItemProps {
 
 export const CategoryItem = (props: CategoryItemProps) => {
   const { dict, data, minH, priority } = props
+  const { playClick, playHover } = useUiSounds()
   
   const showMockup = data.mockupType === 'phone' || data.mockupType === 'tablet'
   const isTablet = data.mockupType === 'tablet'
@@ -30,29 +32,17 @@ export const CategoryItem = (props: CategoryItemProps) => {
 
   const validSrc = data.src && data.src.trim() !== "" ? data.src : null
 
-  const DoubleLayerMedia = () => (
-    <>
-      {validSrc && (
-        <Box position="absolute" inset="0" zIndex="0">
-          <Image
-            src={validSrc}
-            alt={data.title}
-            fill
-            priority={priority}
-            style={{ objectFit: isPadded ? 'contain' : 'cover' }}
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
-        </Box>
-      )}
-
-      {hasVideo && (
+  // FIX: Make media rendering mutually exclusive so it doesn't render both and cause a flicker
+  const ExclusiveMedia = () => {
+    if (hasVideo) {
+      return (
         <video
           src={data.videoUrl!}
           autoPlay 
           loop 
           muted 
           playsInline
-          poster={validSrc || undefined}
+          poster={validSrc || undefined} // Relies entirely on the native HTML poster for the fallback
           preload={priority ? "auto" : "metadata"}
           style={{ 
             position: 'absolute', 
@@ -63,9 +53,26 @@ export const CategoryItem = (props: CategoryItemProps) => {
             zIndex: 1 
           }}
         />
-      )}
-    </>
-  )
+      )
+    }
+
+    if (validSrc) {
+      return (
+        <Box position="absolute" inset="0" zIndex="0">
+          <Image
+            src={validSrc}
+            alt={data.title}
+            fill
+            priority={priority}
+            style={{ objectFit: isPadded ? 'contain' : 'cover' }}
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        </Box>
+      )
+    }
+
+    return null;
+  }
 
   return (
     <Box 
@@ -79,7 +86,11 @@ export const CategoryItem = (props: CategoryItemProps) => {
       minH={minH}
       cursor="pointer"
     >
-      <NextLink href={data.url || '#'}>
+      <NextLink 
+        href={data.url || '#'} 
+        onClick={playClick} 
+        onMouseEnter={playHover}
+      >
         <m.div
           layout
           initial={{ opacity: 0, scale: 0.9 }}
@@ -94,7 +105,7 @@ export const CategoryItem = (props: CategoryItemProps) => {
               <Box position="relative" h="full" w="full" maxH={isTablet ? "360px" : "480px"} display="flex" justifyContent="center" alignItems="center">
                 <Box position="relative" h="full" aspectRatio={isTablet ? '1106/814' : '422/862'}>
                   <Box position="absolute" inset={isTablet ? "4.8% 4.2%" : "2.2% 5.2% 2.2% 5.2%"} borderRadius={isTablet ? "sm" : "3xl"} overflow="hidden" bg="black" zIndex="0">
-                    <DoubleLayerMedia />
+                    <ExclusiveMedia />
                   </Box>
                   <Box position="relative" h="full" w="auto" aspectRatio={isTablet ? '1106/814' : '422/862'} zIndex="1">
                     <Image
@@ -124,12 +135,10 @@ export const CategoryItem = (props: CategoryItemProps) => {
               justifyContent="center"
             >
                <Box position="relative" w="full" aspectRatio="16/9" borderRadius="xl" overflow="hidden" shadow="2xl">
-                 <DoubleLayerMedia />
+                 <ExclusiveMedia />
                </Box>
             </Box>
           ) : (
-            // FIX: For videos/images where mockupType is null. 
-            // Creates a 16:9 ratio box so the sides of your pre-rendered videos don't get chopped off!
             <Box 
               position="absolute" 
               inset="0" 
@@ -137,10 +146,10 @@ export const CategoryItem = (props: CategoryItemProps) => {
               display="flex"
               alignItems="center"
               justifyContent="center"
-              pb={{ base: '28', md: '40' }} // Pushes the video up so it doesn't overlap with the title text
+              pb={{ base: '28', md: '40' }} 
             >
                <Box position="relative" w="full" aspectRatio="16/9" overflow="hidden">
-                 <DoubleLayerMedia />
+                 <ExclusiveMedia />
                </Box>
             </Box>
           )}

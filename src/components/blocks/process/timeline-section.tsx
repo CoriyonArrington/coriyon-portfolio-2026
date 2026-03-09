@@ -197,7 +197,6 @@ export const Block = ({ dict }: TimelineSectionProps) => {
 const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }) => {
   const itemRef = useRef<HTMLDivElement>(null)
   const { playHover } = useUiSounds()
-  const [isLottieReady, setIsLottieReady] = useState(false)
 
   const { scrollYProgress } = useScroll({
     target: itemRef,
@@ -253,7 +252,7 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
             )}
           </Stack>
           
-          {step.imageSrc && (
+          {(step.imageSrc || step.lottieUrl) && (
             <m.div
               whileHover={{ y: -8, scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -271,44 +270,31 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
                 position="relative"
                 role="group"
               >
-                <Box 
-                  position="absolute" 
-                  inset="0" 
-                  transition="transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
-                  _groupHover={{ transform: (step.lottieUrl && isLottieReady) ? "none" : "scale(1.05)" }}
-                >
-                  <NextImage 
-                    src={step.imageSrc} 
-                    alt={step.heading} 
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </Box>
-
-                {step.lottieUrl && (
-                  <Box 
-                    position="absolute" 
-                    inset="0" 
-                    zIndex="1" 
-                    bg={isLottieReady ? "bg.muted" : "transparent"} 
-                    opacity={isLottieReady ? 1 : 0}
-                    transition="opacity 0.5s ease"
-                  >
+                {step.lottieUrl ? (
+                  <Box position="absolute" inset="0" zIndex="1">
                     <LottiePlayer
                       src={step.lottieUrl}
                       loop
                       autoplay
-                      dotLottieRefCallback={(dotLottie: any) => {
-                        if (dotLottie) {
-                          dotLottie.addEventListener('load', () => setIsLottieReady(true));
-                          dotLottie.addEventListener('error', () => setIsLottieReady(false));
-                        }
-                      }}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </Box>
-                )}
+                ) : step.imageSrc ? (
+                  <Box 
+                    position="absolute" 
+                    inset="0" 
+                    transition="transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
+                    _groupHover={{ transform: "scale(1.05)" }}
+                  >
+                    <NextImage 
+                      src={step.imageSrc} 
+                      alt={step.heading} 
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </Box>
+                ) : null}
               </Box>
             </m.div>
           )}
