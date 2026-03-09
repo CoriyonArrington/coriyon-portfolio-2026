@@ -5,14 +5,11 @@ import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/nav
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
-
-// Import the specialized Project Detail Hero & your new Interactive Embed
-import { Block as ProjectDetailHero } from "@/components/blocks/heroes/project-detail-page/block"
+import { Block as PlaygroundHero } from "@/components/blocks/heroes/playground-page/block"
 import { InteractiveSpline } from "@/components/ui/interactive-spline"
 
 export const revalidate = 3600 
 
-// --- OPTIMIZATION: Next.js memory cache for DB queries to eliminate FCP delay ---
 const getCachedPage = unstable_cache(
   async (slug: string) => {
     const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
@@ -24,20 +21,17 @@ const getCachedPage = unstable_cache(
 
 const getCachedProjects = unstable_cache(
   async () => {
-    // FIX: Ensure we only pull published projects
     const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
     return data || []
   },
   ['published-projects-list'],
   { revalidate: 3600, tags: ['projects'] }
 )
-// ---------------------------------------------------------------------------------
 
 export default async function PlaygroundPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION: Parallelize Data Fetching using the lightning-fast memory cache
   const [
     playgroundData,
     homeData,
@@ -64,7 +58,6 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
     projectType: p.project_type 
   }))
   
-  // FIX: Split sections using the new project_type enum instead of category string parsing
   const playgroundProjects = localizedProjects?.filter((p: any) => p.projectType === 'playground') || []
 
   return (
@@ -72,18 +65,15 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
       <NavbarIsland dict={homeContent.navbar} />
       
       <Stack gap="0">
-        <ProjectDetailHero 
-          dict={playgroundContent.hero}
-          title={playgroundContent.hero?.title || "*Creative* Playground."}
-          description={playgroundContent.hero?.description || "A collection of experimental projects, interactive 3D scenes, and technical explorations."}
-          tagline={playgroundContent.hero?.tagline || "Experiments & Explorations"}
-          primaryCtaText="Explore projects"
-          secondaryCtaText="Show overview"
-          primaryScrollTo="playground-projects"
-          buttonColor="green.600"
-          bgColor="transparent"
-          interactiveElement={<InteractiveSpline />}
-        />
+        
+        <Box className="pattern-dots">
+          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+            <PlaygroundHero 
+              dict={playgroundContent.hero}
+              interactiveElement={<InteractiveSpline />}
+            />
+          </Container>
+        </Box>
 
         {playgroundProjects.length > 0 && (
           <Box id="playground-projects" py={{ base: "16", md: "24" }} borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots" position="relative">

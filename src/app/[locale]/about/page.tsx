@@ -1,4 +1,6 @@
-import { Box, Container, Stack } from "@chakra-ui/react"
+import { Box, Container, Stack, Button } from "@chakra-ui/react"
+import NextLink from "next/link"
+import { LuArrowRight } from "react-icons/lu"
 import { supabase } from "@/lib/supabase"
 import { unstable_cache } from "next/cache"
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
@@ -14,7 +16,6 @@ import { FadeIn } from "@/components/ui/fade-in"
 // OPTIMIZATION: Enable ISR caching
 export const revalidate = 3600 
 
-// --- OPTIMIZATION: Next.js memory cache for DB queries to eliminate FCP delay ---
 const getCachedPage = unstable_cache(
   async (slug: string) => {
     const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
@@ -50,13 +51,11 @@ const getCachedFaqs = unstable_cache(
   ['faqs-list'],
   { revalidate: 3600, tags: ['faqs'] }
 )
-// ---------------------------------------------------------------------------------
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION: Parallelize Data Fetching using the lightning-fast memory cache
   const [
     aboutData,
     homeData,
@@ -79,8 +78,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     title: s[`title_${currentLocale}`] || s.title_en || s.title,
     description: s[`description_${currentLocale}`] || s.description_en || s.description,
     icon_name: s.icon_name,
-    url: s.url
+    url: s.url,
+    featured: s.featured
   }))
+
+  // FIX: Explicitly filter out featured items (if the flag exists) and slice to a max of 6
+  const displayServices = localizedServices?.filter((s: any) => s.featured !== true).slice(0, 6) || []
 
   const localizedTestimonials = allTestimonials?.map((t: any) => ({
     ...t,
@@ -102,7 +105,6 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         
         <Box pt={{ base: "32", md: "40" }} pb={{ base: "8", md: "12" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            {/* OPTIMIZATION: Removed FadeIn to unblock LCP */}
             <AboutHero 
               dict={aboutContent.hero}
               title={aboutContent.hero?.title}
@@ -120,11 +122,20 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           </Container>
         </Box>
 
-        {/* FIX: Updated background to pure black in dark mode */}
         <Box id="services" py={{ base: "16", md: "24" }} bg={{ base: "bg.subtle", _dark: "black" }} borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <ServicesBlock dict={homeContent.services} services={localizedServices || []} />
+              <ServicesBlock dict={homeContent.services} services={displayServices} />
+              
+              {/* FIX: Aligned perfectly with the CategoryGrid view all button styles */}
+              <Stack mt="10" align="flex-start">
+                <Button variant="ghost" colorPalette="green" asChild size="lg">
+                  <NextLink href={`/${currentLocale}/services`}>
+                    {currentLocale === 'es' ? 'Ver todos los servicios' : 'View all services'} <LuArrowRight />
+                  </NextLink>
+                </Button>
+              </Stack>
+
             </FadeIn>
           </Container>
         </Box>
@@ -137,7 +148,6 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           </Container>
         </Box>
 
-        {/* FIX: Updated background to pure black in dark mode */}
         <Box id="faqs" bg={{ base: "bg.subtle", _dark: "black" }} py={{ base: "16", md: "24" }} className="pattern-grid" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
