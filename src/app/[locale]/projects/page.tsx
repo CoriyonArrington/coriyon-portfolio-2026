@@ -51,11 +51,16 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
     bgColor: p.bg_color,
     mockupType: p.mockup_type,
     category: p.project_category,
-    projectType: p.project_type 
-  }))
+    projectType: p.project_type,
+    featured: p.featured,
+    contentJson: p[`content_${currentLocale}`] || p.content_en || {}
+  })) || []
   
-  const regularProjects = localizedProjects?.filter((p: any) => p.projectType !== 'playground') || []
-  const playgroundProjects = localizedProjects?.filter((p: any) => p.projectType === 'playground') || []
+  const regularProjects = localizedProjects.filter((p: any) => p.projectType !== 'playground')
+  const playgroundProjects = localizedProjects.filter((p: any) => p.projectType === 'playground')
+  
+  // FIX: Explicitly find the featured project so we can inject its data into the Hero
+  const featuredProject = localizedProjects.find((p: any) => p.featured === true)
 
   return (
     <Stack gap="0" w="full">
@@ -67,19 +72,22 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
               exploreWork: projectsContent.hero?.exploreWork || (currentLocale === 'es' ? 'Ver proyectos' : 'View projects'), 
               showOverview: projectsContent.hero?.showOverview || (currentLocale === 'es' ? 'Resumen rápido' : 'Quick overview') 
             }}
-            title={projectsContent.hero?.title}
-            description={projectsContent.hero?.description}
+            // Prioritize the featured project data, falling back to generic page data
+            title={projectsContent.hero?.title || featuredProject?.title}
+            description={projectsContent.hero?.description || featuredProject?.description}
             tagline={projectsContent.hero?.tagline}
-            imageUrl={projectsContent.hero?.imageUrl}
-            videoUrl={projectsContent.hero?.videoUrl}
-            mockupType={projectsContent.hero?.mockupType}
-            bgColor={projectsContent.hero?.bgColor || "green.600"}
-            summary={projectsContent.hero?.summary}
-            role={projectsContent.hero?.role}
-            duration={projectsContent.hero?.duration}
-            year={projectsContent.hero?.year}
-            teamRoles={projectsContent.hero?.teamRoles}
-            deliverables={projectsContent.hero?.deliverables}
+            imageUrl={featuredProject?.image_url || projectsContent.hero?.imageUrl}
+            videoUrl={featuredProject?.videoUrl || projectsContent.hero?.videoUrl}
+            mockupType={featuredProject?.mockupType || projectsContent.hero?.mockupType}
+            bgColor={featuredProject?.bgColor || projectsContent.hero?.bgColor || "green.600"}
+            
+            // Pull the metadata from the featured project's overview JSON
+            summary={featuredProject?.contentJson?.overview?.oneLiner || projectsContent.hero?.summary}
+            role={featuredProject?.contentJson?.overview?.myRole || projectsContent.hero?.role}
+            duration={featuredProject?.contentJson?.overview?.timeframe?.total || projectsContent.hero?.duration}
+            year={featuredProject?.contentJson?.overview?.year || projectsContent.hero?.year}
+            teamRoles={featuredProject?.contentJson?.overview?.teamRoles || projectsContent.hero?.teamRoles}
+            deliverables={featuredProject?.contentJson?.overview?.deliverables || projectsContent.hero?.deliverables}
           />
         </Container>
       </Box>
