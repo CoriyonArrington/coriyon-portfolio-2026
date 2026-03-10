@@ -1,9 +1,7 @@
 import { Box, Stack, Container } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { unstable_cache } from "next/cache"
-import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
-import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block"
 import { FadeIn } from "@/components/ui/fade-in"
 import { Block as PlaygroundHero } from "@/components/blocks/heroes/playground-page/block"
 import { InteractiveSpline } from "@/components/ui/interactive-spline"
@@ -61,34 +59,27 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
   const playgroundProjects = localizedProjects?.filter((p: any) => p.projectType === 'playground') || []
 
   return (
-    <Box bg="bg.canvas" minH="100vh">
-      <NavbarIsland dict={homeContent.navbar} />
+    <Stack gap="0" w="full">
       
-      <Stack gap="0">
-        
-        <Box className="pattern-dots">
+      <Box className="pattern-dots">
+        <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+          <PlaygroundHero 
+            dict={playgroundContent.hero}
+            interactiveElement={<InteractiveSpline />}
+          />
+        </Container>
+      </Box>
+
+      {playgroundProjects.length > 0 && (
+        <Box id="playground-projects" py={{ base: "16", md: "24" }} borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots" position="relative">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-            <PlaygroundHero 
-              dict={playgroundContent.hero}
-              interactiveElement={<InteractiveSpline />}
-            />
+            <FadeIn>
+              <CategoryGrid dict={homeContent.playground} projects={playgroundProjects} />
+            </FadeIn>
           </Container>
         </Box>
+      )}
 
-        {playgroundProjects.length > 0 && (
-          <Box id="playground-projects" py={{ base: "16", md: "24" }} borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots" position="relative">
-            <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-              <FadeIn>
-                <CategoryGrid dict={homeContent.playground} projects={playgroundProjects} />
-              </FadeIn>
-            </Container>
-          </Box>
-        )}
-
-        <FadeIn>
-          <Footer dict={homeContent.footer} />
-        </FadeIn>
-      </Stack>
-    </Box>
+    </Stack>
   )
 }

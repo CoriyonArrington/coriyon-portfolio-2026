@@ -21,11 +21,18 @@ import { SoundToggle } from './sound-toggle'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { CalendlyPopup } from '@/components/ui/calendly-popup'
 
-interface NavbarBlockProps {
-  dict?: any; 
+interface NavLink {
+  id: string;
+  slug: string;
+  nav_title: string;
 }
 
-export const Block = ({ dict }: NavbarBlockProps) => {
+interface NavbarBlockProps {
+  dict?: any; 
+  links: NavLink[]; // Added explicit links prop
+}
+
+export const Block = ({ dict, links }: NavbarBlockProps) => {
   const { playHover, playClick } = useUiSounds()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isCalendlyOpen, setIsCalendlyOpen] = useState(false)
@@ -45,7 +52,6 @@ export const Block = ({ dict }: NavbarBlockProps) => {
 
   return (
     <>
-      {/* Top background blur mask - Adjusted height to fit new nav position */}
       <Box 
         position="fixed" 
         top="0" 
@@ -60,7 +66,6 @@ export const Block = ({ dict }: NavbarBlockProps) => {
         transition="height 0.3s ease"
       />
       
-      {/* Bottom background blur mask - Reduced height and intensity */}
       <Box 
         position="fixed" 
         bottom="0" 
@@ -104,7 +109,7 @@ export const Block = ({ dict }: NavbarBlockProps) => {
             
             <Spacer hideFrom="md" />
             
-            <NavbarLinks dict={dict} hideBelow="md" />
+            <NavbarLinks links={links} hideBelow="md" />
             
             <HStack gap="1" hideBelow="md">
               <SoundToggle />
@@ -159,7 +164,7 @@ export const Block = ({ dict }: NavbarBlockProps) => {
               </Flex>
             </Drawer.Header>
             <Drawer.Body pt="8" px="8">
-              <NavbarLinks dict={dict} direction="column" gap="6" alignItems="flex-start" fontSize="lg" onLinkClick={() => setDrawerOpen(false)} />
+              <NavbarLinks links={links} direction="column" gap="6" alignItems="flex-start" fontSize="lg" onLinkClick={() => setDrawerOpen(false)} />
               
               <Box mt="8" pt="8" borderTopWidth="1px" borderColor="border.subtle">
                 <HStack gap="2" mb="6">

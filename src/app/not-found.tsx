@@ -7,7 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { headers, cookies } from "next/headers";
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block";
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block";
-import { ErrorLottie } from "@/components/ui/error-lottie"; // Imported our new wrapper
+import { ErrorLottie } from "@/components/ui/error-lottie";
+import { getCachedNavLinks } from "@/lib/nav-utils"; // Import the nav-links fetcher
 
 const montserrat = localFont({
   src: "../fonts/Montserrat/Montserrat-VariableFont_wght.ttf",
@@ -39,7 +40,13 @@ export default async function GlobalNotFound() {
     currentLocale = 'es';
   }
 
-  const { data: pageData } = await supabase.from('pages').select('*').eq('slug', 'home').maybeSingle();
+  // Fetch both the page layout data and the nav links for the global Navbar
+  const [pageDataResponse, navLinks] = await Promise.all([
+    supabase.from('pages').select('*').eq('slug', 'home').maybeSingle(),
+    getCachedNavLinks()
+  ]);
+
+  const pageData = pageDataResponse.data;
   const content = currentLocale === 'es' ? (pageData?.content_es || {}) : (pageData?.content_en || {});
 
   const t = {
@@ -60,7 +67,8 @@ export default async function GlobalNotFound() {
       <body className={`${montserrat.variable} ${nunitoSans.variable}`}>
         <Provider>
           <Flex direction="column" minH="100vh" bg="bg.canvas">
-            <NavbarIsland dict={content.navbar} />
+            {/* Inject the globally fetched links into the Navbar */}
+            <NavbarIsland dict={content.navbar} links={navLinks} />
             
             <Flex
               align="center"
