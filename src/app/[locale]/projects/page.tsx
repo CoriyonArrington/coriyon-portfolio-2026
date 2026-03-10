@@ -59,7 +59,6 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
   const regularProjects = localizedProjects.filter((p: any) => p.projectType !== 'playground')
   const playgroundProjects = localizedProjects.filter((p: any) => p.projectType === 'playground')
   
-  // FIX: Explicitly find the featured project so we can inject its data into the Hero
   const featuredProject = localizedProjects.find((p: any) => p.featured === true)
 
   return (
@@ -72,17 +71,19 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
               exploreWork: projectsContent.hero?.exploreWork || (currentLocale === 'es' ? 'Ver proyectos' : 'View projects'), 
               showOverview: projectsContent.hero?.showOverview || (currentLocale === 'es' ? 'Resumen rápido' : 'Quick overview') 
             }}
-            // Prioritize the featured project data, falling back to generic page data
-            title={projectsContent.hero?.title || featuredProject?.title}
-            description={projectsContent.hero?.description || featuredProject?.description}
+            // FIX: Keep the Page title and description, do not overwrite with the project name
+            title={projectsContent.hero?.title}
+            description={projectsContent.hero?.description}
             tagline={projectsContent.hero?.tagline}
+            
+            // Inject the featured project's visual assets
             imageUrl={featuredProject?.image_url || projectsContent.hero?.imageUrl}
             videoUrl={featuredProject?.videoUrl || projectsContent.hero?.videoUrl}
             mockupType={featuredProject?.mockupType || projectsContent.hero?.mockupType}
             bgColor={featuredProject?.bgColor || projectsContent.hero?.bgColor || "green.600"}
             
-            // Pull the metadata from the featured project's overview JSON
-            summary={featuredProject?.contentJson?.overview?.oneLiner || projectsContent.hero?.summary}
+            // Pull the metadata from the featured project's overview JSON for the "Show Overview" modal
+            summary={featuredProject?.contentJson?.overview?.oneLiner || featuredProject?.description || projectsContent.hero?.summary}
             role={featuredProject?.contentJson?.overview?.myRole || projectsContent.hero?.role}
             duration={featuredProject?.contentJson?.overview?.timeframe?.total || projectsContent.hero?.duration}
             year={featuredProject?.contentJson?.overview?.year || projectsContent.hero?.year}
