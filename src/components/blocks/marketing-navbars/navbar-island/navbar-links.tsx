@@ -2,55 +2,25 @@
 
 import { Link, Stack, type StackProps } from '@chakra-ui/react'
 import NextLink from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+
+interface NavLink {
+  id: string;
+  slug: string;
+  nav_title: string;
+}
 
 interface NavbarLinksProps extends StackProps {
-  dict?: any;
+  links: NavLink[];
   onLinkClick?: () => void;
 }
 
-export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) => {
+export const NavbarLinks = ({ links, onLinkClick, ...props }: NavbarLinksProps) => {
   const { playHover, playWhoosh } = useUiSounds()
   const pathname = usePathname() || ''
+  const router = useRouter()
   
-  // Set initial state using the server dictionary to prevent layout shifts
-  const defaultLinks = dict?.links?.map((link: any) => ({
-    id: link.href,
-    slug: link.href.replace('/', ''),
-    nav_title: link.label
-  })) || [
-    { id: 'projects', slug: 'projects', nav_title: 'Work' },
-    { id: 'about', slug: 'about', nav_title: 'About' },
-    { id: 'blog', slug: 'blog', nav_title: 'Videos' }
-  ]
-
-  const [navLinks, setNavLinks] = useState<any[]>(defaultLinks)
-
-  useEffect(() => {
-    const fetchNavLinks = async () => {
-      const { data, error } = await supabase
-        .from('pages')
-        .select('slug, nav_title')
-        .eq('page_type', 'MAIN_MENU')
-        .eq('status', 'PUBLISHED')
-        .order('sort_order', { ascending: true })
-      
-      if (data && data.length > 0) {
-        setNavLinks(data.map(page => ({
-          id: page.slug,
-          // Format home routing correctly
-          slug: page.slug === 'home' ? '/' : page.slug,
-          nav_title: page.nav_title || page.slug
-        })))
-      }
-    }
-    
-    fetchNavLinks()
-  }, [])
-
   const segments = pathname.split('/').filter(Boolean)
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
 
@@ -59,8 +29,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
     if (slug === 'home' || slug === '/') return homePath;
     
     if (slug.startsWith('#')) {
-      const base = homePath === '/' ? '' : homePath;
-      return `${base}/${slug}`; 
+      return homePath === '/' ? `/${slug}` : `${homePath}${slug}`; 
     }
     
     if (slug.includes('#')) {
@@ -74,6 +43,13 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
     return homePath === '/' ? cleanPath : `${homePath}${cleanPath}`;
   }
 
+  // Ensures we only disable Next.js scroll if we are staying on the exact same page
+  const checkIsSamePage = (href: string) => {
+    const basePath = href.split('#')[0]
+    const normalizePath = (p: string) => (p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : (p || '/'))
+    return normalizePath(basePath) === normalizePath(pathname)
+  }
+
   const handleScroll = (e: React.MouseEvent<HTMLElement>, href: string) => {
     if (!href.includes('#')) {
       playWhoosh();
@@ -81,20 +57,22 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
       return;
     }
 
-    const [pathPart, hashPart] = href.split('#')
-    
-    const normalizePath = (p: string) => p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : (p || '/');
-    const isCurrentPage = normalizePath(pathPart) === normalizePath(pathname);
+    const hashPart = href.split('#')[1]
 
-    if (hashPart && isCurrentPage) {
+    if (hashPart && checkIsSamePage(href)) {
       e.preventDefault()
-      const element = document.getElementById(hashPart)
       
+      const element = document.getElementById(hashPart)
       if (element) {
         onLinkClick?.()
 
+        // Safely update Next router without reloading
+        router.push(`${pathname}#${hashPart}`, { scroll: false })
+        window.dispatchEvent(new Event('app-hash-change'))
+
+        // Standardized 10ms offset timeout
         setTimeout(() => {
-          const offset = 24 
+          const offset = 120 // Updated to match your standard 120px offset across the app
           const elementPosition = element.getBoundingClientRect().top
           const offsetPosition = elementPosition + window.scrollY - offset
 
@@ -102,9 +80,7 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
             top: offsetPosition,
             behavior: 'smooth'
           })
-          
-          window.history.pushState(null, '', `#${hashPart}`)
-        }, 150)
+        }, 10)
       }
     } else {
       playWhoosh()
@@ -112,9 +88,11 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
     }
   }
 
+  if (!links || links.length === 0) return null;
+
   return (
     <Stack direction={props.direction || { base: 'column', md: 'row' }} alignItems="center" gap={{ base: '6', md: '8' }} {...props}>
-      {navLinks.map((page: any) => {
+      {links.map((page: NavLink) => {
         const href = getHref(page.slug)
         const label = page.nav_title
 
@@ -135,7 +113,8 @@ export const NavbarLinks = ({ dict, onLinkClick, ...props }: NavbarLinksProps) =
             onClick={(e) => handleScroll(e, href)}
             onMouseEnter={playHover}
           >
-            <NextLink href={href}>{label}</NextLink>
+            {/* FIXED: Dynamic scroll prop */}
+            <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
           </Link>
         )
       })}
