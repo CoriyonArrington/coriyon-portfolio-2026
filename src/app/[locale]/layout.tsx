@@ -4,12 +4,12 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ClarityAnalytics } from "@/components/ui/clarity";
 import "../globals.css";
+import { cache } from "react";
 
 import { FloatingContact } from "@/components/ui/floating-contact";
 import { montserrat, nunitoSans } from "../fonts";
 import { Box, Flex, Container } from "@chakra-ui/react";
 import { supabase } from "@/lib/supabase";
-import { unstable_cache } from "next/cache";
 
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block";
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block";
@@ -43,29 +43,20 @@ export const metadata: Metadata = {
   },
 };
 
-const getCachedPage = unstable_cache(
-  async (slug: string) => {
-    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
-    return data || {}
-  },
-  ['page-data'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+const getPageData = cache(async (slug: string) => {
+  const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+  return data || {}
+})
 
-// Fetch all pages globally so the Nav, Footer, and PageNav never flicker
-const getCachedGlobalPages = unstable_cache(
-  async () => {
-    const { data } = await supabase
-      .from('pages')
-      .select('id, slug, title, nav_title, page_type, sort_order')
-      .eq('status', 'PUBLISHED')
-      .order('sort_order', { ascending: true })
+const getGlobalPages = cache(async () => {
+  const { data } = await supabase
+    .from('pages')
+    .select('id, slug, title, nav_title, page_type, sort_order')
+    .eq('status', 'PUBLISHED')
+    .order('sort_order', { ascending: true })
 
-    return data || [];
-  },
-  ['global-pages-list'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+  return data || [];
+})
 
 export default async function LocaleLayout({
   children,
@@ -78,23 +69,25 @@ export default async function LocaleLayout({
   const currentLocale = locale || 'en';
 
   const [homeData, pages] = await Promise.all([
-    getCachedPage('home'),
-    getCachedGlobalPages()
+    getPageData('home'),
+    getGlobalPages()
   ]);
 
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {};
 
+  // FIX: Include both menu types and pass the page_type down to the Navbar components
   const navLinks = pages
-    .filter((p: any) => p.page_type === 'MAIN_MENU')
+    .filter((p: any) => p.page_type === 'MAIN_MENU' || p.page_type === 'EXPLORE')
     .map((p: any) => ({
       id: p.id,
       slug: p.slug === 'home' ? '/' : p.slug,
-      nav_title: p.nav_title || p.title
+      nav_title: p.nav_title || p.title,
+      page_type: p.page_type 
     }));
 
   const navDict = { 
-    previous: currentLocale === 'es' ? 'Anterior' : 'Previous',
-    next: currentLocale === 'es' ? 'Siguiente' : 'Up next' 
+    previous: homeContent.navbar?.previous || (currentLocale === 'es' ? 'Anterior' : 'Previous'),
+    next: homeContent.navbar?.next || (currentLocale === 'es' ? 'Siguiente' : 'Up next') 
   };
 
   return (

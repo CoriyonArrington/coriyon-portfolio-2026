@@ -1,22 +1,35 @@
 'use client'
 
-import { Link, Stack, type StackProps } from '@chakra-ui/react'
+import { 
+  Link, 
+  Stack, 
+  type StackProps, 
+  MenuRoot, 
+  MenuTrigger, 
+  MenuContent, 
+  MenuItem, 
+  Button,
+  Box 
+} from '@chakra-ui/react'
 import NextLink from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
+import { LuChevronDown } from 'react-icons/lu'
 
 interface NavLink {
   id: string;
   slug: string;
   nav_title: string;
+  page_type?: string; 
 }
 
 interface NavbarLinksProps extends StackProps {
   links: NavLink[];
   onLinkClick?: () => void;
+  isMobile?: boolean;
 }
 
-export const NavbarLinks = ({ links, onLinkClick, ...props }: NavbarLinksProps) => {
+export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: NavbarLinksProps) => {
   const { playHover, playWhoosh } = useUiSounds()
   const pathname = usePathname() || ''
   const router = useRouter()
@@ -25,8 +38,7 @@ export const NavbarLinks = ({ links, onLinkClick, ...props }: NavbarLinksProps) 
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
 
   const getHref = (slug: string) => {
-    if (!slug) return homePath;
-    if (slug === 'home' || slug === '/') return homePath;
+    if (!slug || slug === 'home' || slug === '/') return homePath;
     
     if (slug.startsWith('#')) {
       return homePath === '/' ? `/${slug}` : `${homePath}${slug}`; 
@@ -43,7 +55,6 @@ export const NavbarLinks = ({ links, onLinkClick, ...props }: NavbarLinksProps) 
     return homePath === '/' ? cleanPath : `${homePath}${cleanPath}`;
   }
 
-  // Ensures we only disable Next.js scroll if we are staying on the exact same page
   const checkIsSamePage = (href: string) => {
     const basePath = href.split('#')[0]
     const normalizePath = (p: string) => (p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : (p || '/'))
@@ -65,14 +76,11 @@ export const NavbarLinks = ({ links, onLinkClick, ...props }: NavbarLinksProps) 
       const element = document.getElementById(hashPart)
       if (element) {
         onLinkClick?.()
-
-        // Safely update Next router without reloading
         router.push(`${pathname}#${hashPart}`, { scroll: false })
         window.dispatchEvent(new Event('app-hash-change'))
 
-        // Standardized 10ms offset timeout
         setTimeout(() => {
-          const offset = 120 // Updated to match your standard 120px offset across the app
+          const offset = 120 
           const elementPosition = element.getBoundingClientRect().top
           const offsetPosition = elementPosition + window.scrollY - offset
 
@@ -88,23 +96,68 @@ export const NavbarLinks = ({ links, onLinkClick, ...props }: NavbarLinksProps) 
     }
   }
 
-  if (!links || links.length === 0) return null;
+  const safeLinks = Array.isArray(links) ? links : [];
+  const filteredLinks = safeLinks.filter(l => l.slug !== 'home' && l.slug !== '/');
+
+  const fallbackPrimarySlugs = ['about', 'work', 'projects', 'services'];
+  
+  const primaryLinks = filteredLinks.filter(l => 
+    l.page_type === 'MAIN_MENU' || (!l.page_type && fallbackPrimarySlugs.includes(l.slug))
+  );
+  
+  const exploreLinks = filteredLinks.filter(l => 
+    l.page_type === 'EXPLORE' || (!l.page_type && !fallbackPrimarySlugs.includes(l.slug))
+  );
+
+  if (filteredLinks.length === 0) return null;
+
+  if (isMobile) {
+    const mobileOrderedLinks = [...primaryLinks, ...exploreLinks];
+    return (
+      <Stack direction="column" gap="8" alignItems="center" w="full" {...props}>
+        {mobileOrderedLinks.map((page) => {
+          const href = getHref(page.slug)
+          const isActive = href !== homePath 
+            ? pathname.includes(href.split('#')[0]) 
+            : pathname === homePath || pathname === `${homePath}/`
+            
+          return (
+            <Link
+              key={page.id || page.slug}
+              asChild
+              fontWeight={isActive ? "bold" : "medium"}
+              fontSize="2xl"
+              color={isActive ? "colorPalette.fg" : "fg.muted"}
+              transition="color 0.2s"
+              _hover={{ color: 'colorPalette.fg', textDecoration: 'none' }}
+              onClick={(e) => handleScroll(e, href)}
+              onMouseEnter={playHover}
+              whiteSpace="nowrap"
+              display="block" 
+              textAlign="center"
+              w="full"
+            >
+              <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>
+                {page.nav_title}
+              </NextLink>
+            </Link>
+          )
+        })}
+      </Stack>
+    )
+  }
 
   return (
-    <Stack direction={props.direction || { base: 'column', md: 'row' }} alignItems="center" gap={{ base: '6', md: '8' }} {...props}>
-      {links.map((page: NavLink) => {
+    <Stack direction="row" alignItems="center" gap="8" {...props}>
+      {primaryLinks.map((page) => {
         const href = getHref(page.slug)
-        const label = page.nav_title
-
         const isActive = href !== homePath 
           ? pathname.includes(href.split('#')[0]) 
           : pathname === homePath || pathname === `${homePath}/`
-
-        if (page.slug === 'home' || page.slug === '/') return null;
-
+          
         return (
           <Link
-            key={page.id}
+            key={page.id || page.slug}
             asChild
             fontWeight={isActive ? "bold" : "medium"}
             color={isActive ? "colorPalette.fg" : "fg.muted"}
@@ -112,12 +165,80 @@ export const NavbarLinks = ({ links, onLinkClick, ...props }: NavbarLinksProps) 
             _hover={{ color: 'colorPalette.fg', textDecoration: 'none' }}
             onClick={(e) => handleScroll(e, href)}
             onMouseEnter={playHover}
+            whiteSpace="nowrap"
           >
-            {/* FIXED: Dynamic scroll prop */}
-            <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
+            <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>
+              {page.nav_title}
+            </NextLink>
           </Link>
         )
       })}
+
+      {exploreLinks.length > 0 && (
+        <Box position="relative">
+          <MenuRoot id="navbar-more-menu">
+            <MenuTrigger asChild>
+              <Button 
+                variant="plain" 
+                size="sm" 
+                fontWeight="medium" 
+                color="fg.muted"
+                transition="color 0.2s"
+                _hover={{ color: "colorPalette.fg" }}
+                onMouseEnter={playHover}
+                px="0"
+                h="auto"
+              >
+                More <LuChevronDown style={{ marginLeft: '4px', width: '14px' }} />
+              </Button>
+            </MenuTrigger>
+            
+            <MenuContent 
+              bg="bg.panel" 
+              borderRadius="xl" 
+              border="1px solid" 
+              borderColor="border.subtle" 
+              p="1" 
+              zIndex="2000"
+              css={{
+                position: "absolute !important",
+                top: "calc(100% + 12px) !important",
+                right: "0 !important",
+                transform: "none !important",
+                minWidth: "160px !important"
+              }}
+            >
+              {exploreLinks.map((page) => {
+                 const href = getHref(page.slug)
+                 return (
+                  <MenuItem 
+                    key={page.id || page.slug} 
+                    value={page.slug}
+                    asChild
+                    borderRadius="lg"
+                    color="fg.muted"
+                    _hover={{ bg: "bg.muted", color: "fg" }}
+                    onClick={(e) => { 
+                      playWhoosh(); 
+                      handleScroll(e as any, href); 
+                    }}
+                    onMouseEnter={playHover}
+                  >
+                    {/* Explicitly setting textDecoration and using currentColor to defeat any global `a { color: green }` rules */}
+                    <NextLink 
+                      href={href} 
+                      scroll={!(href.includes('#') && checkIsSamePage(href))} 
+                      style={{ width: '100%', padding: '8px 12px', color: 'currentColor', textDecoration: 'none' }}
+                    >
+                      {page.nav_title}
+                    </NextLink>
+                  </MenuItem>
+                 )
+              })}
+            </MenuContent>
+          </MenuRoot>
+        </Box>
+      )}
     </Stack>
   )
 }
