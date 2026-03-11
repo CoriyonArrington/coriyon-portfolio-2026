@@ -1,7 +1,6 @@
-import localFont from "next/font/local";
 import { Provider } from "@/components/ui/provider";
 import "./globals.css";
-import { Flex, Heading, Stack, Text, Button, Box } from "@chakra-ui/react";
+import { Flex, Box, Container, Button } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { supabase } from "@/lib/supabase";
 import { headers, cookies } from "next/headers";
@@ -9,18 +8,8 @@ import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/nav
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block";
 import { ErrorLottie } from "@/components/ui/error-lottie";
 import { getNavLinks } from "@/lib/nav-utils"; 
-
-const montserrat = localFont({
-  src: "../fonts/Montserrat/Montserrat-VariableFont_wght.ttf",
-  variable: "--font-heading",
-  display: "swap",
-});
-
-const nunitoSans = localFont({
-  src: "../fonts/Nunito-Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf",
-  variable: "--font-body",
-  display: "swap",
-});
+import { CenteredHeroLayout } from "@/components/blocks/heroes/centered-hero-layout/block";
+import { montserrat, nunitoSans } from "@/app/fonts";
 
 export default async function GlobalNotFound() {
   const headersList = await headers();
@@ -41,19 +30,21 @@ export default async function GlobalNotFound() {
   }
 
   // standard fetch matching our new cached pattern
-  const [pageDataResponse, navLinks] = await Promise.all([
+  const [pageDataResponse, navLinks, allPagesResponse] = await Promise.all([
     supabase.from('pages').select('*').eq('slug', 'home').maybeSingle(),
-    getNavLinks()
+    getNavLinks(),
+    supabase.from('pages').select('*').in('page_type', ['MAIN_MENU', 'EXPLORE', 'STANDARD']).order('sort_order', { ascending: true })
   ]);
 
   const pageData = pageDataResponse.data;
+  const allPages = allPagesResponse.data || [];
   const content = currentLocale === 'es' ? (pageData?.content_es || {}) : (pageData?.content_en || {});
 
   const t = {
     en: {
       heading: "Looks like you've wandered off the path 😅",
       description: "The page you're looking for might have been moved, deleted, or perhaps there's a typo in the URL. Let's get you back on track.",
-      button: "Return to Homepage"
+      button: "Return to Home" 
     },
     es: {
       heading: "Parece que te has salido del camino 😅",
@@ -63,50 +54,40 @@ export default async function GlobalNotFound() {
   }[currentLocale];
 
   return (
-    <html lang={currentLocale} suppressHydrationWarning>
-      <body className={`${montserrat.variable} ${nunitoSans.variable}`}>
+    <html lang={currentLocale} className={`${montserrat.variable} ${nunitoSans.variable}`} suppressHydrationWarning>
+      <body>
         <Provider>
           <Flex direction="column" minH="100vh" bg="bg.canvas">
             <NavbarIsland dict={content.navbar} links={navLinks} />
             
-            <Flex
-              align="center"
-              justify="center"
-              flex="1"
-              px={4}
-              pt="72px"
-              className="pattern-dots"
-            >
-              <Stack
-                gap={8}
-                mx="auto"
-                maxW="lg"
-                py={12}
-                textAlign="center"
-                align="center"
-              >
-                <Box position="relative" w="full" maxW="320px" h="320px" mx="auto">
-                  <ErrorLottie />
-                </Box>
-
-                <Stack gap={6}>
-                  <Heading fontSize={{ base: "3xl", md: "4xl" }} color="fg.default" lineHeight="1.4">
-                    {t.heading}
-                  </Heading>
-                  <Text fontSize="lg" color="fg.muted" lineHeight="1.6">
-                    {t.description}
-                  </Text>
-                </Stack>
-                
-                <NextLink href={`/${currentLocale}`} passHref>
-                  <Button size="lg" mt={2} colorPalette="gray">
-                    {t.button}
-                  </Button>
-                </NextLink>
-              </Stack>
-            </Flex>
+            <Box flex="1" className="pattern-dots" w="full">
+              <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+                <CenteredHeroLayout
+                  title={t.heading}
+                  description={t.description}
+                  primaryAction={
+                    <NextLink href={`/${currentLocale}`}>
+                      <Button 
+                        size="xl" 
+                        h={{ base: 14, md: 16 }} 
+                        px={{ base: 6, md: 8 }} 
+                        fontSize="lg" 
+                        variant="solid"
+                        w={{ base: 'full', md: 'auto' }}
+                      >
+                        {t.button}
+                      </Button>
+                    </NextLink>
+                  }
+                >
+                  <Box position="relative" w="full" maxW="320px" h="320px" mx="auto" mt={{ base: 4, md: 8 }}>
+                    <ErrorLottie />
+                  </Box>
+                </CenteredHeroLayout>
+              </Container>
+            </Box>
             
-            <Footer dict={content.footer} />
+            <Footer dict={content.footer} pages={allPages} />
           </Flex>
         </Provider>
       </body>
