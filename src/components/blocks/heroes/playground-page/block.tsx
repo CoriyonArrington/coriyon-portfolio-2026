@@ -1,10 +1,9 @@
 'use client'
 
 import { Badge, Box, Button, Center, Heading, Stack, Text, VStack, Highlight } from '@chakra-ui/react'
-import { LuChevronDown } from 'react-icons/lu'
+import { LuChevronDown, LuBot } from 'react-icons/lu'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { useMemo } from 'react'
-import NextLink from 'next/link'
 
 interface PlaygroundHeroProps {
   dict?: any;
@@ -32,6 +31,12 @@ export const Block = ({
     }
   }
 
+  const handleOpenChat = () => {
+    playClick()
+    // Consistently triggers the floating widget established on the Services page
+    window.dispatchEvent(new Event('open-ai-chat'))
+  }
+
   const rawTitle = title || dict?.title || 'Creative Playground'
   const { displayTitle, highlightQueries } = useMemo(() => {
     const matches = rawTitle.match(/\*(.*?)\*/g)
@@ -43,13 +48,14 @@ export const Block = ({
   const finalTagline = tagline || dict?.tagline;
   const finalDescription = description || dict?.description;
   const finalExploreText = exploreText || dict?.exploreText || "Explore projects";
-  const finalSecondaryText = secondaryText || dict?.secondaryText || "Back home";
+  const finalSecondaryText = secondaryText || dict?.secondaryText || "Chat with AI";
 
   return (
-    <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={{ base: '8', md: '12' }}>
-      <Stack gap="6" align="center" px={{ base: '4', md: '8' }}>
+    <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={{ base: '16', md: '24' }}>
+      <Stack gap="6" align="center" px={{ base: '4', md: '8' }} maxW="4xl" mx="auto">
         {finalTagline && (
-          <Badge size="lg" variant="subtle" colorPalette="green" alignSelf="center" rounded="full" px="4" py="1">
+          // Standardized gray badge
+          <Badge size="lg" variant="subtle" colorPalette="gray" alignSelf="center" rounded="full" px="4" py="1">
             {finalTagline}
           </Badge>
         )}
@@ -57,8 +63,6 @@ export const Block = ({
         <Heading
           as="h1"
           textStyle={{ base: '5xl', md: '6xl', lg: '7xl' }}
-          maxW="4xl"
-          mx="auto"
           lineHeight={{ base: '1.2', md: '1.1' }}
           fontWeight="bold"
           letterSpacing="tight"
@@ -74,7 +78,7 @@ export const Block = ({
           </Text>
         )}
 
-        <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="2" w={{ base: 'full', md: 'auto' }}>
+        <Stack align="center" direction={{ base: 'column', md: 'row' }} gap="4" mt="4" w={{ base: 'full', md: 'auto' }}>
           <Button 
             size="xl" 
             h={{ base: 14, md: 16 }}
@@ -89,46 +93,41 @@ export const Block = ({
             {finalExploreText} <LuChevronDown style={{ marginLeft: '8px' }} />
           </Button>
 
-          {/* FIX: Forced explicit white text and gray.900 background */}
+          {/* Standardized "Chat with AI" action, exactly like the Services page */}
           <Button 
-            asChild
             size="xl" 
             h={{ base: 14, md: 16 }}
             px={{ base: 6, md: 8 }}
             fontSize="lg"
-            bg="gray.900"
-            color="white"
-            _hover={{ bg: "gray.800" }}
-            _dark={{ bg: "gray.800", _hover: { bg: "gray.700" } }}
+            colorPalette="gray"
             variant="solid" 
-            onClick={playClick} 
+            onClick={handleOpenChat} 
             onMouseEnter={playHover}
             w={{ base: 'full', md: 'auto' }}
           >
-            <NextLink href="/">
-             {finalSecondaryText}
-            </NextLink>
+            {finalSecondaryText} <LuBot style={{ marginLeft: '8px' }} />
           </Button>
         </Stack>
       </Stack>
 
-      <Box 
-        maxW="5xl" 
-        mx="auto" 
-        w="full" 
-        mt={{ base: '8', md: '12' }} 
-        position="relative" 
-        borderRadius="l3" 
-        overflow="hidden" 
-        borderWidth="1px" 
-        borderColor="border.subtle" 
-        bg="bg.muted" 
-        shadow="md"
-        aspectRatio={{ base: "4/3", md: "16/9" }}
-      >
-        <Center position="absolute" inset="0" zIndex="0" pointerEvents="auto">
-          {interactiveElement}
-        </Center>
+      <Box w="full" px={{ base: '4', md: '8' }} mt={{ base: 4, md: 8 }}>
+        <Box 
+          maxW="5xl" 
+          mx="auto" 
+          w="full" 
+          position="relative" 
+          borderRadius="l3" 
+          overflow="hidden" 
+          borderWidth="1px" 
+          borderColor="border.subtle" 
+          bg="bg.muted" 
+          shadow="md"
+          aspectRatio={{ base: "4/3", md: "16/9" }}
+        >
+          <Center position="absolute" inset="0" zIndex="0" pointerEvents="auto">
+            {interactiveElement}
+          </Center>
+        </Box>
       </Box>
     </VStack>
   )
