@@ -180,7 +180,8 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
             <MenuTrigger asChild>
               <Button 
                 variant="plain" 
-                size="sm" 
+                size="md" 
+                fontSize="md"
                 fontWeight="medium" 
                 color="fg.muted"
                 transition="color 0.2s"
@@ -215,20 +216,19 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
                     key={page.id || page.slug} 
                     value={page.slug}
                     asChild
-                    borderRadius="lg"
+                    borderRadius="md"
                     color="fg.muted"
-                    _hover={{ bg: "bg.muted", color: "fg" }}
+                    _hover={{ bg: "colorPalette.muted", color: "colorPalette.fg" }}
                     onClick={(e) => { 
                       playWhoosh(); 
                       handleScroll(e as any, href); 
                     }}
                     onMouseEnter={playHover}
                   >
-                    {/* Explicitly setting textDecoration and using currentColor to defeat any global `a { color: green }` rules */}
                     <NextLink 
                       href={href} 
                       scroll={!(href.includes('#') && checkIsSamePage(href))} 
-                      style={{ width: '100%', padding: '8px 12px', color: 'currentColor', textDecoration: 'none' }}
+                      style={{ display: 'block', width: '100%', padding: '8px 12px', color: 'currentColor', textDecoration: 'none' }}
                     >
                       {page.nav_title}
                     </NextLink>
