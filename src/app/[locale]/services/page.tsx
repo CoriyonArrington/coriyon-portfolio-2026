@@ -84,14 +84,6 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
         </Container>
       </Box>
 
-      <Box id="services" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
-        <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-          <FadeIn>
-            <ServicesBlock dict={homeContent.services} services={localizedServices || []} />
-          </FadeIn>
-        </Container>
-      </Box>
-
       {servicesContent.pricing_plans && servicesContent.pricing_plans.length > 0 && (
         <Box id="pricing" py={{ base: "16", md: "24" }} className="pattern-dots" borderBottomWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
@@ -101,6 +93,14 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
           </Container>
         </Box>
       )}
+
+      <Box id="services" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
+        <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+          <FadeIn>
+            <ServicesBlock dict={homeContent.services} services={localizedServices || []} />
+          </FadeIn>
+        </Container>
+      </Box>
 
       <Box id="process" w="full" pt={{ base: "16", md: "24" }}>
         <ProcessTimeline dict={homeContent.process} />

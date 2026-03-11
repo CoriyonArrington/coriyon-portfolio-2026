@@ -6,7 +6,7 @@ import { cache } from "react"
 import type { Metadata, ResolvingMetadata } from "next"
 
 // Unified Hero component (formerly BlogBlock)
-import { Block as HeroBlock } from "@/components/blocks/blogs/blog-with-hero-image/block"
+import { Block as HeroBlock } from "@/components/blocks/heroes/content-page-hero/block"
 import { Block as AboutFeatures } from "@/components/blocks/features/feature-07/block"
 import { Block as ServicesBlock } from "@/components/blocks/features/feature-10/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"

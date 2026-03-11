@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase"
 import { cache } from "react"
 import type { Metadata, ResolvingMetadata } from "next"
 
-import { Block as BlogBlock } from "@/components/blocks/blogs/blog-with-hero-image/block"
+import { Block as BlogBlock } from "@/components/blocks/heroes/content-page-hero/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
