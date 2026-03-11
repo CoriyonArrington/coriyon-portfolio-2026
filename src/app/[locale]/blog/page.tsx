@@ -1,46 +1,55 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
-import { unstable_cache } from "next/cache"
+import { cache } from "react"
+import type { Metadata, ResolvingMetadata } from "next"
+
 import { Block as BlogBlock } from "@/components/blocks/blogs/blog-with-hero-image/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-// OPTIMIZATION: Enable ISR caching
-export const revalidate = 3600 
+export const dynamic = 'force-dynamic'
 
-// --- OPTIMIZATION: Next.js memory cache for DB queries to eliminate FCP delay ---
-const getCachedPage = unstable_cache(
-  async (slug: string) => {
-    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
-    return data || {}
-  },
-  ['page-data'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+const getPageData = cache(async (slug: string) => {
+  const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+  return data || {}
+})
 
-const getCachedVideos = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('videos').select('*').order('sort_order', { ascending: true })
-    return data || []
-  },
-  ['videos-list'],
-  { revalidate: 3600, tags: ['videos'] }
-)
-// ---------------------------------------------------------------------------------
+const getVideosData = cache(async () => {
+  const { data } = await supabase.from('videos').select('*').order('sort_order', { ascending: true })
+  return data || []
+})
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ locale: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'en'
+  const pageData = await getPageData('blog')
+  
+  const title = pageData?.[`title_${currentLocale}`] || pageData?.title_en || pageData?.title || 'Videos | Coriyon Arrington'
+  const description = pageData?.[`description_${currentLocale}`] || pageData?.description_en || pageData?.description
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { title, description }
+  }
+}
 
 export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
-  // OPTIMIZATION: Parallelize Data Fetching using the lightning-fast memory cache
   const [
     blogData,
     homeData,
     videos
   ] = await Promise.all([
-    getCachedPage('blog'),
-    getCachedPage('home'),
-    getCachedVideos()
+    getPageData('blog'),
+    getPageData('home'),
+    getVideosData()
   ]);
 
   const blogContent = blogData?.[`content_${currentLocale}`] || blogData?.content_en || {}
@@ -62,12 +71,16 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
 
   return (
     <Stack gap="0" w="full">
-      {/* OPTIMIZATION: Removed FadeIn to unblock LCP */}
-      <BlogBlock 
-        dict={{ ...homeContent.blog, ...blogContent.header }} 
-        posts={localizedVideos || []} 
-        locale={currentLocale} 
-      />
+      {/* Wrapper pt/pb standardized to match Services, Projects, Playground */}
+      <Box className="pattern-dots">
+        <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+          <BlogBlock 
+            dict={blogContent.hero} 
+            posts={localizedVideos || []} 
+            locale={currentLocale} 
+          />
+        </Container>
+      </Box>
 
       <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>

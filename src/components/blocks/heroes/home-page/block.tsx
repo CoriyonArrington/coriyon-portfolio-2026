@@ -90,7 +90,7 @@ export const Block = ({
   dict,
   title,
   description,
-  tagline = "Senior Product Designer in Minneapolis", 
+  tagline, 
   videoUrl, 
   imageUrl,
   introVideoUrl
@@ -99,9 +99,8 @@ export const Block = ({
   const { playHover, playClick } = useUiSounds()
   const [avatars, setAvatars] = useState<string[]>([])
   const [isLoadingAvatars, setIsLoadingAvatars] = useState(true)
-  const [mounted, setMounted] = useState(false) // Added to prevent hydration mismatches
+  const [mounted, setMounted] = useState(false) 
 
-  // Dynamically determine the locale for the About link
   const segments = pathname?.split('/').filter(Boolean) || []
   const currentLocale = segments.length > 0 && segments[0].length === 2 ? segments[0] : 'en'
   const aboutUrl = `/${currentLocale}/about`
@@ -115,7 +114,7 @@ export const Block = ({
   }, [rawTitle])
 
   useEffect(() => {
-    setMounted(true) // Signals that the client has hydrated
+    setMounted(true) 
     const fetchAvatars = async () => {
       setIsLoadingAvatars(true)
       const { data } = await supabase
@@ -132,8 +131,12 @@ export const Block = ({
     fetchAvatars()
   }, [])
 
-  const rawVideoUrl = introVideoUrl || dict?.introVideoUrl || "https://youtu.be/FbF0OMghl-o"
+  const rawVideoUrl = introVideoUrl || dict?.introVideoUrl || ""
   const finalIntroVideoUrl = getYouTubeEmbedUrl(rawVideoUrl)
+  
+  // Safely pull from dictionary with NO hardcoded fallbacks
+  const displayTagline = tagline || dict?.tagline;
+  const displaySocialProof = dict?.socialProof;
   
   const scrollToProjects = () => {
     playClick()
@@ -169,26 +172,28 @@ export const Block = ({
       >
         <HeroHeader
           tagline={
-            <Box width="fit-content" mx={{ base: 'auto', lg: '0' }}>
-              <Link href={aboutUrl} onClick={playClick} onMouseEnter={playHover}>
-                <Badge 
-                  size="lg" 
-                  colorPalette="gray" 
-                  variant="subtle" 
-                  px="3" 
-                  py="1" 
-                  borderRadius="full"
-                  cursor="pointer"
-                  transition="all 0.2s"
-                  _hover={{ bg: "bg.emphasized", transform: "translateY(-1px)" }}
-                >
-                  <Icon size="sm" mr="1">
-                    <LuUser />
-                  </Icon>
-                  {tagline}
-                </Badge>
-              </Link>
-            </Box>
+            displayTagline ? (
+              <Box width="fit-content" mx={{ base: 'auto', lg: '0' }}>
+                <Link href={aboutUrl} onClick={playClick} onMouseEnter={playHover}>
+                  <Badge 
+                    size="lg" 
+                    colorPalette="gray" 
+                    variant="subtle" 
+                    px="3" 
+                    py="1" 
+                    borderRadius="full"
+                    cursor="pointer"
+                    transition="all 0.2s"
+                    _hover={{ bg: "bg.emphasized", transform: "translateY(-1px)" }}
+                  >
+                    <Icon size="sm" mr="1">
+                      <LuUser />
+                    </Icon>
+                    {displayTagline}
+                  </Badge>
+                </Link>
+              </Box>
+            ) : null
           }
           headline={
             <Highlight 
@@ -214,11 +219,10 @@ export const Block = ({
                 onMouseEnter={playHover} 
                 w={{ base: "full", md: "auto" }}
               >
-                {dict?.exploreWork || "Explore work"} <LuArrowDown /> 
+                {dict?.exploreWork} <LuArrowDown /> 
               </Button>
               
-              {/* Bulletproof Client-side only rendering for the Dialog to prevent hydration mismatches */}
-              {mounted ? (
+              {mounted && finalIntroVideoUrl ? (
                 <Dialog.Root placement="center" motionPreset="slide-in-bottom">
                   <Dialog.Trigger asChild>
                     <Button 
@@ -232,7 +236,7 @@ export const Block = ({
                       onMouseEnter={playHover}
                       w={{ base: "full", md: "auto" }}
                     >
-                      {dict?.watchIntro || "Watch Intro"} <LuPlay />
+                      {dict?.watchIntro} <LuPlay />
                     </Button>
                   </Dialog.Trigger>
                   
@@ -262,7 +266,7 @@ export const Block = ({
                     </Dialog.Positioner>
                   </Portal>
                 </Dialog.Root>
-              ) : (
+              ) : finalIntroVideoUrl ? (
                 <Button 
                   variant="solid" 
                   size="xl" 
@@ -272,66 +276,68 @@ export const Block = ({
                   colorPalette="gray" 
                   w={{ base: "full", md: "auto" }}
                 >
-                  {dict?.watchIntro || "Watch Intro"} <LuPlay />
+                  {dict?.watchIntro} <LuPlay />
                 </Button>
-              )}
+              ) : null}
             </Stack>
 
-            <HStack 
-              gap="3" 
-              onClick={scrollToTestimonials}
-              onMouseEnter={playHover}
-              cursor="pointer"
-              transition="all 0.2s"
-              _hover={{ opacity: 0.8 }}
-              h="10"
-            >
-              {isLoadingAvatars ? (
-                <HStack gap="-2" me="1" w="20">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Box 
-                      key={`skeleton-${i}`} 
-                      borderWidth="2px" 
-                      borderColor="bg.panel" 
-                      rounded="full"
-                      zIndex={10 - i}
-                    >
-                      <Skeleton width="32px" height="32px" borderRadius="full" />
-                    </Box>
-                  ))}
-                </HStack>
-              ) : avatars.length > 0 ? (
-                <HStack gap="-2" me="1" w="auto">
-                  {avatars.map((src, i) => (
-                    <Box 
-                      key={i} 
-                      borderWidth="2px" 
-                      borderColor="bg.panel" 
-                      rounded="full"
-                      transition="all 0.2s"
-                      _hover={{ transform: "translateY(-4px)", zIndex: 10 }}
-                    >
-                      <Avatar.Root size="sm">
-                        <Avatar.Image src={src} />
-                        <Avatar.Fallback name={`User ${i + 1}`} />
-                      </Avatar.Root>
-                    </Box>
-                  ))}
-                </HStack>
-              ) : null}
-              <Stack gap="0" pt="1">
-                <HStack gap="0.5" color="yellow.400">
-                  <FaStar size="12px" />
-                  <FaStar size="12px" />
-                  <FaStar size="12px" />
-                  <FaStar size="12px" />
-                  <FaStar size="12px" />
-                </HStack>
-                <Text fontSize="sm" color="fg.muted" fontWeight="medium">
-                  {dict?.socialProof || "Trusted by product teams"}
-                </Text>
-              </Stack>
-            </HStack>
+            {displaySocialProof && (
+              <HStack 
+                gap="3" 
+                onClick={scrollToTestimonials}
+                onMouseEnter={playHover}
+                cursor="pointer"
+                transition="all 0.2s"
+                _hover={{ opacity: 0.8 }}
+                h="10"
+              >
+                {isLoadingAvatars ? (
+                  <HStack gap="-2" me="1" w="20">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Box 
+                        key={`skeleton-${i}`} 
+                        borderWidth="2px" 
+                        borderColor="bg.panel" 
+                        rounded="full"
+                        zIndex={10 - i}
+                      >
+                        <Skeleton width="32px" height="32px" borderRadius="full" />
+                      </Box>
+                    ))}
+                  </HStack>
+                ) : avatars.length > 0 ? (
+                  <HStack gap="-2" me="1" w="auto">
+                    {avatars.map((src, i) => (
+                      <Box 
+                        key={i} 
+                        borderWidth="2px" 
+                        borderColor="bg.panel" 
+                        rounded="full"
+                        transition="all 0.2s"
+                        _hover={{ transform: "translateY(-4px)", zIndex: 10 }}
+                      >
+                        <Avatar.Root size="sm">
+                          <Avatar.Image src={src} />
+                          <Avatar.Fallback name={`User ${i + 1}`} />
+                        </Avatar.Root>
+                      </Box>
+                    ))}
+                  </HStack>
+                ) : null}
+                <Stack gap="0" pt="1">
+                  <HStack gap="0.5" color="yellow.400">
+                    <FaStar size="12px" />
+                    <FaStar size="12px" />
+                    <FaStar size="12px" />
+                    <FaStar size="12px" />
+                    <FaStar size="12px" />
+                  </HStack>
+                  <Text fontSize="sm" color="fg.muted" fontWeight="medium">
+                    {displaySocialProof}
+                  </Text>
+                </Stack>
+              </HStack>
+            )}
 
           </Stack>
         </HeroHeader>

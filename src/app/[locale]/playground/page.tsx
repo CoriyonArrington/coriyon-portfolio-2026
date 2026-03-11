@@ -1,30 +1,43 @@
 import { Box, Stack, Container } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
-import { unstable_cache } from "next/cache"
+import { cache } from "react"
+import type { Metadata, ResolvingMetadata } from "next"
+
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
 import { FadeIn } from "@/components/ui/fade-in"
 import { Block as PlaygroundHero } from "@/components/blocks/heroes/playground-page/block"
 import { InteractiveSpline } from "@/components/ui/interactive-spline"
 
-export const revalidate = 3600 
+export const dynamic = 'force-dynamic'
 
-const getCachedPage = unstable_cache(
-  async (slug: string) => {
-    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
-    return data || {}
-  },
-  ['page-data'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+const getPageData = cache(async (slug: string) => {
+  const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+  return data || {}
+})
 
-const getCachedProjects = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
-    return data || []
-  },
-  ['published-projects-list'],
-  { revalidate: 3600, tags: ['projects'] }
-)
+const getProjectsData = cache(async () => {
+  const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
+  return data || []
+})
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ locale: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'en'
+  const pageData = await getPageData('playground')
+  
+  const title = pageData?.[`title_${currentLocale}`] || pageData?.title_en || pageData?.title || 'Playground | Coriyon Arrington'
+  const description = pageData?.[`description_${currentLocale}`] || pageData?.description_en || pageData?.description
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { title, description }
+  }
+}
 
 export default async function PlaygroundPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -35,9 +48,9 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
     homeData,
     projects
   ] = await Promise.all([
-    getCachedPage('playground'),
-    getCachedPage('home'),
-    getCachedProjects()
+    getPageData('playground'),
+    getPageData('home'),
+    getProjectsData()
   ]);
 
   const playgroundContent = playgroundData?.[`content_${currentLocale}`] || playgroundData?.content_en || {}
@@ -48,8 +61,10 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
     title: p[`title_${currentLocale}`] || p.title_en || p.title,
     description: p[`description_${currentLocale}`] || p.description_en || p.description,
     image_url: p.featured_image_url, 
+    src: p.featured_image_url,
     videoUrl: p.featured_video_url, 
     link_url: `/${currentLocale}/projects/${p.slug}`,
+    url: `/${currentLocale}/projects/${p.slug}`,
     bgColor: p.bg_color,
     mockupType: p.mockup_type,
     category: p.project_category,
@@ -61,6 +76,7 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
   return (
     <Stack gap="0" w="full">
       
+      {/* Wrapper pt/pb removed so the Hero natively aligns with Home/About/Services */}
       <Box className="pattern-dots">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
           <PlaygroundHero 
@@ -71,10 +87,13 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ loc
       </Box>
 
       {playgroundProjects.length > 0 && (
-        <Box id="playground-projects" py={{ base: "16", md: "24" }} borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots" position="relative">
+        <Box id="playground-projects" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle" className="pattern-dots" position="relative">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <CategoryGrid dict={homeContent.playground} projects={playgroundProjects} />
+              <CategoryGrid 
+                dict={homeContent.playground} 
+                projects={playgroundProjects} 
+              />
             </FadeIn>
           </Container>
         </Box>

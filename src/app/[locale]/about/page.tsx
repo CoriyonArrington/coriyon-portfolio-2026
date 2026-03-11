@@ -2,53 +2,58 @@ import { Box, Container, Stack, Button } from "@chakra-ui/react"
 import NextLink from "next/link"
 import { LuArrowRight } from "react-icons/lu"
 import { supabase } from "@/lib/supabase"
-import { unstable_cache } from "next/cache"
-import { Block as AboutHero } from "@/components/blocks/heroes/about-page/block"
+import { cache } from "react"
+import type { Metadata, ResolvingMetadata } from "next"
+
+// Unified Hero component (formerly BlogBlock)
+import { Block as HeroBlock } from "@/components/blocks/blogs/blog-with-hero-image/block"
+import { Block as AboutFeatures } from "@/components/blocks/features/feature-07/block"
 import { Block as ServicesBlock } from "@/components/blocks/features/feature-10/block"
 import { Block as TestimonialGrid } from "@/components/blocks/testimonials/testimonial-grid-with-logo/block"
-import { Block as AboutFeatures } from "@/components/blocks/features/feature-07/block"
 import { Block as Faq } from "@/components/blocks/faqs/faq-with-inline-headline/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-// OPTIMIZATION: Enable ISR caching
-export const revalidate = 3600 
+export const dynamic = 'force-dynamic'
 
-const getCachedPage = unstable_cache(
-  async (slug: string) => {
-    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
-    return data || {}
-  },
-  ['page-data'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+const getPageData = cache(async (slug: string) => {
+  const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+  return data || {}
+})
 
-const getCachedServices = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('services').select('*').order('sort_order', { ascending: true })
-    return data || []
-  },
-  ['services-list'],
-  { revalidate: 3600, tags: ['services'] }
-)
+const getServices = cache(async () => {
+  const { data } = await supabase.from('services').select('*').order('sort_order', { ascending: true })
+  return data || []
+})
 
-const getCachedTestimonials = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('testimonials').select('*')
-    return data || []
-  },
-  ['testimonials-list'],
-  { revalidate: 3600, tags: ['testimonials'] }
-)
+const getTestimonials = cache(async () => {
+  const { data } = await supabase.from('testimonials').select('*')
+  return data || []
+})
 
-const getCachedFaqs = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('faqs').select('*').order('id', { ascending: true })
-    return data || []
-  },
-  ['faqs-list'],
-  { revalidate: 3600, tags: ['faqs'] }
-)
+const getFaqs = cache(async () => {
+  const { data } = await supabase.from('faqs').select('*').order('id', { ascending: true })
+  return data || []
+})
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ locale: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'en'
+  const pageData = await getPageData('about')
+  
+  const title = pageData?.[`title_${currentLocale}`] || pageData?.title_en || pageData?.title || 'About | Coriyon Arrington'
+  const description = pageData?.[`description_${currentLocale}`] || pageData?.description_en || pageData?.description
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { title, description }
+  }
+}
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -61,11 +66,11 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     allTestimonials,
     faqs
   ] = await Promise.all([
-    getCachedPage('about'),
-    getCachedPage('home'),
-    getCachedServices(),
-    getCachedTestimonials(),
-    getCachedFaqs()
+    getPageData('about'),
+    getPageData('home'),
+    getServices(),
+    getTestimonials(),
+    getFaqs()
   ]);
 
   const aboutContent = aboutData?.[`content_${currentLocale}`] || aboutData?.content_en || {}
@@ -96,14 +101,10 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
   return (
     <Stack gap="0" w="full">
-      <Box pt={{ base: "32", md: "40" }} pb={{ base: "8", md: "12" }} className="pattern-dots">
+      {/* Unified Hero Section */}
+      <Box className="pattern-dots">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-          <AboutHero 
-            dict={aboutContent.hero}
-            title={aboutContent.hero?.title}
-            description={aboutContent.hero?.description}
-            videoUrl={aboutContent.hero?.videoUrl}
-          />
+          <HeroBlock dict={aboutContent.hero} locale={currentLocale} />
         </Container>
       </Box>
 
@@ -115,7 +116,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </Container>
       </Box>
 
-      <Box id="services" py={{ base: "16", md: "24" }} bg={{ base: "bg.subtle", _dark: "black" }} borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
+      <Box id="services" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
           <FadeIn>
             <ServicesBlock dict={homeContent.services} services={displayServices} />
@@ -139,7 +140,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </Container>
       </Box>
 
-      <Box id="faqs" bg={{ base: "bg.subtle", _dark: "black" }} py={{ base: "16", md: "24" }} className="pattern-grid" borderTopWidth="1px" borderColor="border.subtle">
+      <Box id="faqs" bg="bg.subtle" py={{ base: "16", md: "24" }} className="pattern-grid" borderTopWidth="1px" borderColor="border.subtle">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
           <FadeIn>
             <Faq dict={homeContent.faq} faqs={localizedFaqs || []} />

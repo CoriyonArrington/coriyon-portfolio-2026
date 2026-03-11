@@ -1,6 +1,8 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
-import { unstable_cache } from "next/cache"
+import { cache } from "react"
+import type { Metadata, ResolvingMetadata } from "next"
+
 import { Block as HomeHero } from "@/components/blocks/heroes/home-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
@@ -8,43 +10,50 @@ import { Block as ProcessTimeline } from "@/components/blocks/process/timeline-s
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-export const revalidate = 3600 
+export const dynamic = 'force-dynamic'
 
-const getCachedPage = unstable_cache(
-  async (slug: string) => {
-    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
-    return data || {}
-  },
-  ['page-data'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+const getPageData = cache(async (slug: string) => {
+  const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+  return data || {}
+})
 
-const getCachedProjects = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
-    return data || []
-  },
-  ['published-projects-list'],
-  { revalidate: 3600, tags: ['projects'] }
-)
+const getProjectsData = cache(async () => {
+  const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
+  return data || []
+})
 
-const getCachedFeaturedTestimonials = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
-    return data || []
-  },
-  ['featured-testimonials'],
-  { revalidate: 3600, tags: ['testimonials'] }
-)
+const getFeaturedTestimonialsData = cache(async () => {
+  const { data } = await supabase.from('testimonials').select('*').eq('is_featured', true).limit(1)
+  return data || []
+})
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ locale: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'en'
+  const pageData = await getPageData('home')
+  
+  const title = pageData?.[`title_${currentLocale}`] || pageData?.title_en || pageData?.title || 'Coriyon Arrington | Senior Product Designer'
+  const description = pageData?.[`description_${currentLocale}`] || pageData?.description_en || pageData?.description
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { title, description }
+  }
+}
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
   const [pageData, projects, featuredTestimonials] = await Promise.all([
-    getCachedPage('home'),
-    getCachedProjects(),
-    getCachedFeaturedTestimonials()
+    getPageData('home'),
+    getProjectsData(),
+    getFeaturedTestimonialsData()
   ]);
 
   const content = pageData?.[`content_${currentLocale}`] || pageData?.content_en || {}
@@ -90,7 +99,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </Container>
       </Box>
 
-      <Box id="testimonials" py={{ base: "16", md: "24" }} bg={{ base: "bg.emphasized", _dark: "black" }}>
+      <Box id="testimonials" py={{ base: "16", md: "24" }} bg="bg.emphasized">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
           <FadeIn>
             {featuredTestimonial && <FeaturedTestimonial testimonial={featuredTestimonial} />}
@@ -99,14 +108,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       </Box>
 
       {regularProjects.length > 0 && (
-        <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots" suppressHydrationWarning>
+        <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <CategoryGrid 
                 dict={content.project} 
                 projects={regularProjects} 
                 viewAllHref={`/${currentLocale}/projects`}
-                viewAllText={currentLocale === 'es' ? 'Ver todos los proyectos' : 'View all projects'}
+                // Dynamically pull the string from the DB
+                viewAllText={content.project?.viewAll || (currentLocale === 'es' ? 'Ver todos' : 'View all projects')}
               />
             </FadeIn>
           </Container>
@@ -114,14 +124,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       )}
 
       {playgroundProjects.length > 0 && (
-        <Box id="playground" py={{ base: "16", md: "24" }} bg={{ base: "bg.subtle", _dark: "black" }} borderTopWidth="1px" borderColor="border.subtle" suppressHydrationWarning>
+        <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <CategoryGrid 
                 dict={content.playground} 
                 projects={playgroundProjects} 
                 viewAllHref={`/${currentLocale}/playground`}
-                viewAllText={currentLocale === 'es' ? 'Ver todos los experimentos' : 'View all experiments'}
+                // Dynamically pull the string from the DB
+                viewAllText={content.playground?.viewAll || (currentLocale === 'es' ? 'Ver experimentos' : 'View all experiments')}
               />
             </FadeIn>
           </Container>
@@ -132,7 +143,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <ProcessTimeline dict={content.process} />
       </Box>
 
-      <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle" suppressHydrationWarning>
+      <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
           <FadeIn>
             <Cta dict={content.contact} />
