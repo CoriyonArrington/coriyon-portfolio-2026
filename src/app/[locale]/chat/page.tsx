@@ -1,4 +1,4 @@
-import { Box } from "@chakra-ui/react"
+import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
 import { cache } from "react"
 import type { Metadata, ResolvingMetadata } from "next"
@@ -45,14 +45,13 @@ export default async function ChatPage({
   const chatContent = chatData?.[`content_${currentLocale}`] || chatData?.content_en || {};
 
   return (
-    <Box 
-      w="full"
-      flex="1" 
-      pt={{ base: 28, md: 32 }}
-      className="pattern-dots"
-    >
-      {/* Restored the original layout utilizing the AiBlock as the hero */}
-      <AiBlock locale={currentLocale} isHero={true} dict={chatContent} />
-    </Box>
+    <Stack gap="0" w="full">
+      {/* FIX: Standardized Wrapper exactly like Home, Projects, Playground, and Services */}
+      <Box className="pattern-dots" pt={{ base: '32', md: '40' }} pb={{ base: '16', md: '24' }}>
+        <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+          <AiBlock locale={currentLocale} isHero={true} dict={chatContent} />
+        </Container>
+      </Box>
+    </Stack>
   )
 }

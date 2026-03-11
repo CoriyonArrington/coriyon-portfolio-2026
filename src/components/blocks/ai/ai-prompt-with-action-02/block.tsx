@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState, useMemo } from 'react'
-import { Box, Button, Center, Container, Flex, Heading, HStack, IconButton, SimpleGrid, Span, Stack, Text, Textarea, Highlight } from '@chakra-ui/react'
+import { Badge, Box, Button, Center, Container, Flex, Heading, HStack, IconButton, SimpleGrid, Span, Stack, Text, Textarea, Highlight } from '@chakra-ui/react'
 import { HiBookOpen, HiLightBulb, HiTerminal, HiSparkles } from 'react-icons/hi'
 import { LuSendHorizontal, LuUser, LuBot } from 'react-icons/lu'
 import { PromptButton } from './prompt-button'
@@ -28,9 +28,9 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
     }
   }, [messages])
 
-  // Extract hero text from dict or use widget fallbacks
   const rawTitle = dict?.hero?.title || (locale === 'es' ? "Hola, soy la *IA de Coriyon.*" : "Hi, I'm *Coriyon's AI.*")
   const rawDescription = dict?.hero?.description || (locale === 'es' ? "¿Cómo puedo ayudarte?" : "How can I help you?")
+  const tagline = dict?.hero?.tagline
 
   const { displayTitle, highlightQueries } = useMemo(() => {
     const matches = rawTitle.match(/\*(.*?)\*/g)
@@ -151,28 +151,38 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
     <Flex direction="column" h="full" bg="transparent">
       
       <Box flex="1" overflowY="auto" ref={scrollRef} px="4" display="flex" flexDirection="column">
-        <Container maxW="4xl" flex="1" display="flex" flexDirection="column" pt={{ base: "8", md: "8" }} pb="4">
+        {/* FIX: Removed pt={{ base: "8", md: "8" }} here to eliminate double-padding */}
+        <Container maxW="4xl" flex="1" display="flex" flexDirection="column" pb="4">
           
           {messages.length === 0 ? (
             <Stack gap={isHero ? { base: "8", md: "12" } : "8"} my="auto" w="full" align={isHero ? "center" : "flex-start"} textAlign={isHero ? "center" : "left"}>
-              <Heading 
-                as={isHero ? "h1" : "h2"}
-                size={isHero ? { base: "4xl", md: "5xl", lg: "6xl" } : { base: "2xl", md: "3xl" }} 
-                fontWeight="bold" 
-                letterSpacing="tight" 
-                lineHeight={{ base: "1.2", md: "1.1" }}
-                maxW="4xl"
-                mx={isHero ? "auto" : "0"}
-                pr={isHero ? "0" : "12"}
-              >
-                <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
-                  {displayTitle}
-                </Highlight>
-                <br />
-                <Span color="fg.muted" fontWeight="medium" fontSize={isHero ? { base: "2xl", md: "3xl" } : { base: "xl", md: "2xl" }} mt={isHero ? "4" : "0"} display="block">
-                  {rawDescription}
-                </Span>
-              </Heading>
+              
+              <Box>
+                {tagline && (
+                  <Badge size="lg" variant="subtle" colorPalette="gray" alignSelf={isHero ? "center" : "flex-start"} rounded="full" px="4" py="1" mb="6" display="inline-flex">
+                    {tagline}
+                  </Badge>
+                )}
+                
+                <Heading 
+                  as={isHero ? "h1" : "h2"}
+                  size={isHero ? { base: "4xl", md: "5xl", lg: "6xl" } : { base: "2xl", md: "3xl" }} 
+                  fontWeight="bold" 
+                  letterSpacing="tight" 
+                  lineHeight={{ base: "1.2", md: "1.1" }}
+                  maxW="4xl"
+                  mx={isHero ? "auto" : "0"}
+                  pr={isHero ? "0" : "12"}
+                >
+                  <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
+                    {displayTitle}
+                  </Highlight>
+                  <br />
+                  <Span color="fg.muted" fontWeight="medium" fontSize={isHero ? { base: "2xl", md: "3xl" } : { base: "xl", md: "2xl" }} mt={isHero ? "4" : "0"} display="block">
+                    {rawDescription}
+                  </Span>
+                </Heading>
+              </Box>
 
               <SimpleGrid columns={{ base: 1, sm: 2 }} gap="4" mt="2" w="full">
                 {prompts.map((prompt: any, index: number) => (
