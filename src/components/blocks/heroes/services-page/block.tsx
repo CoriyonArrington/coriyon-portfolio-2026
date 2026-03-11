@@ -4,7 +4,6 @@ import { Badge, Box, Button, Heading, Stack, Text, VStack, Highlight } from '@ch
 import { LuChevronDown, LuBot } from 'react-icons/lu'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { useMemo } from 'react'
-import NextLink from 'next/link'
 
 interface ServicesHeroProps {
   dict?: any;
@@ -13,12 +12,11 @@ interface ServicesHeroProps {
   tagline?: string;
   exploreText?: string;
   secondaryText?: string;
-  chatHref?: string;
   children?: React.ReactNode;
 }
 
 export const Block = ({ 
-  dict, title, description, tagline, exploreText, secondaryText, chatHref = "/chat", children
+  dict, title, description, tagline, exploreText, secondaryText, children
 }: ServicesHeroProps) => {
   const { playClick, playHover } = useUiSounds()
 
@@ -31,6 +29,11 @@ export const Block = ({
       const offsetPosition = elementPosition + window.scrollY - offset
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
     }
+  }
+
+  const handleOpenChat = () => {
+    playClick()
+    window.dispatchEvent(new Event('open-ai-chat'))
   }
 
   const rawTitle = title || dict?.title || 'Services & Offerings'
@@ -50,7 +53,7 @@ export const Block = ({
     <VStack gap={{ base: '12', md: '16' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={{ base: '16', md: '24' }}>
       <Stack gap="6" align="center" px={{ base: '4', md: '8' }}>
         {finalTagline && (
-          <Badge size="lg" variant="subtle" colorPalette="green" alignSelf="center" rounded="full" px="4" py="1">
+          <Badge size="lg" variant="subtle" colorPalette="gray" alignSelf="center" rounded="full" px="4" py="1">
             {finalTagline}
           </Badge>
         )}
@@ -90,25 +93,19 @@ export const Block = ({
             {finalExploreText} <LuChevronDown style={{ marginLeft: '8px' }} />
           </Button>
 
-          {/* FIX: Forced explicit white text and gray.900 background */}
+          {/* FIX: Removed hardcoded gray.900 background. Now uses standard solid gray variant. */}
           <Button 
-            asChild
             size="xl" 
             h={{ base: 14, md: 16 }}
             px={{ base: 6, md: 8 }}
             fontSize="lg"
-            bg="gray.900"
-            color="white"
-            _hover={{ bg: "gray.800" }}
-            _dark={{ bg: "gray.800", _hover: { bg: "gray.700" } }}
             variant="solid" 
-            onClick={playClick} 
+            colorPalette="gray"
+            onClick={handleOpenChat} 
             onMouseEnter={playHover}
             w={{ base: 'full', md: 'auto' }}
           >
-            <NextLink href={chatHref}>
-              {finalSecondaryText} <LuBot style={{ marginLeft: '8px' }} />
-            </NextLink>
+            {finalSecondaryText} <LuBot style={{ marginLeft: '8px' }} />
           </Button>
         </Stack>
       </Stack>

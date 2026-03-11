@@ -1,23 +1,44 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
+import { cache } from "react"
+import type { Metadata, ResolvingMetadata } from "next"
+
 import { Block as ProjectsHero } from "@/components/blocks/heroes/projects-page/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-// FIX: Force dynamic rendering so Vercel never caches stale data. 
-// When you publish a project in Supabase, it will show up instantly.
 export const dynamic = 'force-dynamic'
-export const revalidate = 0 
 
-const getPageData = async (slug: string) => {
+// 1. Wrap fetches in React.cache for consistent server performance
+const getPageData = cache(async (slug: string) => {
   const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
   return data || {}
-}
+})
 
-const getProjectsData = async () => {
+const getProjectsData = cache(async () => {
   const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
   return data || []
+})
+
+// 2. Dynamic SEO Metadata Generation
+export async function generateMetadata(
+  { params }: { params: Promise<{ locale: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'en'
+  const pageData = await getPageData('projects')
+  
+  const title = pageData?.[`title_${currentLocale}`] || pageData?.title_en || pageData?.title || 'Projects | Coriyon Arrington'
+  const description = pageData?.[`description_${currentLocale}`] || pageData?.description_en || pageData?.description
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { title, description }
+  }
 }
 
 export default async function ProjectsPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -57,13 +78,15 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
 
   return (
     <Stack gap="0" w="full">
-      <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
+      {/* FIX: Removed duplicate pt/pb so the Hero's internal spacing dictates the exact offset */}
+      <Box className="pattern-dots">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
           <ProjectsHero 
             dict={{ 
               ...projectsContent.hero, 
-              exploreWork: projectsContent.hero?.exploreWork || (currentLocale === 'es' ? 'Ver proyectos' : 'View projects'), 
-              showOverview: projectsContent.hero?.showOverview || (currentLocale === 'es' ? 'Resumen rápido' : 'Quick overview') 
+              // Pulling strictly from DB dictionaries
+              exploreWork: projectsContent.hero?.exploreWork, 
+              showOverview: projectsContent.hero?.showOverview 
             }}
             title={projectsContent.hero?.title}
             description={projectsContent.hero?.description}
@@ -74,12 +97,14 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
             mockupType={featuredProject?.mockupType || projectsContent.hero?.mockupType}
             bgColor={featuredProject?.bgColor || projectsContent.hero?.bgColor || "green.600"}
             
-            summary={featuredProject?.contentJson?.overview?.oneLiner || featuredProject?.description || projectsContent.hero?.summary}
-            role={featuredProject?.contentJson?.overview?.myRole || projectsContent.hero?.role}
-            duration={featuredProject?.contentJson?.overview?.timeframe?.total || projectsContent.hero?.duration}
-            year={featuredProject?.contentJson?.overview?.year || projectsContent.hero?.year}
-            teamRoles={featuredProject?.contentJson?.overview?.teamRoles || projectsContent.hero?.teamRoles}
-            deliverables={featuredProject?.contentJson?.overview?.deliverables || projectsContent.hero?.deliverables}
+            // Prioritize the featured project data, fallback to page dictionary stats
+            summary={featuredProject?.contentJson?.overview?.oneLiner || featuredProject?.description || projectsContent.hero?.description}
+            role={featuredProject?.contentJson?.overview?.myRole || projectsContent.hero?.stats?.role}
+            duration={featuredProject?.contentJson?.overview?.timeframe?.total || projectsContent.hero?.stats?.duration}
+            year={featuredProject?.contentJson?.overview?.year || projectsContent.hero?.stats?.year}
+            teamRoles={featuredProject?.contentJson?.overview?.teamRoles || projectsContent.hero?.stats?.teamRoles}
+            deliverables={featuredProject?.contentJson?.overview?.deliverables || projectsContent.hero?.stats?.deliverables}
+            industries={featuredProject?.contentJson?.overview?.industries || projectsContent.hero?.stats?.industries}
           />
         </Container>
       </Box>
@@ -88,21 +113,25 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
         <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
-              <CategoryGrid dict={homeContent.project} projects={regularProjects} />
+              <CategoryGrid 
+                dict={homeContent.project} 
+                projects={regularProjects} 
+              />
             </FadeIn>
           </Container>
         </Box>
       )}
 
       {playgroundProjects.length > 0 && (
-        <Box id="playground" py={{ base: "16", md: "24" }} bg={{ base: "bg.subtle", _dark: "black" }} borderTopWidth="1px" borderColor="border.subtle">
+        // FIX: Ripped out manual _dark="black" overrides and applied bg.subtle
+        <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <CategoryGrid 
                 dict={homeContent.playground} 
                 projects={playgroundProjects} 
                 viewAllHref={`/${currentLocale}/playground`}
-                viewAllText={currentLocale === 'es' ? 'Ver todos los experimentos' : 'View all experiments'}
+                viewAllText={homeContent.playground?.viewAll}
               />
             </FadeIn>
           </Container>

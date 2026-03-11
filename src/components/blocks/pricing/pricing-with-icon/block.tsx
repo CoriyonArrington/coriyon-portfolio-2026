@@ -1,53 +1,82 @@
 'use client'
 
-import { Badge, Box, SegmentGroup, Stack, Text, VStack } from '@chakra-ui/react'
-import { useState } from 'react'
-import { PricingCard, type PlanData } from './pricing-card'
+import { Box, SimpleGrid, Stack, Text, Center, Highlight, HStack, Button } from '@chakra-ui/react'
+import { PricingCard, PlanData } from './pricing-card'
+import { useMemo, useState } from 'react'
 
 interface PricingProps {
-  dict?: any;
+  dict?: any
+  plans?: PlanData[]
 }
 
-export const Block = ({ dict }: PricingProps) => {
+export const Block = ({ dict, plans = [] }: PricingProps) => {
+  // State to manage the billing toggle
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly')
-  
-  const header = dict?.pricing_header || {}
-  const plans = (dict?.pricing_plans || []) as PlanData[]
 
-  if (!plans || plans.length === 0) return null;
+  const rawTitle = dict?.title || "Pricing"
+  const { displayTitle, highlightQueries } = useMemo(() => {
+    const matches = rawTitle.match(/\*(.*?)\*/g)
+    const queries = matches ? matches.map((m: string) => m.replace(/\*/g, '')) : []
+    const cleanText = rawTitle.replace(/\*/g, '')
+    return { displayTitle: cleanText, highlightQueries: queries }
+  }, [rawTitle])
 
   return (
-    <Box w="full" maxW="6xl" mx="auto">
-      <VStack gap="8">
-        <SegmentGroup.Root
-          size="sm"
-          defaultValue="yearly"
-          onValueChange={(e) => setBilling(e.value as 'monthly' | 'yearly')}
-        >
-          <SegmentGroup.Indicator />
-          <SegmentGroup.Items
-            items={[
-              {
-                label: (
-                  <Text>
-                    {header.billed_annually || 'Pay in full'}{' '}
-                    <Badge size="xs" variant="solid" pos="relative" bottom="1px" colorPalette="green">
-                      -20%
-                    </Badge>
-                  </Text>
-                ),
-                value: 'yearly',
-              },
-              { label: <Text>{header.billed_monthly || 'Deposit only'}</Text>, value: 'monthly' },
-            ]}
-          />
-        </SegmentGroup.Root>
-        <Stack w="full" direction={{ base: 'column', lg: 'row' }} gap="6" justify="center">
-          {plans.map((plan: PlanData) => (
-            <PricingCard key={plan.value} billing={billing} data={plan} flex="1" />
-          ))}
+    <Box py={{ base: '16', md: '24' }} w="full">
+      <Stack gap={{ base: '12', md: '16' }} maxW="7xl" mx="auto">
+        
+        <Stack gap="4" align="center" textAlign="center">
+          <Text textStyle={{ base: '4xl', md: '5xl' }} fontWeight="bold" letterSpacing="tight">
+            <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
+              {displayTitle}
+            </Highlight>
+          </Text>
+          <Text color="fg.muted" textStyle="xl" maxW="2xl">
+            {dict?.description}
+          </Text>
+
+          {/* Billing Toggle Switch */}
+          <HStack bg="bg.muted" p="1" rounded="full" mt="4">
+            <Button
+              size="sm"
+              variant={billing === 'yearly' ? 'solid' : 'ghost'}
+              colorPalette={billing === 'yearly' ? 'green' : 'gray'}
+              rounded="full"
+              onClick={() => setBilling('yearly')}
+              transition="all 0.2s"
+            >
+              {dict?.billed_annually || 'Pay in full'}
+            </Button>
+            <Button
+              size="sm"
+              variant={billing === 'monthly' ? 'solid' : 'ghost'}
+              colorPalette={billing === 'monthly' ? 'green' : 'gray'}
+              rounded="full"
+              onClick={() => setBilling('monthly')}
+              transition="all 0.2s"
+            >
+              {dict?.billed_monthly || 'Deposit only'}
+            </Button>
+          </HStack>
         </Stack>
-      </VStack>
+
+        {plans.length > 0 ? (
+          <SimpleGrid columns={{ base: 1, md: 3 }} gap="8">
+            {plans.map((plan, id) => (
+              <PricingCard 
+                key={plan.value || id} 
+                data={plan} 
+                billing={billing} // Now dynamically passes the billing state to the card
+              />
+            ))}
+          </SimpleGrid>
+        ) : (
+          <Center h="40">
+            <Text color="fg.muted">No pricing plans available.</Text>
+          </Center>
+        )}
+        
+      </Stack>
     </Box>
   )
 }

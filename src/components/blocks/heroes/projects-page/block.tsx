@@ -32,10 +32,10 @@ export const Block = ({
   role, duration, year, teamRoles, deliverables, summary, industries, platforms
 }: HeroProps) => {
   const { playClick, playHover } = useUiSounds()
-  const [mounted, setMounted] = useState(false) // Added to prevent hydration mismatches
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true) // Marks when React has successfully hydrated on the client
+    setMounted(true)
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [])
 
@@ -58,14 +58,12 @@ export const Block = ({
     return { displayTitle: cleanText, highlightQueries: queries }
   }, [rawTitle])
 
-  // Fallback to reading from the dictionary if props aren't explicitly passed
   const finalTagline = tagline || dict?.tagline;
   const finalDescription = description || dict?.description || 'Project description goes here.';
   const finalImageUrl = imageUrl || dict?.imageUrl;
   const finalVideoUrl = videoUrl || dict?.videoUrl;
   const finalMockupType = mockupType || dict?.mockupType;
   
-  // Safely extract nested stats from the JSON dictionary
   const displayRole = role || dict?.stats?.role;
   const displayDuration = duration || dict?.stats?.duration;
   const displayYear = year || dict?.stats?.year;
@@ -118,10 +116,12 @@ export const Block = ({
   )
 
   return (
+    // Re-added pt/pb wrapper styling so it explicitly defines its own padding block
     <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={{ base: '8', md: '12' }}>
       <Stack gap="6" align="center" px={{ base: '4', md: '8' }}>
         {finalTagline && (
-          <Badge size="lg" variant="subtle" colorPalette="green" alignSelf="center" rounded="full" px="4" py="1">
+          // FIX: Standardized colorPalette to "gray" to match Services & Home pages
+          <Badge size="lg" variant="subtle" colorPalette="gray" alignSelf="center" rounded="full" px="4" py="1">
             {finalTagline}
           </Badge>
         )}
@@ -160,7 +160,6 @@ export const Block = ({
             {dict?.exploreWork || "Read case study"} <LuChevronDown />
           </Button>
 
-          {/* FIX: Prevent Hydration Mismatch by rendering a static button on the server */}
           {mounted ? (
             <Dialog.Root placement="center" motionPreset="slide-in-bottom">
               <Dialog.Trigger asChild>
@@ -259,7 +258,6 @@ export const Block = ({
               </Portal>
             </Dialog.Root>
           ) : (
-            // Static placeholder button for SSR to guarantee perfect match
             <Button 
               size="xl" 
               h={{ base: 14, md: 16 }}
@@ -276,7 +274,6 @@ export const Block = ({
         </Stack>
       </Stack>
 
-      {/* Conditionally render standalone phone or the presentation box */}
       {isPhone ? (
         <Center w="full" mt={{ base: '8', md: '12' }} px={{ base: '4', md: '8' }}>
           <Box position="relative" w="full" maxW="300px" aspectRatio="422/862">

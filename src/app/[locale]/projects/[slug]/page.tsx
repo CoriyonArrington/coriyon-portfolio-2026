@@ -3,7 +3,7 @@ import type { Metadata, ResolvingMetadata } from 'next'
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
-import { unstable_cache } from "next/cache"
+import { cache } from "react"
 import { PasswordGate } from "@/components/ui/password-gate"
 import { Block as Hero } from "@/components/blocks/heroes/project-detail-page/block"
 import { Block as FeaturedTestimonial } from "@/components/blocks/testimonials/testimonial-with-rating/block"
@@ -20,34 +20,22 @@ import { Block as ProjectCta } from "@/components/blocks/cta/cta-08/block"
 import { Block as TableOfContents, type TocItem } from "@/components/blocks/docs-toc/toc-mobile/block"
 import { Block as TimelineSection } from "@/components/blocks/process/timeline-section"
 
-export const revalidate = 3600 
+export const dynamic = 'force-dynamic'
 
-const getCachedProjects = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
-    return data || []
-  },
-  ['published-projects-list'],
-  { revalidate: 3600, tags: ['projects'] }
-)
+const getProjects = cache(async () => {
+  const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
+  return data || []
+})
 
-const getCachedPage = unstable_cache(
-  async (slug: string) => {
-    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
-    return data || {}
-  },
-  ['page-data'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+const getPageData = cache(async (slug: string) => {
+  const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+  return data || {}
+})
 
-const getCachedTestimonials = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('testimonials').select('*')
-    return data || []
-  },
-  ['testimonials-list'],
-  { revalidate: 3600, tags: ['testimonials'] }
-)
+const getTestimonials = cache(async () => {
+  const { data } = await supabase.from('testimonials').select('*')
+  return data || []
+})
 
 export async function generateMetadata(
   { params }: { params: Promise<{ locale: string, slug: string }> },
@@ -56,7 +44,7 @@ export async function generateMetadata(
   const { locale, slug } = await params;
   const currentLocale = locale || 'en'
 
-  const allProjects = await getCachedProjects()
+  const allProjects = await getProjects()
   const project = allProjects.find((p: any) => p.slug === slug)
 
   if (!project) return { title: 'Project Not Found' }
@@ -73,6 +61,7 @@ export async function generateMetadata(
   }
 }
 
+// FIX: Swapped explicit _dark overrides for semantic theme tokens (bg.emphasized vs bg.canvas)
 const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark, pt, pb, borderTopWidth, className, children }: any) => {
   const renderValue = (v: any) => {
     if (typeof v === 'string') return <Text color="fg.muted" lineHeight="relaxed">{v}</Text>;
@@ -118,7 +107,7 @@ const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark
       className={className}
       pt={pt || { base: "16", md: "24" }} 
       pb={pb || { base: "16", md: "24" }} 
-      bg={isDark ? { base: "bg.emphasized", _dark: "black" } : "bg.canvas"} 
+      bg={isDark ? "bg.emphasized" : "bg.canvas"} 
       borderTopWidth={borderTopWidth !== undefined ? borderTopWidth : (isDark ? "0" : "1px")} 
       borderColor="border.subtle"
     >
@@ -134,7 +123,7 @@ const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark
           <Stack gap={{ base: "8", md: "12" }} w="full">
             {imageSrc && (
               <Box w="full" rounded="3xl" overflow="hidden" shadow="xl" borderWidth="1px" borderColor="border.subtle">
-                 <Image src={imageSrc} alt={title} w="full" h="auto" objectFit="cover" />
+                 <Image src={imageSrc} alt={title} width={1200} height={800} style={{ width: "100%", height: "auto", objectFit: "cover" }} />
               </Box>
             )}
 
@@ -273,9 +262,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     pageData,
     allTestimonials
   ] = await Promise.all([
-    getCachedProjects(),
-    getCachedPage('home'),
-    getCachedTestimonials()
+    getProjects(),
+    getPageData('home'),
+    getTestimonials()
   ]);
 
   const currentIndex = allProjects.findIndex((p: any) => p.slug === slug)
@@ -310,7 +299,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const bgColor = project.bg_color 
   const mockupType = project.mockup_type 
 
-  // FIX: Safely fallback to English blocks if the Spanish JSON is missing the newer fields.
   const enContent = project.content_en || {}
   const locContent = (project as any)[`content_${currentLocale}`] || {}
   const projectContentJson = currentLocale === 'en' ? enContent : { ...enContent, ...locContent }
@@ -322,7 +310,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const year = overviewData.year || projectContentJson.project_meta?.year || (project.project_date ? new Date(project.project_date).getFullYear() : null)
   
   const usersList = overviewData.users ? (Array.isArray(overviewData.users) ? overviewData.users.join(', ') : overviewData.users) : null;
-  const teamRoles = overviewData.teamRoles || overviewData.team_roles || projectContentJson.project_meta?.team;
+  
+  // FIX: Maps cleanly to the standardized 'teamRoles' key in your DB
+  const teamRoles = overviewData.teamRoles || projectContentJson.project_meta?.team;
   const deliverables = overviewData.deliverables || (Array.isArray(projectContentJson.project_meta?.deliverables) ? projectContentJson.project_meta.deliverables.join(', ') : projectContentJson.project_meta?.deliverables)
   const industries = overviewData.industries || projectContentJson.project_meta?.industries
 
@@ -462,7 +452,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const hasLearningsData = pmLearnings && Object.keys(pmLearnings).length > 0;
   const shouldRenderLearnings = hasLearningsData || unifiedBentoFeatures.length > 0;
 
-  // We explicitly check for both to prevent duplicate rendering if the new format already exists
   const caseStudyData = projectContentJson.case_study || {}
   const resultData = caseStudyData.results || caseStudyData.result || {}
   const hasStandardCaseStudy = !!caseStudyData.challenge || !!caseStudyData.solution || !!resultData.heading
@@ -481,7 +470,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const dynamicToc: TocItem[] = [];
   if (!isProtected) {
-    if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: extractBadge(pmOutcomes, t.resultsBadge), level: 1 });
+    if (shouldRenderOutcomes) dynamicToc.push({ id: 'outcomes', text: extractBadge(pmOutcomes, statsData.tagline || t.resultsBadge), level: 1 });
     if (shouldRenderLearnings) dynamicToc.push({ id: 'learnings', text: hasBentoGrid && bentoData.badge ? bentoData.badge : extractBadge(pmLearnings, t.learningsBadge), level: 1 });
     if (hasContextData) dynamicToc.push({ id: 'context', text: extractBadge(pmContext, t.contextBadge), level: 1 });
     if (hasProblemData) dynamicToc.push({ id: 'problem', text: extractBadge(pmProblem, t.problemBadge), level: 1 });
@@ -511,7 +500,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       </Box>
 
       {localizedFeaturedTestimonial && (
-        <Box bg={{ base: "bg.emphasized", _dark: "black" }} w="full" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
+        <Box bg="bg.emphasized" w="full" borderTopWidth="1px" borderBottomWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FeaturedTestimonial testimonial={localizedFeaturedTestimonial} />
           </Container>
@@ -665,7 +654,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               </Box>
             )}
 
-            {/* Render legacy case study fallback only if modern fields are absent */}
             {!pmContext && !pmProblem && hasStandardCaseStudy && (
               <Box id="case-study" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
                 <Container maxW="7xl" px={{ base: "4", md: "8" }}>
@@ -713,7 +701,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </>
       )}
 
-      {/* INTERSTITIAL NAV */}
       <Box py={{ base: "12", md: "20" }} bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
         <Container maxW="5xl" px={{ base: "4", md: "8" }}>
           <FadeIn>
