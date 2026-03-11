@@ -4,7 +4,7 @@ const config = defineConfig({
   globalCss: {
     body: {
       colorPalette: 'green',
-      fontFamily: 'body', // Forces Chakra to respect the body font globally
+      fontFamily: 'body', 
     },
   },
   theme: {
@@ -36,11 +36,24 @@ const config = defineConfig({
       },
       colors: {
         bg: {
+          // The absolute base layer (Page body). True black in dark mode.
+          canvas: {
+            value: { _light: '#ffffff', _dark: '#000000' },
+          },
+          // Elevated surfaces (Navbar, Footer, Cards). Just barely off-black so they stand out against the canvas.
+          panel: {
+            value: { _light: '#ffffff', _dark: '#0a0a0a' },
+          },
+          // Hover states and secondary backgrounds
+          muted: {
+            value: { _light: '{colors.slate.100}', _dark: '#111113' },
+          },
+          // Your custom tokens, now natively matching your manual overrides
           subtle: {
-            value: { _light: '{colors.slate.50}', _dark: '#111113' },
+            value: { _light: '{colors.slate.50}', _dark: '#000000' },
           },
           emphasized: {
-            value: { _light: '{colors.slate.100}', _dark: '#1A1A1D' },
+            value: { _light: '{colors.slate.100}', _dark: '#000000' },
           },
         },
       },

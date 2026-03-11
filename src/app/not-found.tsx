@@ -8,7 +8,7 @@ import { headers, cookies } from "next/headers";
 import { Block as NavbarIsland } from "@/components/blocks/marketing-navbars/navbar-island/block";
 import { Block as Footer } from "@/components/blocks/footers/footer-with-address/block";
 import { ErrorLottie } from "@/components/ui/error-lottie";
-import { getCachedNavLinks } from "@/lib/nav-utils"; // Import the nav-links fetcher
+import { getNavLinks } from "@/lib/nav-utils"; 
 
 const montserrat = localFont({
   src: "../fonts/Montserrat/Montserrat-VariableFont_wght.ttf",
@@ -40,10 +40,10 @@ export default async function GlobalNotFound() {
     currentLocale = 'es';
   }
 
-  // Fetch both the page layout data and the nav links for the global Navbar
+  // standard fetch matching our new cached pattern
   const [pageDataResponse, navLinks] = await Promise.all([
     supabase.from('pages').select('*').eq('slug', 'home').maybeSingle(),
-    getCachedNavLinks()
+    getNavLinks()
   ]);
 
   const pageData = pageDataResponse.data;
@@ -67,7 +67,6 @@ export default async function GlobalNotFound() {
       <body className={`${montserrat.variable} ${nunitoSans.variable}`}>
         <Provider>
           <Flex direction="column" minH="100vh" bg="bg.canvas">
-            {/* Inject the globally fetched links into the Navbar */}
             <NavbarIsland dict={content.navbar} links={navLinks} />
             
             <Flex

@@ -1,115 +1,134 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, usePathname, useSearchParams } from 'next/navigation'
-import { Box, IconButton, Flex } from '@chakra-ui/react'
-import { LuMessageSquare, LuX } from 'react-icons/lu'
+import { Box, IconButton, Button, HStack, Text, Stack } from '@chakra-ui/react'
+import { LuMessageSquare, LuX, LuBot, LuCalendar } from 'react-icons/lu'
+import { Block as AiBlock } from '@/components/blocks/ai/ai-prompt-with-action-02/block'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-
-import { Block as AIChatBlock } from '@/components/blocks/ai/ai-prompt-with-action-02/block'
+import { CalendlyPopup } from './calendly-popup'
 
 export function FloatingContact() {
-  const { playClick, playHover } = useUiSounds()
-  const params = useParams()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const locale = (params?.locale as string) || 'en'
-
   const [isOpen, setIsOpen] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isCalendlyOpen, setIsCalendlyOpen] = useState(false)
+  const { playHover, playWhoosh, playClick } = useUiSounds()
 
-  // Automatically close the chat whenever the route changes
+  // Listen for the custom event to open the AI Chat
   useEffect(() => {
-    setIsOpen(false)
-  }, [pathname, searchParams])
+    const handleOpenAiChat = () => {
+      setIsOpen(true)
+      setIsChatOpen(true)
+      playWhoosh()
+    }
+    window.addEventListener('open-ai-chat', handleOpenAiChat)
+    return () => window.removeEventListener('open-ai-chat', handleOpenAiChat)
+  }, [playWhoosh])
 
-  const toggleChat = () => {
-    playClick()
+  const toggleMenu = () => {
+    playWhoosh()
     setIsOpen(!isOpen)
+    if (isOpen) setIsChatOpen(false) 
+  }
+
+  const handleOpenChat = () => {
+    playClick()
+    setIsChatOpen(true)
+  }
+
+  const handleCloseChat = () => {
+    playWhoosh()
+    setIsChatOpen(false)
+    setIsOpen(false)
+  }
+
+  const handleOpenCalendly = () => {
+    playClick()
+    setIsOpen(false)
+    setIsCalendlyOpen(true)
   }
 
   return (
     <>
-      <Box
-        position="fixed"
-        bottom={{ base: 0, md: '100px' }}
-        right={{ base: 0, md: '8' }}
-        w={{ base: '100vw', md: '450px' }}
-        h={{ base: '100dvh', md: '750px' }}
-        maxH={{ base: '100dvh', md: 'calc(100vh - 120px)' }}
-        bg="white"
-        _dark={{ bg: "black" }} 
-        rounded={{ base: 'none', md: '2xl' }}
-        shadow="2xl"
-        zIndex="2100"
-        borderWidth={{ base: 0, md: '1px' }}
-        borderColor="border.subtle"
-        overflow="hidden"
-        opacity={isOpen ? 1 : 0}
-        pointerEvents={isOpen ? 'auto' : 'none'}
-        transform={isOpen ? 'translateY(0)' : 'translateY(20px) scale(0.98)'}
-        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-        display="flex"
-        flexDirection="column"
-      >
-        {/* FIX: Increased pt to 16 (64px) so the top of the button matches the top bounding box of the header text exactly */}
-        <Flex 
-          position="absolute" 
-          top="0" 
-          left="0" 
-          right="0" 
-          justify="flex-end" 
-          pr={{ base: "6", md: "8" }}
-          pt={{ base: "16", md: "16" }} 
-          zIndex="2102" 
-          pointerEvents="none"
-        >
-          <IconButton
-            aria-label="Close chat"
-            variant="outline"
-            bg="white"
-            _dark={{ bg: 'black' }}
-            color="fg.default"
-            rounded="full"
-            size="sm"
-            pointerEvents="auto"
-            onClick={toggleChat}
-            shadow="sm"
-            borderWidth="1px"
-            borderColor="border.subtle"
-            _hover={{ bg: 'gray.50', _dark: { bg: 'gray.800' }, transform: 'scale(1.05)' }}
-            transition="all 0.2s"
-          >
-            <LuX size="20px" />
-          </IconButton>
-        </Flex>
+      <Box position="fixed" bottom={{ base: "4", md: "8" }} right={{ base: "4", md: "8" }} zIndex="tooltip">
+        
+        {/* The Action Menu (Conditionally rendered to bypass missing Collapse snippet) */}
+        {isOpen && !isChatOpen && (
+          <Box mb="4" p="4" bg="bg.panel" rounded="2xl" shadow="2xl" borderWidth="1px" borderColor="border.subtle" minW="260px">
+            <Text fontSize="sm" fontWeight="semibold" color="fg.muted" mb="3" px="2">How can I help?</Text>
+            <Stack gap="2">
+              <Button w="full" variant="ghost" justifyContent="flex-start" size="lg" gap="3" onClick={handleOpenChat} onMouseEnter={playHover}>
+                <Box p="2" bg="green.500/10" color="green.500" rounded="lg">
+                  <LuBot size="20" />
+                </Box>
+                Chat with my AI
+              </Button>
+              <Button w="full" variant="ghost" justifyContent="flex-start" size="lg" gap="3" onClick={handleOpenCalendly} onMouseEnter={playHover}>
+                <Box p="2" bg="blue.500/10" color="blue.500" rounded="lg">
+                  <LuCalendar size="20" />
+                </Box>
+                Book an intro call
+              </Button>
+            </Stack>
+          </Box>
+        )}
 
-        <Box flex="1" overflow="hidden" position="relative" w="full" h="full" pt="8">
-          <AIChatBlock locale={locale} />
+        {/* The AI Chat Widget */}
+        {isChatOpen && (
+          <Box 
+            mb="4" 
+            bg="bg.panel" 
+            rounded="2xl" 
+            shadow="2xl" 
+            borderWidth="1px" 
+            borderColor="border.subtle" 
+            w={{ base: "calc(100vw - 32px)", md: "400px" }}
+            h={{ base: "600px", md: "500px" }}
+            maxH="calc(100vh - 120px)"
+            overflow="hidden"
+            display="flex"
+            flexDirection="column"
+          >
+            <HStack justify="space-between" align="center" p="4" borderBottomWidth="1px" borderColor="border.subtle" bg="bg.muted">
+              <HStack gap="3">
+                <Box p="2" bg="green.500/10" color="green.500" rounded="lg">
+                  <LuBot size="20" />
+                </Box>
+                <Box>
+                  <Text fontWeight="semibold" fontSize="sm">Coriyon AI</Text>
+                  <Text fontSize="xs" color="fg.muted">Ask me anything about my work</Text>
+                </Box>
+              </HStack>
+              <IconButton aria-label="Close chat" variant="ghost" size="sm" rounded="full" onClick={handleCloseChat}>
+                <LuX />
+              </IconButton>
+            </HStack>
+            <Box flex="1" overflow="hidden" position="relative">
+               <AiBlock isHero={false} locale="en" dict={{}} />
+            </Box>
+          </Box>
+        )}
+
+        {/* The Floating Toggle Button */}
+        <Box display="flex" justifyContent="flex-end">
+          <IconButton
+            title={isOpen || isChatOpen ? "Close menu" : "Get in touch"}
+            aria-label="Contact options"
+            size="2xl"
+            rounded="full"
+            colorPalette={isOpen || isChatOpen ? "gray" : "green"}
+            shadow="xl"
+            onClick={isOpen && isChatOpen ? handleCloseChat : toggleMenu}
+            onMouseEnter={playHover}
+            transition="all 0.2s"
+            _hover={{ transform: 'scale(1.05)' }}
+            _active={{ transform: 'scale(0.95)' }}
+          >
+            {isOpen || isChatOpen ? <LuX size="24" /> : <LuMessageSquare size="24" />}
+          </IconButton>
         </Box>
       </Box>
 
-      <Box 
-        position="fixed" 
-        bottom={{ base: '6', md: '8' }} 
-        right={{ base: '4', md: '8' }} 
-        zIndex={isOpen ? "2099" : "2101"} 
-      >
-        <IconButton
-          aria-label={isOpen ? "Close Chat" : "Open Chat"}
-          bg="green.600"
-          color="white"
-          rounded="full"
-          shadow="xl"
-          _hover={{ bg: 'green.700', transform: 'scale(1.05)', shadow: '2xl' }}
-          transition="all 0.2s"
-          onClick={toggleChat}
-          onMouseEnter={playHover}
-          w="64px"
-          h="64px"
-        >
-          {isOpen ? <LuX size="28px" /> : <LuMessageSquare size="28px" />}
-        </IconButton>
-      </Box>
+      <CalendlyPopup isOpen={isCalendlyOpen} onClose={() => setIsCalendlyOpen(false)} />
     </>
   )
 }
