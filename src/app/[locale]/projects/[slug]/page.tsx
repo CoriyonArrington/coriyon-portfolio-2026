@@ -311,7 +311,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   
   const usersList = overviewData.users ? (Array.isArray(overviewData.users) ? overviewData.users.join(', ') : overviewData.users) : null;
   
-  // FIX: Maps cleanly to the standardized 'teamRoles' key in your DB
   const teamRoles = overviewData.teamRoles || projectContentJson.project_meta?.team;
   const deliverables = overviewData.deliverables || (Array.isArray(projectContentJson.project_meta?.deliverables) ? projectContentJson.project_meta.deliverables.join(', ') : projectContentJson.project_meta?.deliverables)
   const industries = overviewData.industries || projectContentJson.project_meta?.industries
@@ -482,21 +481,24 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   return (
     <Stack gap="0" w="full">
       <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
-        <Hero 
-          dict={{ ...content.hero }}
-          title={projectContentJson.hero?.title || title}
-          description={projectContentJson.hero?.subtitle || description}
-          tagline={category}
-          videoUrl={videoUrl}
-          imageUrl={imageUrl} 
-          bgColor={bgColor}
-          mockupType={mockupType || "browser"}
-          primaryCtaText={t.readCaseStudy}
-          secondaryCtaText={t.showOverview}
-          primaryScrollTo="outcomes"
-          isProtected={isProtected}
-          overviewData={overviewDataPayload}
-        />
+        {/* FIX: Added Container to restrict the SplitScreenHeroLayout's width */}
+        <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+          <Hero 
+            dict={{ ...content.hero }}
+            title={projectContentJson.hero?.title || title}
+            description={projectContentJson.hero?.subtitle || description}
+            tagline={category}
+            videoUrl={videoUrl}
+            imageUrl={imageUrl} 
+            bgColor={bgColor}
+            mockupType={mockupType || "browser"}
+            primaryCtaText={t.readCaseStudy}
+            secondaryCtaText={t.showOverview}
+            primaryScrollTo="outcomes"
+            isProtected={isProtected}
+            overviewData={overviewDataPayload}
+          />
+        </Container>
       </Box>
 
       {localizedFeaturedTestimonial && (
