@@ -1,39 +1,33 @@
 import { Box, Container, Stack } from "@chakra-ui/react"
 import { supabase } from "@/lib/supabase"
-import { unstable_cache } from "next/cache"
 import { Block as ProjectsHero } from "@/components/blocks/heroes/projects-page/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
-export const revalidate = 3600 
+// FIX: Force dynamic rendering so Vercel never caches stale data. 
+// When you publish a project in Supabase, it will show up instantly.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0 
 
-const getCachedPage = unstable_cache(
-  async (slug: string) => {
-    const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
-    return data || {}
-  },
-  ['page-data'],
-  { revalidate: 3600, tags: ['pages'] }
-)
+const getPageData = async (slug: string) => {
+  const { data } = await supabase.from('pages').select('*').eq('slug', slug).single()
+  return data || {}
+}
 
-const getCachedProjects = unstable_cache(
-  async () => {
-    const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
-    return data || []
-  },
-  ['published-projects-list'],
-  { revalidate: 3600, tags: ['projects'] }
-)
+const getProjectsData = async () => {
+  const { data } = await supabase.from('projects').select('*').eq('status', 'published').order('sort_order', { ascending: true })
+  return data || []
+}
 
 export default async function ProjectsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const currentLocale = locale || 'en'
 
   const [projectsPageData, homeData, projects] = await Promise.all([
-    getCachedPage('projects'),
-    getCachedPage('home'),
-    getCachedProjects()
+    getPageData('projects'),
+    getPageData('home'),
+    getProjectsData()
   ]);
 
   const projectsContent = projectsPageData?.[`content_${currentLocale}`] || projectsPageData?.content_en || {}
@@ -71,18 +65,15 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
               exploreWork: projectsContent.hero?.exploreWork || (currentLocale === 'es' ? 'Ver proyectos' : 'View projects'), 
               showOverview: projectsContent.hero?.showOverview || (currentLocale === 'es' ? 'Resumen rápido' : 'Quick overview') 
             }}
-            // FIX: Keep the Page title and description, do not overwrite with the project name
             title={projectsContent.hero?.title}
             description={projectsContent.hero?.description}
             tagline={projectsContent.hero?.tagline}
             
-            // Inject the featured project's visual assets
             imageUrl={featuredProject?.image_url || projectsContent.hero?.imageUrl}
             videoUrl={featuredProject?.videoUrl || projectsContent.hero?.videoUrl}
             mockupType={featuredProject?.mockupType || projectsContent.hero?.mockupType}
             bgColor={featuredProject?.bgColor || projectsContent.hero?.bgColor || "green.600"}
             
-            // Pull the metadata from the featured project's overview JSON for the "Show Overview" modal
             summary={featuredProject?.contentJson?.overview?.oneLiner || featuredProject?.description || projectsContent.hero?.summary}
             role={featuredProject?.contentJson?.overview?.myRole || projectsContent.hero?.role}
             duration={featuredProject?.contentJson?.overview?.timeframe?.total || projectsContent.hero?.duration}
