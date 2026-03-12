@@ -65,13 +65,13 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
     isFeatured: v.is_featured,
     author: {
       name: 'Coriyon Arrington',
+      // Reverted back to the correct, working avatars/ path
       avatarUrl: 'https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/avatars/coriyon-arrington.png'
     }
   }))
 
   return (
     <Stack gap="0" w="full">
-      {/* Wrapper pt/pb standardized to match Services, Projects, Playground */}
       <Box className="pattern-dots">
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
           <BlogBlock 

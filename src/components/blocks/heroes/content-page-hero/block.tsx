@@ -75,6 +75,10 @@ export const Block = ({ dict, posts, locale = 'en', primaryAction, secondaryActi
   const ytVideoId = getYouTubeVideoId(dict?.videoUrl || "")
   const finalVideoUrl = ytVideoId ? `https://www.youtube.com/embed/${ytVideoId}?rel=0` : dict?.videoUrl
 
+  // Identify the featured post and filter it out of the grid to prevent duplication
+  const featuredPost = posts?.find(p => p.isFeatured) || posts?.[0];
+  const gridPosts = posts?.filter(p => p.id !== featuredPost?.id) || [];
+
   return (
     <Box w="full">
       <CalendlyPopup isOpen={isCalendlyOpen} onClose={() => setIsCalendlyOpen(false)} />
@@ -113,10 +117,10 @@ export const Block = ({ dict, posts, locale = 'en', primaryAction, secondaryActi
       {posts && posts.length > 0 && (
         <Box id="featured-video" pb={{ base: '16', md: '24' }}>
           <Stack gap={{ base: '16', md: '24' }}>
-            <ArticlePreview post={posts.find(p => p.isFeatured) || posts[0]} hero />
-            {posts.length > 1 && (
+            {featuredPost && <ArticlePreview post={featuredPost} hero />}
+            {gridPosts.length > 0 && (
               <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap="10">
-                {posts.filter((_, i) => i !== 0).map((post) => (
+                {gridPosts.map((post) => (
                   <ArticlePreview key={post.id} post={post} />
                 ))}
               </SimpleGrid>
