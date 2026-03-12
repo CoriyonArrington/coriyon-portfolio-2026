@@ -3,7 +3,7 @@
 import { Box, SimpleGrid, Stack, Button } from '@chakra-ui/react'
 import { LuChevronDown, LuYoutube, LuDownload, LuCalendar } from 'react-icons/lu'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArticlePreview } from './article-preview'
 import { CalendlyPopup } from '@/components/ui/calendly-popup'
@@ -23,9 +23,11 @@ interface ContentPageHeroProps {
   dict?: any
   posts?: any[]
   locale?: string
+  primaryAction?: ReactNode
+  secondaryAction?: ReactNode
 }
 
-export const Block = ({ dict, posts, locale = 'en' }: ContentPageHeroProps) => {
+export const Block = ({ dict, posts, locale = 'en', primaryAction, secondaryAction }: ContentPageHeroProps) => {
   const { playHover, playClick } = useUiSounds()
   const router = useRouter()
   const [isCalendlyOpen, setIsCalendlyOpen] = useState(false)
@@ -82,26 +84,26 @@ export const Block = ({ dict, posts, locale = 'en' }: ContentPageHeroProps) => {
         title={displayTitle}
         highlightQueries={highlightQueries}
         description={dict?.description}
-        primaryAction={
+        primaryAction={primaryAction || (
           <Button size="xl" h={{ base: 14, md: 16 }} px={{ base: 6, md: 8 }} fontSize="lg" colorPalette="green" variant="solid" onClick={handlePrimaryClick} onMouseEnter={playHover} w={{ base: 'full', md: 'auto' }}>
             {primaryText} {primaryIcon}
           </Button>
-        }
-        secondaryAction={
+        )}
+        secondaryAction={secondaryAction || (
           dict?.secondaryText && (
             <Button size="xl" h={{ base: 14, md: 16 }} px={{ base: 6, md: 8 }} fontSize="lg" variant="solid" colorPalette="gray" onMouseEnter={playHover} onClick={handleSecondaryClick} w={{ base: 'full', md: 'auto' }}>
               {dict.secondaryText} {secIcon}
             </Button>
           )
-        }
+        )}
       >
         {dict?.videoUrl && (
-          <Box maxW="5xl" mx="auto" rounded="3xl" overflow="hidden" bg="bg.panel" borderWidth="1px" borderColor="border.subtle" shadow="2xl" w="full">
-            <Box aspectRatio={16/9} w="full" bg="black">
+          <Box maxW="5xl" mx="auto" rounded="3xl" overflow="hidden" bg="black" borderWidth="1px" borderColor="border.subtle" shadow="2xl" w="full">
+            <Box aspectRatio={16/9} w="full">
               {ytVideoId ? (
-                <iframe src={finalVideoUrl} title="Introduction Video" allowFullScreen style={{ width: '100%', height: '100%', border: 'none' }} />
+                <iframe src={finalVideoUrl} title="Introduction Video" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
               ) : (
-                <video src={finalVideoUrl} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <video src={finalVideoUrl} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
               )}
             </Box>
           </Box>
@@ -112,11 +114,13 @@ export const Block = ({ dict, posts, locale = 'en' }: ContentPageHeroProps) => {
         <Box id="featured-video" pb={{ base: '16', md: '24' }}>
           <Stack gap={{ base: '16', md: '24' }}>
             <ArticlePreview post={posts.find(p => p.isFeatured) || posts[0]} hero />
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap="10">
-              {posts.filter((_, i) => i !== 0).map((post) => (
-                <ArticlePreview key={post.id} post={post} />
-              ))}
-            </SimpleGrid>
+            {posts.length > 1 && (
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap="10">
+                {posts.filter((_, i) => i !== 0).map((post) => (
+                  <ArticlePreview key={post.id} post={post} />
+                ))}
+              </SimpleGrid>
+            )}
           </Stack>
         </Box>
       )}

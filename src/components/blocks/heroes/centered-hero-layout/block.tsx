@@ -26,9 +26,10 @@ export const CenteredHeroLayout = ({
   children,
   pb = { base: '16', md: '24' }
 }: CenteredHeroLayoutProps) => {
+
   return (
-    <VStack gap={{ base: '12', md: '16' }} textAlign="center" w="full" pt={{ base: '32', md: '40' }} pb={pb}>
-      <Stack gap="6" align="center" w="full">
+    <VStack gap={{ base: '10', md: '16' }} textAlign="center" w="full" minW="0" pt={{ base: '32', md: '40' }} pb={pb}>
+      <Stack gap="6" align="center" w="full" minW="0" maxW="4xl" mx="auto">
         {badge && (
           typeof badge === 'string' ? (
             <Badge size="lg" variant="subtle" colorPalette="gray" alignSelf="center" rounded="full" px="4" py="1">
@@ -41,8 +42,10 @@ export const CenteredHeroLayout = ({
         
         <Heading
           as="h1"
-          textStyle={{ base: '5xl', md: '6xl', lg: '7xl' }}
-          maxW="4xl"
+          textStyle={{ base: '4xl', sm: '5xl', md: '6xl', lg: '7xl' }} // FIX: Scaled down base font to fit mobile screens
+          w="full"
+          minW="0"
+          wordBreak="break-word" // FIX: Forces long text (like "Offerings") to wrap instead of bleeding past the edge
           mx="auto"
           lineHeight={{ base: '1.2', md: '1.1' }}
           fontWeight="bold"
@@ -53,12 +56,12 @@ export const CenteredHeroLayout = ({
               {title}
             </Highlight>
           ) : (
-            title
+             title
           )}
         </Heading>
         
         {description && (
-          <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} maxW="2xl" mx="auto">
+          <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} maxW="2xl" w="full" minW="0" mx="auto">
             {description}
           </Text>
         )}
@@ -79,7 +82,7 @@ export const CenteredHeroLayout = ({
       </Stack>
 
       {children && (
-        <Box w="full" mt={{ base: 4, md: 8 }}>
+        <Box w="full" minW="0" mt={{ base: 4, md: 8 }} display="flex" justifyContent="center">
           {children}
         </Box>
       )}
