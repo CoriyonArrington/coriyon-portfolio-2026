@@ -150,14 +150,13 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
   return (
     <Flex direction="column" h="full" bg="transparent">
       
-      <Box flex="1" overflowY="auto" ref={scrollRef} px="4" display="flex" flexDirection="column">
-        {/* FIX: Removed pt={{ base: "8", md: "8" }} here to eliminate double-padding */}
-        <Container maxW="4xl" flex="1" display="flex" flexDirection="column" pb="4">
+      <Box flex="1" overflowY="auto" ref={scrollRef} px={isHero ? "0" : "4"} display="flex" flexDirection="column">
+        <Container maxW={isHero ? "5xl" : "full"} px="0" flex="1" display="flex" flexDirection="column" pb="4">
           
           {messages.length === 0 ? (
             <Stack gap={isHero ? { base: "8", md: "12" } : "8"} my="auto" w="full" align={isHero ? "center" : "flex-start"} textAlign={isHero ? "center" : "left"}>
               
-              <Box>
+              <Box w="full">
                 {tagline && (
                   <Badge size="lg" variant="subtle" colorPalette="gray" alignSelf={isHero ? "center" : "flex-start"} rounded="full" px="4" py="1" mb="6" display="inline-flex">
                     {tagline}
@@ -166,13 +165,13 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
                 
                 <Heading 
                   as={isHero ? "h1" : "h2"}
-                  size={isHero ? { base: "4xl", md: "5xl", lg: "6xl" } : { base: "2xl", md: "3xl" }} 
+                  size={isHero ? { base: "5xl", md: "6xl", lg: "7xl" } : { base: "2xl", md: "3xl" }} 
                   fontWeight="bold" 
                   letterSpacing="tight" 
                   lineHeight={{ base: "1.2", md: "1.1" }}
-                  maxW="4xl"
+                  maxW={isHero ? "4xl" : "full"}
                   mx={isHero ? "auto" : "0"}
-                  pr={isHero ? "0" : "12"}
+                  pr={isHero ? "0" : "4"}
                 >
                   <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
                     {displayTitle}
@@ -224,7 +223,7 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
                 }
 
                 return (
-                  <Stack key={msg.id} gap="2" alignSelf={msg.role === 'user' ? 'flex-end' : 'flex-start'} maxW="3xl">
+                  <Stack key={msg.id} gap="2" alignSelf={msg.role === 'user' ? 'flex-end' : 'flex-start'} maxW={isHero ? "3xl" : "full"}>
                     <HStack align="flex-start" gap="4">
                       {msg.role === 'assistant' && (
                         <Box p="2" bg="green.600" rounded="lg" color="white" flexShrink={0} mt="1"><LuBot /></Box>
@@ -291,11 +290,12 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
         </Container>
       </Box>
 
-      <Box flex="0" bg="bg.panel" borderTopWidth="1px" borderColor="border.subtle" pt="4" pb={{ base: "6", md: "6" }} zIndex="10">
-        <Container maxW="4xl">
+      <Box flex="0" bg="transparent" pt="4" pb={{ base: "6", md: "6" }} zIndex="10">
+        <Container maxW={isHero ? "5xl" : "full"} px={isHero ? "0" : "4"}>
           <form onSubmit={handleSend}>
             <Flex 
-              bg="bg.muted" 
+              bg="bg.panel" // Solid base
+              _light={{ bg: "white" }} // Explicitly white for light mode
               borderRadius="2xl" 
               px="4" 
               py="3" 

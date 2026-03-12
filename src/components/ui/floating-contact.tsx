@@ -51,18 +51,18 @@ export function FloatingContact() {
     <>
       <Box position="fixed" bottom={{ base: "4", md: "8" }} right={{ base: "4", md: "8" }} zIndex="tooltip">
         
-        {/* The Action Menu (Conditionally rendered to bypass missing Collapse snippet) */}
+        {/* The Action Menu */}
         {isOpen && !isChatOpen && (
-          <Box mb="4" p="4" bg="bg.panel" rounded="2xl" shadow="2xl" borderWidth="1px" borderColor="border.subtle" minW="260px">
-            <Text fontSize="sm" fontWeight="semibold" color="fg.muted" mb="3" px="2">How can I help?</Text>
+          <Box mb="4" py="4" bg="bg.panel" rounded="2xl" shadow="2xl" borderWidth="1px" borderColor="border.subtle" minW="260px">
+            <Text fontSize="sm" fontWeight="semibold" color="fg.muted" mb="3" px="4">How can I help?</Text>
             <Stack gap="2">
-              <Button w="full" variant="ghost" justifyContent="flex-start" size="lg" gap="3" onClick={handleOpenChat} onMouseEnter={playHover}>
+              <Button w="full" variant="ghost" justifyContent="flex-start" size="lg" gap="3" px="4" onClick={handleOpenChat} onMouseEnter={playHover}>
                 <Box p="2" bg="green.500/10" color="green.500" rounded="lg">
                   <LuBot size="20" />
                 </Box>
                 Chat with my AI
               </Button>
-              <Button w="full" variant="ghost" justifyContent="flex-start" size="lg" gap="3" onClick={handleOpenCalendly} onMouseEnter={playHover}>
+              <Button w="full" variant="ghost" justifyContent="flex-start" size="lg" gap="3" px="4" onClick={handleOpenCalendly} onMouseEnter={playHover}>
                 <Box p="2" bg="blue.500/10" color="blue.500" rounded="lg">
                   <LuCalendar size="20" />
                 </Box>
@@ -81,8 +81,8 @@ export function FloatingContact() {
             shadow="2xl" 
             borderWidth="1px" 
             borderColor="border.subtle" 
-            w={{ base: "calc(100vw - 32px)", md: "400px" }}
-            h={{ base: "600px", md: "500px" }}
+            w={{ base: "calc(100vw - 32px)", md: "480px" }}
+            h={{ base: "600px", md: "700px" }}
             maxH="calc(100vh - 120px)"
             overflow="hidden"
             display="flex"
