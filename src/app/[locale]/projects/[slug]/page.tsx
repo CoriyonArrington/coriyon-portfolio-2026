@@ -61,7 +61,6 @@ export async function generateMetadata(
   }
 }
 
-// FIX: Swapped explicit _dark overrides for semantic theme tokens (bg.emphasized vs bg.canvas)
 const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark, pt, pb, borderTopWidth, className, children }: any) => {
   const renderValue = (v: any) => {
     if (typeof v === 'string') return <Text color="fg.muted" lineHeight="relaxed">{v}</Text>;
@@ -164,6 +163,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const t = {
     readCaseStudy: isEs ? "Leer caso de estudio" : "Read case study",
+    unlockCaseStudy: isEs ? "Desbloquear caso" : "Unlock case study",
     showOverview: isEs ? "Ver resumen" : "Show overview",
     tocTitle: isEs ? "Navegación del Caso" : "Case Study Navigation",
     resultsBadge: isEs ? "Los Resultados" : "The Results",
@@ -481,7 +481,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   return (
     <Stack gap="0" w="full">
       <Box className="pattern-dots" pb={{ base: "16", md: "24" }}>
-        {/* FIX: Added Container to restrict the SplitScreenHeroLayout's width */}
         <Container maxW="7xl" px={{ base: "4", md: "8" }}>
           <Hero 
             dict={{ ...content.hero }}
@@ -492,7 +491,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             imageUrl={imageUrl} 
             bgColor={bgColor}
             mockupType={mockupType || "browser"}
-            primaryCtaText={t.readCaseStudy}
+            primaryCtaText={isProtected ? t.unlockCaseStudy : t.readCaseStudy}
             secondaryCtaText={t.showOverview}
             primaryScrollTo="outcomes"
             isProtected={isProtected}
@@ -690,17 +689,18 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               </Container>
             </Box>
           )}
-
-          {globalContactData && globalContactData.title && (
-            <Box bg="bg.canvas" py={{ base: "12", md: "20" }} borderTopWidth={hasFaqs ? "0" : "1px"} borderColor="border.subtle" className="pattern-dots">
-              <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-                <FadeIn>
-                  <ProjectCta dict={globalContactData} />
-                </FadeIn>
-              </Container>
-            </Box>
-          )}
         </>
+      )}
+
+      {/* Moved outside the isProtected conditional to always render; Solid background removed to reveal pattern-dots */}
+      {globalContactData && globalContactData.title && (
+        <Box py={{ base: "12", md: "20" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
+          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+            <FadeIn>
+              <ProjectCta dict={globalContactData} />
+            </FadeIn>
+          </Container>
+        </Box>
       )}
 
       <Box py={{ base: "12", md: "20" }} bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
