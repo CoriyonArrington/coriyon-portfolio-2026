@@ -13,7 +13,7 @@ interface SplitScreenHeroLayoutProps {
   actions?: ReactNode;
   children?: ReactNode;
   pb?: any;
-  forceStack?: boolean; // NEW: Allows consumer to override the split screen
+  forceStack?: boolean; 
 }
 
 export const SplitScreenHeroLayout = ({
@@ -35,8 +35,7 @@ export const SplitScreenHeroLayout = ({
       w="full" 
       align="center"
     >
-      
-      {/* Left Column: Text Content */}
+      {/* Text Column */}
       <Flex
         flex={forceStack ? "none" : "1"}
         align="center"
@@ -45,7 +44,7 @@ export const SplitScreenHeroLayout = ({
         minW="0" 
         pe={forceStack ? '0' : { base: '0', lg: '8', xl: '12' }} 
         pt={{ base: '32', md: '40' }} 
-        pb={pb} 
+        pb={forceStack ? { base: 8, md: 10 } : pb} 
       >
         <Stack 
           gap="6" 
@@ -73,7 +72,6 @@ export const SplitScreenHeroLayout = ({
             letterSpacing="tight"
           >
             {typeof title === 'string' && highlightQueries.length > 0 ? (
-              // CRITICAL FIX: Overriding Chakra's default nowrap behavior on Highlight
               <Highlight query={highlightQueries} styles={{ color: highlightColor, whiteSpace: 'normal' }}>
                 {title}
               </Highlight>
@@ -83,7 +81,7 @@ export const SplitScreenHeroLayout = ({
           </Heading>
           
           {description && (
-            <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} w="full" minW="0" maxW={forceStack ? "2xl" : "full"} mx={forceStack ? "auto" : "0"}>
+            <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} w="full" minW="0" maxW={forceStack ? "2xl" : "full"}>
               {description}
             </Text>
           )}
@@ -96,24 +94,23 @@ export const SplitScreenHeroLayout = ({
         </Stack>
       </Flex>
       
-      {/* Right Column: Media Content */}
+      {/* Media Column */}
       <Flex 
         flex={forceStack ? "none" : "1"} 
         align="center" 
         justify="center" 
         w="full"
-        maxW={forceStack ? "5xl" : "full"}
+        maxW={forceStack ? "6xl" : "full"}
         mx={forceStack ? "auto" : "0"}
         minW="0" 
-        minH={{ base: 'auto', lg: '3xl' }} 
-        pt={{ base: 8, lg: 0 }}
+        minH={forceStack ? "auto" : { base: 'auto', lg: '3xl' }} 
+        pt={forceStack ? { base: 4, md: 8 } : { base: 8, lg: 0 }}
         pb={{ base: 12, lg: 0 }}
       >
         <Box w="full" minW="0">
           {children}
         </Box>
       </Flex>
-      
     </Flex>
   )
 }

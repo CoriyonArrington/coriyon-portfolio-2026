@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge, Box, Button, Center, Dialog, Portal, IconButton, Wrap, Stack, Text, SimpleGrid, Heading, Highlight } from '@chakra-ui/react'
+import { Badge, Box, Button, Center, Dialog, Portal, IconButton, Wrap, Stack, Text, Heading, Highlight } from '@chakra-ui/react'
 import { LuChevronDown, LuEye, LuX } from 'react-icons/lu'
 import Image from 'next/image'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
@@ -44,22 +44,18 @@ export const Block = ({
     role: "Role", duration: "Duration", team: "Team", users: "Users", deliverables: "Deliverables", year: "Year", industry: "Industry", overview: "Project Overview"
   };
 
-  // Safely parse the mockup type
-  const rawMockup = mockupType || dict?.mockupType;
-  const normalizedMockupType = rawMockup ? String(rawMockup).toLowerCase().trim() : '';
-  
-  const isTablet = normalizedMockupType === 'tablet' || normalizedMockupType === 'ipad'
-  const isPhone = normalizedMockupType === 'phone' || normalizedMockupType === 'mobile' || normalizedMockupType === 'iphone'
-  const isPadded = normalizedMockupType === 'padded'
-  
-  // NEW: Determines if we should force a vertical stack
-  const isRawMedia = !normalizedMockupType || normalizedMockupType === 'null' || normalizedMockupType === 'none'
+  const normalizedMockup = String(mockupType || dict?.mockupType || '').toLowerCase().trim();
+  const isPhone = normalizedMockup === 'phone' || normalizedMockup === 'mobile' || normalizedMockup === 'iphone';
+  const isTablet = normalizedMockup === 'tablet' || normalizedMockup === 'ipad';
+  const isPadded = normalizedMockup === 'padded';
+
+  const isRawMedia = !isPhone && !isTablet;
 
   const MediaContent = () => (
     <>
       {(imageUrl || dict?.imageUrl) && !(videoUrl || dict?.videoUrl) && (
         <Box position="absolute" inset="0" zIndex="0">
-          <Image src={imageUrl || dict?.imageUrl} alt={rawTitle} fill priority style={{ objectFit: isPadded ? 'contain' : 'cover' }} sizes="(max-width: 768px) 100vw, 50vw" />
+          <Image src={imageUrl || dict?.imageUrl} alt={rawTitle} fill priority style={{ objectFit: isPadded ? 'contain' : 'cover' }} sizes="(max-width: 768px) 100vw, 80vw" />
         </Box>
       )}
       {(videoUrl || dict?.videoUrl) && (
@@ -72,11 +68,11 @@ export const Block = ({
     <SplitScreenHeroLayout
       pb={{ base: '8', md: '12' }}
       titleSize={{ base: '3xl', sm: '4xl', md: '5xl', lg: '5xl', xl: '6xl' }} 
-      forceStack={isRawMedia} // Passes the trigger to vertically stack the layout
+      forceStack={isRawMedia} 
       badge={
         tags && tags.length > 0 ? (
           <Wrap justify={{ base: "center", lg: isRawMedia ? "center" : "flex-start" }} gap="2" mb="2">
-            {tags.map((tag, i) => (
+            {tags.map((tag: string, i: number) => (
               <Badge key={i} size="lg" variant="subtle" colorPalette="gray" rounded="full" px="3" py="1">{tag}</Badge>
             ))}
           </Wrap>
@@ -86,9 +82,11 @@ export const Block = ({
           </Badge>
         )
       }
-      title={displayTitle}
-      highlightQueries={highlightQueries}
-      highlightColor={bgColor || "green.600"}
+      title={
+        <Highlight query={highlightQueries} styles={{ color: bgColor || "green.600", whiteSpace: 'normal' }}>
+          {displayTitle}
+        </Highlight>
+      }
       description={description || dict?.description || 'Project description goes here.'}
       actions={
         <Stack direction={{ base: 'column', md: 'row' }} gap="4" w={{ base: "full", md: "auto" }} align={{ base: 'stretch', md: 'center' }}>
@@ -155,19 +153,32 @@ export const Block = ({
             <Box position="relative" w="full" maxW="300px" aspectRatio="422/862">
               <Box position="absolute" inset="2.2% 5.2% 2.2% 5.2%" borderRadius="3xl" overflow="hidden" bg="black" zIndex="0"><MediaContent /></Box>
               <Box position="relative" h="full" w="full" zIndex="1" pointerEvents="none">
-                <Image src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup-optimized.png" alt={`${normalizedMockupType} mockup`} fill priority unoptimized={true} style={{ objectFit: 'contain', pointerEvents: 'none' }} />
+                <Image src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/iphone-mockup-optimized.png" alt={`${normalizedMockup} mockup`} fill priority unoptimized={true} style={{ objectFit: 'contain', pointerEvents: 'none' }} />
               </Box>
             </Box>
           </Center>
         ) : (
-          <Box w="full" minW="0" position="relative" borderRadius="l3" overflow="hidden" borderWidth="1px" borderColor="border.subtle" bg={bgColor || "bg.muted"} shadow="md" aspectRatio={{ base: "4/3", md: "16/9" }}>
+          <Box 
+            maxW={isRawMedia ? "5xl" : "full"} 
+            mx="auto" 
+            w="full" 
+            minW="0" 
+            position="relative" 
+            borderRadius="l3" 
+            overflow="hidden" 
+            borderWidth="1px" 
+            borderColor="border.subtle" 
+            bg={bgColor || "bg.muted"} 
+            shadow="md" 
+            aspectRatio={{ base: "4/3", md: "16/9" }}
+          >
             {isTablet ? (
               <Center position="absolute" inset="0" p={{ base: '8', md: '16' }} zIndex="0">
                 <Box position="relative" h="full" w="full" display="flex" justifyContent="center" alignItems="center">
                   <Box position="relative" h="full" aspectRatio="1106/814">
                     <Box position="absolute" inset="4.8% 4.2%" borderRadius="sm" overflow="hidden" bg="black" zIndex="0"><MediaContent /></Box>
                     <Box position="relative" h="full" w="auto" aspectRatio="1106/814" zIndex="1">
-                      <Image src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/ipad-mockup-optimized.png" alt={`${normalizedMockupType} mockup`} fill priority unoptimized={true} style={{ objectFit: 'contain', pointerEvents: 'none' }} />
+                      <Image src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/ipad-mockup-optimized.png" alt={`${normalizedMockup} mockup`} fill priority unoptimized={true} style={{ objectFit: 'contain', pointerEvents: 'none' }} />
                     </Box>
                   </Box>
                 </Box>
