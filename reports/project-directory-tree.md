@@ -16,7 +16,10 @@
 │   │   ├── manifest.lock
 │   │   └── manifest.toml
 │   ├── env.json
-│   └── log/
+│   ├── log/
+│   └── run/
+│       ├── aarch64-darwin.coriyon-portfolio.dev -> /nix/store/76z17z34yvr42lfg1iqb9vkrd2ym7qxd-environment-develop/
+│       └── aarch64-darwin.coriyon-portfolio.run -> /nix/store/fa5cghx053ghr7vd2h7f8fvbaik57xrj-environment-runtime/
 ├── .gitignore
 ├── AGENTS.md
 ├── CLAUDE.md
@@ -30,7 +33,7 @@
 ├── postcss.config.mjs
 ├── public/
 │   ├── .DS_Store
-│   ├── Coriyon-Studio-Design-Process.pdf
+│   ├── Coriyon-Arrington-Design-Process.pdf
 │   └── sounds/
 │       ├── click.mp3
 │       ├── hover.mp3
@@ -80,10 +83,8 @@
 │   │   │   ├── footers/
 │   │   │   ├── heroes/
 │   │   │   ├── marketing-navbars/
-│   │   │   ├── pricing/
 │   │   │   ├── process/
 │   │   │   ├── product-categories/
-│   │   │   ├── services/
 │   │   │   ├── stats/
 │   │   │   └── testimonials/
 │   │   └── ui/
