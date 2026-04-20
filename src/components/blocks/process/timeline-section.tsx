@@ -12,14 +12,21 @@ import {
   Center
 } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
-import { useScroll, useTransform, m, useSpring, LazyMotion, domAnimation } from 'motion/react'
+import { useScroll, useTransform, m, useSpring, LazyMotion, domAnimation } from 'framer-motion'
 import { LuDownload } from 'react-icons/lu'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { DownloadTrigger } from '@/components/ui/download-trigger'
 import NextImage from 'next/image'
 import dynamic from 'next/dynamic'
 
-const LottiePlayer = dynamic(
+interface LottiePlayerProps {
+  src: string;
+  loop?: boolean;
+  autoplay?: boolean;
+  style?: React.CSSProperties;
+}
+
+const LottiePlayer = dynamic<LottiePlayerProps>(
   () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact), 
   { ssr: false }
 )
@@ -76,7 +83,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
         py={{ base: '16', md: '24', lg: '32' }} 
         ref={sectionRef as unknown as React.RefObject<HTMLDivElement>} 
         className="pattern-dots"
-        overflowX="clip" // FIX: Localized clipping prevents horizontal scroll without breaking anchor links
+        overflowX="clip"
         w="full"
       >
         <Container maxW="7xl">
@@ -100,7 +107,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
                 >
                   <Stack gap="6" align="flex-start">
                     {dict?.badge && (
-                      <Badge variant="subtle" colorPalette="green" size="lg" rounded="full" px="3" py="1">
+                      <Badge variant="subtle" size="lg" rounded="full" px="3" py="1">
                         {dict.badge}
                       </Badge>
                     )}
@@ -114,7 +121,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
                     </Text>
                     
                     <DownloadTrigger 
-                      value="/Coriyon-Studio-Design-Process.pdf"
+                      value="/Coriyon-Arrington-Design-Process.pdf"
                       fileName="Coriyon_Design_Process.pdf"
                     >
                       <Button 
@@ -151,7 +158,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
                     left: 0,
                     right: 0,
                     height: '100%',
-                    backgroundColor: 'var(--chakra-colors-green-500)',
+                    backgroundColor: 'var(--chakra-colors-color-palette-500)',
                     transformOrigin: 'top',
                     borderRadius: 'full'
                   }}
@@ -201,7 +208,7 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
   const dotBg = useTransform(
     scrollYProgress, 
     [0, 1], 
-    ['var(--chakra-colors-border-subtle)', 'var(--chakra-colors-green-500)']
+    ['var(--chakra-colors-border-subtle)', 'var(--chakra-colors-color-palette-500)']
   )
 
   return (
@@ -235,7 +242,7 @@ const TimelineStepItem = ({ step, index }: { step: TimelineStep, index: number }
       >
         <Stack gap="6">
           <Stack gap="3">
-            <Text fontWeight="bold" color="green.500" fontSize="sm" letterSpacing="widest" textTransform="uppercase">
+            <Text fontWeight="bold" color="colorPalette.500" fontSize="sm" letterSpacing="widest" textTransform="uppercase">
               {step.date || `Step 0${index + 1}`}
             </Text>
             <Heading size="3xl">{step.heading}</Heading>

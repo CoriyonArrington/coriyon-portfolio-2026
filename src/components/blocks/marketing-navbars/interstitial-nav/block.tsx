@@ -14,9 +14,10 @@ interface InterstitialNavProps {
   prev?: ProjectLink | null
   next?: ProjectLink | null
   dict?: any
+  locale?: string 
 }
 
-export const Block = ({ prev, next, dict }: InterstitialNavProps) => {
+export const Block = ({ prev, next, dict, locale = 'en' }: InterstitialNavProps) => {
   const { playHover, playClick } = useUiSounds()
 
   if (!prev && !next) return null
@@ -25,11 +26,11 @@ export const Block = ({ prev, next, dict }: InterstitialNavProps) => {
     <SimpleGrid columns={{ base: 1, md: 2 }} gap="4" w="full">
       {prev ? (
         <Box asChild>
-          <NextLink href={`/projects/${prev.slug}`} onClick={playClick} onMouseEnter={playHover}>
+          <NextLink href={`/${locale}/projects/${prev.slug}`} onClick={playClick} onMouseEnter={playHover}>
             <Flex
               direction="column"
               align="flex-start"
-              p={{ base: '6', md: '10' }}
+              p={{ base: '6', md: '10' }} // RESTORED: Original large card padding
               borderRadius="2xl"
               borderWidth="1px"
               borderColor="border.subtle"
@@ -55,16 +56,16 @@ export const Block = ({ prev, next, dict }: InterstitialNavProps) => {
             </Flex>
           </NextLink>
         </Box>
-      ) : <Box />} {/* Empty box to maintain the right-side alignment if there is no previous project */}
+      ) : <Box />} 
 
       {next && (
         <Box asChild>
-          <NextLink href={`/projects/${next.slug}`} onClick={playClick} onMouseEnter={playHover}>
+          <NextLink href={`/${locale}/projects/${next.slug}`} onClick={playClick} onMouseEnter={playHover}>
             <Flex
               direction="column"
               align="flex-end"
               textAlign="right"
-              p={{ base: '6', md: '10' }}
+              p={{ base: '6', md: '10' }} // RESTORED: Original large card padding
               borderRadius="2xl"
               borderWidth="1px"
               borderColor="border.subtle"

@@ -228,9 +228,8 @@ export const Block = ({
           h={{ base: 14, md: 16 }}
           px={{ base: 6, md: 8 }}
           fontSize="lg"
-          bg={bgColor || "green.600"} 
-          color="white"
-          _hover={{ opacity: 0.85 }} 
+          // FIX: Swapped explicit bg/color for standard Chakra variant that inherits colorPalette
+          variant="solid" 
           onClick={handleScroll} 
           onMouseEnter={playHover}
           w={{ base: 'full', md: 'auto' }}

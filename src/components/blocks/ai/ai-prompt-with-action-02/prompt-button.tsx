@@ -15,13 +15,13 @@ export const PromptButton = (props: PromptButtonProps) => {
       minH={isLarge ? { base: '120px', md: '140px' } : { base: '4.5rem', md: '5rem' }}
       h="auto"
       bg="bg.panel"
-      _light={{ bg: "white" }} // Ensures it pops in light mode
+      _light={{ bg: "white" }} 
       borderColor="border.subtle"
       shadow="sm"
       _hover={{ 
         bg: "bg.muted", 
         _light: { bg: "gray.50" },
-        borderColor: "green.500", 
+        borderColor: "colorPalette.500", 
         shadow: "md", 
         transform: "translateY(-2px)" 
       }}
@@ -38,8 +38,8 @@ export const PromptButton = (props: PromptButtonProps) => {
     >
       <Icon 
         size={isLarge ? { base: "lg", md: "xl" } : "md"} 
-        color="green.600"
-        _dark={{ color: "green.400" }}
+        color="colorPalette.600"
+        _dark={{ color: "colorPalette.400" }}
         flexShrink={0}
       >
         {icon}

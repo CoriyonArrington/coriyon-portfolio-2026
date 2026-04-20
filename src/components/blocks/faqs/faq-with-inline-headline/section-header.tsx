@@ -7,7 +7,7 @@ interface SectionHeaderProps extends StackProps {
 export const SectionHeader = ({ dict, ...props }: SectionHeaderProps) => {
   return (
     <Stack gap="4" align="flex-start" {...props}>
-      <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">
+      <Badge size="lg" variant="subtle" rounded="full" px="3" py="1">
         {dict?.badge || "FAQs"}
       </Badge>
       <Heading as="h2" size="4xl" fontWeight="bold">

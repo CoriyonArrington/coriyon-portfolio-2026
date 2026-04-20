@@ -70,7 +70,6 @@ export const ArticlePreview = (props: Props) => {
                 aria-label="Play video" 
                 size="2xl" 
                 rounded="full" 
-                colorPalette="green" 
                 variant="solid"
                 pointerEvents="none"
               >

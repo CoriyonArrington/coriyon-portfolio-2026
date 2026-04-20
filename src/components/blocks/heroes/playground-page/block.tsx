@@ -51,47 +51,56 @@ export const Block = ({
 
   return (
     <VStack gap={{ base: '8', md: '12' }} textAlign="center" w="full" minW="0" pt={{ base: '32', md: '40' }} pb={{ base: '16', md: '24' }}>
-      {/* FIX: Removed px to eliminate double-padding */}
       <Stack gap="6" align="center" w="full" minW="0" maxW="4xl" mx="auto">
         {finalTagline && (
-          <Badge size="lg" variant="subtle" colorPalette="gray" alignSelf="center" rounded="full" px="4" py="1">
+          <Badge size="lg" variant="subtle" colorPalette="gray" alignSelf="center" rounded="full" px="4" py="1" suppressHydrationWarning>
             {finalTagline}
           </Badge>
         )}
         
         <Heading
           as="h1"
-          textStyle={{ base: '4xl', sm: '5xl', md: '6xl', lg: '7xl' }} // FIX: Scaled down base size
+          // FIX: Changed from textStyle to fontSize to prevent responsive object SSR mismatch
+          fontSize={{ base: '4xl', sm: '5xl', md: '6xl', lg: '7xl' }}
           w="full"
           minW="0"
-          wordBreak="break-word" // FIX: Prevent word bleeding
+          wordBreak="break-word"
           lineHeight={{ base: '1.2', md: '1.1' }}
           fontWeight="bold"
           letterSpacing="tight"
+          suppressHydrationWarning
         >
-          <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
+          <Highlight query={highlightQueries} styles={{ color: "colorPalette.600" }}>
             {displayTitle}
           </Highlight>
         </Heading>
         
         {finalDescription && (
-          <Text color="fg.muted" textStyle={{ base: 'lg', md: 'xl' }} w="full" minW="0" maxW="2xl" mx="auto">
+          <Text 
+            color="fg.muted" 
+            // FIX: Changed from textStyle to fontSize to prevent responsive object SSR mismatch
+            fontSize={{ base: 'lg', md: 'xl' }} 
+            w="full" 
+            minW="0" 
+            maxW="2xl" 
+            mx="auto"
+            suppressHydrationWarning
+          >
             {finalDescription}
           </Text>
         )}
 
-        {/* FIX: align="stretch" to force buttons to full width on mobile */}
         <Stack align={{ base: 'stretch', md: 'center' }} direction={{ base: 'column', md: 'row' }} gap="4" mt="4" w={{ base: 'full', md: 'auto' }}>
           <Button 
             size="xl" 
             h={{ base: 14, md: 16 }}
             px={{ base: 6, md: 8 }}
             fontSize="lg"
-            colorPalette="green" 
             variant="solid"
             onClick={handleScroll} 
             onMouseEnter={playHover}
             w={{ base: 'full', md: 'auto' }}
+            suppressHydrationWarning
           >
             {finalExploreText} <LuChevronDown style={{ marginLeft: '8px' }} />
           </Button>
@@ -106,13 +115,13 @@ export const Block = ({
             onClick={handleOpenChat} 
             onMouseEnter={playHover}
             w={{ base: 'full', md: 'auto' }}
+            suppressHydrationWarning
           >
             {finalSecondaryText} <LuBot style={{ marginLeft: '8px' }} />
           </Button>
         </Stack>
       </Stack>
 
-      {/* FIX: Removed px from here as well */}
       <Box w="full" minW="0" mt={{ base: 4, md: 8 }}>
         <Box 
           maxW="5xl" 

@@ -4,39 +4,27 @@ import { supabase } from '@/lib/supabase'
 export const revalidate = 0 // Ensures the sitemap is always fresh
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://www.coriyon.com'
+  const baseUrl = 'https://coriyon.com'
 
   // Fetch all published project slugs and published pages from Supabase
   const [{ data: projects }, { data: pages }] = await Promise.all([
     supabase.from('projects').select('slug, updated_at').eq('status', 'published'),
-    supabase.from('pages').select('slug, updated_at').eq('status', 'published')
+    supabase.from('pages').select('slug, updated_at').eq('status', 'PUBLISHED')
   ])
 
   const locales = ['en', 'es']
-  
-  // Define core static routes based on our new site architecture
-  const coreRoutes = [
-    '', 
-    '/projects', 
-    '/about', 
-    '/services', 
-    '/playground', 
-    '/blog', 
-    '/chat'
-  ]
 
-  // 1. Generate URLs for core marketing pages in both languages
-  const staticRoutes = locales.flatMap((locale) => 
-    coreRoutes.map((route) => {
-      // Find matching page in DB for lastModified date, fallback to current date
-      const pageSlug = route === '' ? 'home' : route.replace('/', '')
-      const pageData = pages?.find(p => p.slug === pageSlug)
+  // 1. Generate URLs dynamically for ALL published pages in the database
+  const pageRoutes = (pages || []).flatMap((page) => 
+    locales.map((locale) => {
+      // Map 'home' to the root path, otherwise prefix with a slash
+      const route = page.slug === 'home' ? '' : `/${page.slug}`
       
       return {
         url: `${baseUrl}/${locale}${route}`,
-        lastModified: pageData?.updated_at ? new Date(pageData.updated_at) : new Date(),
+        lastModified: page.updated_at ? new Date(page.updated_at) : new Date(),
         changeFrequency: 'weekly' as const,
-        priority: route === '' ? 1.0 : 0.9,
+        priority: page.slug === 'home' ? 1.0 : 0.9,
       }
     })
   )
@@ -51,5 +39,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   )
 
-  return [...staticRoutes, ...projectRoutes]
+  return [...pageRoutes, ...projectRoutes]
 }

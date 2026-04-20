@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏆 Coriyon’s Portfolio
 
-## Getting Started
+Welcome to **Coriyon’s Portfolio** — A dynamic, bilingual (i18n) digital product design portfolio website powered by Next.js 15, Chakra UI v3, and Supabase.
 
-First, run the development server:
+This project serves as the primary marketing and portfolio platform for Coriyon Arrington, featuring:
+* 🎨 **Digital Product Design Portfolio** — Dynamic case studies and service offerings powered by a headless Supabase CMS.
+* ⚡️ **AI Integrations** — Native interactive Gemini AI chat widgets for automated prospect onboarding.
+* 🌍 **Bilingual Architecture** — Fully server-rendered routing and content delivery in both English and Spanish.
+
+---
+
+## 🧭 Project Structure Overview
+
+| Folder / File        | Purpose                                                            |
+|----------------------|--------------------------------------------------------------------|
+| `src/app/`           | Next.js App directory (React Server Components, Layouts, & i18n)   |
+| `src/components/`    | Reusable Chakra v3 UI components and dynamic layout blocks         |
+| `src/hooks/`         | Custom React hooks (e.g., global UI sounds, scroll tracking)       |
+| `src/lib/`           | Core utilities, Supabase clients, and data fetching logic          |
+| `public/`            | Static assets (images, global CSS, SVGs, Lottie files, sounds)     |
+| `docs/`              | In-depth guides, developer reference, and architecture docs        |
+| `.env.local`         | Local environment variables (Supabase keys)                        |
+| `README.md`          | This file                                                          |
+
+---
+
+## 🛠 Tech Stack
+
+| Tool                 | Category      | Description                                             |
+|----------------------|---------------|---------------------------------------------------------|
+| ⚡️ Next.js 15         | Frontend      | React Server Components & SSR-first architecture        |
+| 🪄 Chakra UI v3       | UI Library    | Snippet-based component primitives with theming support |
+| 🗄️ Supabase          | Backend       | PostgreSQL database and Storage for CMS functionality   |
+| ✨ Framer Motion      | Animations    | Declarative animations and complex scroll transitions   |
+| 🧠 Google Gemini      | AI            | Native API integration for intelligent chat interfaces  |
+| 🚀 Vercel            | Deployment    | Hosting, Analytics, and Speed Insights                  |
+| 🛡️ TypeScript        | Tooling       | Strict static type checking                             |
+
+---
+
+## 📦 Install & Start
+
+This project uses `pnpm` as its primary package manager. 
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# 1. Clone the repository
+git clone git@github.com:CoriyonArrington/coriyon-portfolio.git
+cd coriyon-portfolio
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Configure environment variables
+# Create a .env.local file with your Supabase URL and anon key.
+# NEXT_PUBLIC_SUPABASE_URL=your_url
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
+
+# 4. Launch development server
 pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

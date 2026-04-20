@@ -89,7 +89,7 @@ export const Block = ({ dict, posts, locale = 'en', primaryAction, secondaryActi
         highlightQueries={highlightQueries}
         description={dict?.description}
         primaryAction={primaryAction || (
-          <Button size="xl" h={{ base: 14, md: 16 }} px={{ base: 6, md: 8 }} fontSize="lg" colorPalette="green" variant="solid" onClick={handlePrimaryClick} onMouseEnter={playHover} w={{ base: 'full', md: 'auto' }}>
+          <Button size="xl" h={{ base: 14, md: 16 }} px={{ base: 6, md: 8 }} fontSize="lg" variant="solid" onClick={handlePrimaryClick} onMouseEnter={playHover} w={{ base: 'full', md: 'auto' }}>
             {primaryText} {primaryIcon}
           </Button>
         )}

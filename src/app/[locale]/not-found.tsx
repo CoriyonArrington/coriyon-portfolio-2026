@@ -48,7 +48,6 @@ export default async function NotFound() {
                 h={{ base: 14, md: 16 }} 
                 px={{ base: 6, md: 8 }} 
                 fontSize="lg" 
-                colorPalette="green" 
                 variant="solid"
                 w={{ base: 'full', md: 'auto' }}
               >

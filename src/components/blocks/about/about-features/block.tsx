@@ -47,7 +47,7 @@ export const Block = ({ dict }: FeatureProps) => {
           
           <Stack gap="4" align="flex-start" textAlign="left">
             {(dict?.badge || "About Me") && (
-              <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">
+              <Badge size="lg" variant="subtle" rounded="full" px="3" py="1">
                 {dict?.badge || "About Me"}
               </Badge>
             )}

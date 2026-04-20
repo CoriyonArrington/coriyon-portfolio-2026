@@ -1,6 +1,7 @@
 'use client'
 
-import { m, LazyMotion, domAnimation } from 'motion/react'
+// FIX: Changed 'motion/react' to 'framer-motion'
+import { m, LazyMotion, domAnimation } from 'framer-motion'
 import type { PropsWithChildren } from 'react'
 
 interface FadeInProps extends PropsWithChildren {

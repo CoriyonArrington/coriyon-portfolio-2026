@@ -3,7 +3,8 @@
 import { Box, Button, Heading, Stack, Text, Center } from '@chakra-ui/react'
 import Image from 'next/image'
 import NextLink from 'next/link'
-import { m } from 'motion/react'
+// FIX: Changed 'motion/react' to 'framer-motion'
+import { m } from 'framer-motion'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 
 interface CategoryItemProps {

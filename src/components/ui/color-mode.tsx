@@ -8,7 +8,10 @@ import * as React from "react"
 import { LuMoon, LuSun } from "react-icons/lu"
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 
-interface ColorModeProviderProps extends ThemeProviderProps {}
+// Extend the native ThemeProviderProps to explicitly allow children for React 19
+interface ColorModeProviderProps extends ThemeProviderProps {
+  children?: React.ReactNode;
+}
 
 export function ColorModeProvider(props: ColorModeProviderProps) {
   return (

@@ -21,7 +21,7 @@ export const SplitScreenHeroLayout = ({
   title,
   titleSize,
   highlightQueries = [],
-  highlightColor = "green.600",
+  highlightColor = "colorPalette.600",
   description,
   actions,
   children,

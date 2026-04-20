@@ -3,7 +3,6 @@ import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react'
 const config = defineConfig({
   globalCss: {
     body: {
-      colorPalette: 'green',
       fontFamily: 'body', 
     },
   },
@@ -36,24 +35,39 @@ const config = defineConfig({
       },
       colors: {
         bg: {
-          // The absolute base layer (Page body). True black in dark mode.
           canvas: {
             value: { _light: '#ffffff', _dark: '#000000' },
           },
-          // Elevated surfaces (Navbar, Footer, Cards). Just barely off-black so they stand out against the canvas.
           panel: {
             value: { _light: '#ffffff', _dark: '#0a0a0a' },
           },
-          // Hover states and secondary backgrounds
           muted: {
-            value: { _light: '{colors.slate.100}', _dark: '#111113' },
+            value: { _light: '#f4f4f5', _dark: '#171717' }, // Neutral gray
           },
-          // Your custom tokens, now natively matching your manual overrides
           subtle: {
-            value: { _light: '{colors.slate.50}', _dark: '#000000' },
+            value: { _light: '#fafafa', _dark: '#0f0f0f' }, // Neutral gray
           },
           emphasized: {
-            value: { _light: '{colors.slate.100}', _dark: '#000000' },
+            value: { _light: '#f5f5f5', _dark: '#121212' }, // Neutral gray
+          },
+        },
+        fg: {
+          default: {
+            value: { _light: '#0f0f0f', _dark: '#fafafa' },
+          },
+          muted: {
+            value: { _light: '#525252', _dark: '#a3a3a3' }, // Neutral gray
+          },
+          subtle: {
+            value: { _light: '#a3a3a3', _dark: '#525252' }, // Neutral gray
+          },
+        },
+        border: {
+          subtle: {
+            value: { _light: '#e5e5e5', _dark: '#262626' }, // Neutral gray
+          },
+          muted: {
+            value: { _light: '#d4d4d4', _dark: '#404040' }, // Neutral gray
           },
         },
       },

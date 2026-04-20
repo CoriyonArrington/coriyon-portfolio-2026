@@ -5,12 +5,13 @@ import remarkGfm from 'remark-gfm'
 import { Box } from '@chakra-ui/react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import React from 'react'
 
 interface MarkdownRendererProps {
   content: string;
 }
 
-export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   const params = useParams();
 
   return (
@@ -22,52 +23,45 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
         '& ul': { pl: 6, mb: 4, listStyleType: 'disc' },
         '& ol': { pl: 6, mb: 4, listStyleType: 'decimal' },
         '& li': { mb: 2 },
-        '& strong': { fontWeight: '600' }
+        '& strong': { fontWeight: '600' },
+        // Move styling to CSS object to seamlessly apply the dynamic color palette to all anchor tags
+        '& a': { 
+          color: 'colorPalette.600', 
+          textDecoration: 'underline', 
+          textUnderlineOffset: '2px', 
+          fontWeight: '500' 
+        }
       }}
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          a: ({ href, children }) => {
+          a: ({ href, children }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
             const isInternal = href?.startsWith('/') || href?.startsWith('#');
             let finalHref = href || '/';
             
             if (isInternal) {
               const currentLocale = params?.locale as string || 'en';
               
-              // Correctly format absolute internal links to include the current locale
               if (href?.startsWith('/')) {
-                // If it doesn't already have the locale prepended
                 if (!href.startsWith(`/${currentLocale}/`) && href !== `/${currentLocale}`) {
                   if (href.startsWith('/#')) {
-                    // Turn /#process into /en/#process
                     finalHref = `/${currentLocale}${href.substring(1)}`;
                   } else {
-                    // Turn /about#services into /en/about#services
                     finalHref = `/${currentLocale}${href}`;
                   }
                 }
               }
 
-              // FIX: We MUST use the Next.js <Link> component for ALL internal navigation.
-              // Using a native <a> tag causes a hard page reload, which destroys the chat history!
               return (
-                <Link 
-                  href={finalHref} 
-                  style={{ color: 'var(--chakra-colors-green-600)', textDecoration: 'underline', textUnderlineOffset: '2px', fontWeight: '500' }}
-                >
+                <Link href={finalHref}>
                   {children}
                 </Link>
               );
             }
             
             return (
-              <a 
-                href={href} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                style={{ color: 'var(--chakra-colors-green-600)', textDecoration: 'underline', textUnderlineOffset: '2px', fontWeight: '500' }}
-              >
+              <a href={href} target="_blank" rel="noopener noreferrer">
                 {children}
               </a>
             );
