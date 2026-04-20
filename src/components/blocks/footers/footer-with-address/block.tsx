@@ -29,13 +29,14 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
   // --- DYNAMIC CONTACT INFO EXTRACTION ---
   const contactInfo = dict?.contact_info || {}
 
-  const emailAddress = contactInfo.email || "hi@coriyon.studio"
+  const emailAddress = contactInfo.email || "hi@coriyon.com"
   const phoneNumber = contactInfo.phone || "(612) 217-4482"
   const rawPhoneNumber = phoneNumber.replace(/[^0-9+]/g, '')
   
-  const addressLine1 = contactInfo.address || "7970 Brooklyn Blvd #V-144,"
-  const addressLine2 = contactInfo.city_state_zip || "Brooklyn Park, MN 55445"
-  const mapUrl = contactInfo.map_url || "https://maps.google.com/?q=7970+Brooklyn+Blvd+%23V-144,+Brooklyn+Park,+MN+55445"
+  // Use strict undefined checks so empty strings from the DB are respected
+  const addressLine1 = contactInfo.address !== undefined ? contactInfo.address : "Minneapolis, MN"
+  const addressLine2 = contactInfo.city_state_zip !== undefined ? contactInfo.city_state_zip : ""
+  const mapUrl = contactInfo.map_url !== undefined ? contactInfo.map_url : ""
   // ---------------------------------------
 
   useEffect(() => {
@@ -172,7 +173,7 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
                     <Avatar.Fallback name="Coriyon Arrington" />
                   </Avatar.Root>
                   <Text fontWeight="bold" fontSize="xl" color="fg" letterSpacing="tight">
-                    {dict?.logo || "Coriyon's Studio"}
+                    {dict?.logo || "Coriyon Arrington"}
                   </Text>
                 </HStack>
               </NextLink>
@@ -181,7 +182,7 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
             <Box textAlign="left" w="full">
               <Text fontSize="sm" color="fg.muted" lineHeight="relaxed">
                 <Text as="span" fontWeight="bold" color="fg">{dict?.disclaimerLabel || "Disclaimer:"} </Text>
-                {dict?.clarityDisclosure || "We partner with Microsoft Clarity to capture how you use and interact with our website through behavioral metrics, heatmaps, and session replay to improve the user experience. By using this site, you agree that we and Microsoft can collect and use this data. "}
+                {dict?.clarityDisclosure || "I partner with Microsoft Clarity to capture how you use and interact with my website through behavioral metrics, heatmaps, and session replay to improve the user experience. By using this site, you agree that we and Microsoft can collect and use this data. "}
                 <ChakraLink asChild color="fg" textDecoration="underline" _hover={{ color: "colorPalette.600" }}>
                   <a href="https://privacy.microsoft.com/en-US/privacystatement" target="_blank" rel="noopener noreferrer">
                     {dict?.microsoftPrivacy || "Microsoft Privacy Statement"}
@@ -191,7 +192,6 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
             </Box>
           </Stack>
 
-          {/* FIX: Added justifyContent={{ lg: "flex-end" }} to push columns to the right */}
           <Flex flex="2" justifyContent={{ base: "flex-start", lg: "flex-end" }} w="full">
             <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={{ base: "10", lg: "12" }} w={{ base: "full", lg: "auto" }}>
               
@@ -288,19 +288,30 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
               <Stack gap="4" maxW="xs">
                 <Text fontWeight="medium" color="fg">{dict?.location || "Location"}</Text>
                 <Stack gap="3" alignItems="start">
-                  <Text 
-                    asChild
-                    color="fg.muted"
-                    _hover={{ color: "fg" }}
-                    whiteSpace="normal"
-                    lineHeight="tall"
-                    display="inline-block"
-                    transition="all 0.2s"
-                  >
-                    <a href={mapUrl} target="_blank" rel="noopener noreferrer" onMouseEnter={playHover}>
-                      {addressLine1}<br/>{addressLine2}
-                    </a>
-                  </Text>
+                  {mapUrl ? (
+                    <Text 
+                      asChild
+                      color="fg.muted"
+                      _hover={{ color: "fg" }}
+                      whiteSpace="normal"
+                      lineHeight="tall"
+                      display="inline-block"
+                      transition="all 0.2s"
+                    >
+                      <a href={mapUrl} target="_blank" rel="noopener noreferrer" onMouseEnter={playHover}>
+                        {addressLine1}{addressLine2 && <><br/>{addressLine2}</>}
+                      </a>
+                    </Text>
+                  ) : (
+                    <Text 
+                      color="fg.muted"
+                      whiteSpace="normal"
+                      lineHeight="tall"
+                      display="inline-block"
+                    >
+                      {addressLine1}{addressLine2 && <><br/>{addressLine2}</>}
+                    </Text>
+                  )}
                 </Stack>
               </Stack>
 
@@ -383,7 +394,7 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
               {dict?.builtWithLove || "Designed with intention. Built with love."}
             </Text>
             <Text fontSize="sm" color="fg.subtle">
-              {dict?.copyright || `© ${year || 2026} Coriyon's Studio. Based in Minneapolis.`}
+              {dict?.copyright || `© ${year || 2026} Coriyon Arrington. Based in Minneapolis.`}
             </Text>
           </Stack>
 

@@ -50,7 +50,7 @@ export const Block = ({ dict }: ContactBlockProps) => {
       >
         <NextImage 
           src={dict?.imageUrl || "https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/misc/the-next-step.png"} 
-          alt="Contact the studio" 
+          alt="Contact me" 
           fill 
           style={{ objectFit: 'cover' }} 
           sizes="(max-width: 768px) 100vw, 50vw"

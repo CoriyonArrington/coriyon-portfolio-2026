@@ -68,7 +68,7 @@ export const Block = ({ dict, links }: NavbarBlockProps) => {
   ]
 
   const bookCallText = dict?.cta || "Book an intro call"
-  const logoText = dict?.logoText || "Coriyon's Studio"
+  const logoText = dict?.logoText || "Coriyon's Portfolio"
 
   const CustomTextLogo = () => (
     <NextLink href="/">
