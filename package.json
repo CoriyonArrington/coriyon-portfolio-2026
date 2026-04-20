@@ -7,10 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:schema": "./scripts/generate-database-schema.sh",
     "db:tree": "./scripts/generate-directory-structure.sh",
-    "types:update": "./scripts/update-supabase-types.sh",
-    "types:verify": "./scripts/verify-schema-types.sh",
     "preflight": "./scripts/preflight-check.sh"
   },
   "dependencies": {
