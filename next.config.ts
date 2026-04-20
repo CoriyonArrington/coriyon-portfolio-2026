@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const pagesToRedirect = [
   'services', 
-  'privacy', 
   'terms-of-service', 
   'refund-policy', 
   'security-policy', 
