@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+import type { NextConfig } from "next";
 
 const pagesToRedirect = [
   'services', 
@@ -9,32 +9,18 @@ const pagesToRedirect = [
   'accessibility-statement'
 ];
 
-// Dynamically generate redirects for root, /en/, and /es/ paths
 const dynamicRedirects = pagesToRedirect.flatMap(page => [
   { source: `/${page}`, destination: `https://coriyon.studio/${page}`, permanent: true },
   { source: `/en/${page}`, destination: `https://coriyon.studio/${page}`, permanent: true },
   { source: `/es/${page}`, destination: `https://coriyon.studio/${page}`, permanent: true },
 ]);
 
-const nextConfig = {
+const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'img.youtube.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'kkegducuyzwdmxlzhxcm.supabase.co',
-        port: '',
-        pathname: '/**',
-      },
+      { protocol: 'https', hostname: 'kkegducuyzwdmxlzhxcm.supabase.co' },
+      { protocol: 'https', hostname: 'svstxlwvnujtgbgjsvwj.supabase.co' }
     ],
-  },
-  experimental: {
-    optimizePackageImports: ["@chakra-ui/react", "react-icons"],
   },
   async redirects() {
     return dynamicRedirects;
