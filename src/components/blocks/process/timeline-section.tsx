@@ -121,7 +121,7 @@ export const Block = ({ dict }: TimelineSectionProps) => {
                     </Text>
                     
                     <DownloadTrigger 
-                      value="/Coriyon-Studio-Design-Process.pdf"
+                      value="/Coriyon-Arrington-Design-Process.pdf"
                       fileName="Coriyon_Design_Process.pdf"
                     >
                       <Button 
