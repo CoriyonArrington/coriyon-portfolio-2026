@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 export const revalidate = 0 // Ensures the sitemap is always fresh
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://coriyon.studio'
+  const baseUrl = 'https://coriyon.com'
 
   // Fetch all published project slugs and published pages from Supabase
   const [{ data: projects }, { data: pages }] = await Promise.all([

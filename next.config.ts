@@ -19,7 +19,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'kkegducuyzwdmxlzhxcm.supabase.co' },
-      { protocol: 'https', hostname: 'svstxlwvnujtgbgjsvwj.supabase.co' }
+      { protocol: 'https', hostname: 'svstxlwvnujtgbgjsvwj.supabase.co' },
+      { protocol: 'https', hostname: 'img.youtube.com' }
     ],
   },
   async redirects() {

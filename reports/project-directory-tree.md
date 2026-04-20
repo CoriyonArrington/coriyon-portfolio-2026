@@ -16,10 +16,7 @@
 │   │   ├── manifest.lock
 │   │   └── manifest.toml
 │   ├── env.json
-│   ├── log/
-│   └── run/
-│       ├── aarch64-darwin.coriyon-studio.dev -> /nix/store/vrcdhp0xqqb6w6gv29w2fzasdsxqci17-environment-develop/
-│       └── aarch64-darwin.coriyon-studio.run -> /nix/store/kqlj6hnsrrcpx648cyh4m6k66sp5r68y-environment-runtime/
+│   └── log/
 ├── .gitignore
 ├── AGENTS.md
 ├── CLAUDE.md
@@ -44,10 +41,9 @@
 ├── reports/
 │   └── project-directory-tree.md
 ├── scripts/
-│   ├── generate-database-schema.sh*
+│   ├── .DS_Store
 │   ├── generate-directory-structure.sh*
-│   ├── update-supabase-types.sh*
-│   └── verify-schema-types.sh*
+│   └── preflight-check.sh*
 ├── src/
 │   ├── .DS_Store
 │   ├── app/

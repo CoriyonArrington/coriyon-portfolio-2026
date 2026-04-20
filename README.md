@@ -1,8 +1,8 @@
-# 🏆 Coriyon’s Studio
+# 🏆 Coriyon’s Portfolio
 
-Welcome to **Coriyon’s Studio** — A dynamic, bilingual (i18n) digital product design studio website powered by Next.js 15, Chakra UI v3, and Supabase.
+Welcome to **Coriyon’s Portfolio** — A dynamic, bilingual (i18n) digital product design portfolio website powered by Next.js 15, Chakra UI v3, and Supabase.
 
-This project serves as the primary marketing and portfolio platform for Coriyon's Studio, featuring:
+This project serves as the primary marketing and portfolio platform for Coriyon Arrington, featuring:
 * 🎨 **Digital Product Design Portfolio** — Dynamic case studies and service offerings powered by a headless Supabase CMS.
 * ⚡️ **AI Integrations** — Native interactive Gemini AI chat widgets for automated prospect onboarding.
 * 🌍 **Bilingual Architecture** — Fully server-rendered routing and content delivery in both English and Spanish.
@@ -44,8 +44,8 @@ This project uses `pnpm` as its primary package manager.
 
 ```bash
 # 1. Clone the repository
-git clone git@github.com:CoriyonArrington/coriyon-studio.git
-cd coriyon-studio
+git clone git@github.com:CoriyonArrington/coriyon-portfolio.git
+cd coriyon-portfolio
 
 # 2. Install dependencies
 pnpm install
