@@ -34,8 +34,8 @@ export async function generateMetadata(
   const currentLocale = locale || 'en'
   const pageData = await getPageData('home')
   
-  const title = pageData?.[`title_${currentLocale}`] || pageData?.title_en || pageData?.title || "Coriyon's Studio | Digital Product Design"
-  const description = pageData?.[`description_${currentLocale}`] || pageData?.description_en || pageData?.description || "A digital product design studio helping early-stage founders and small business owners design better products."
+  const title = pageData?.[`title_${currentLocale}`] || pageData?.title_en || pageData?.title || "Coriyon Arrington | Senior Product Designer & Engineer"
+  const description = pageData?.[`description_${currentLocale}`] || pageData?.description_en || pageData?.description || "The digital laboratory and portfolio of Coriyon Arrington."
 
   return {
     title,
@@ -117,7 +117,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 dict={content.project} 
                 projects={regularProjects} 
                 viewAllHref={`/${currentLocale}/projects`}
-                viewAllText={content.project?.viewAll || (currentLocale === 'es' ? 'Ver todos los proyectos' : 'View all studio projects')}
+                viewAllText={content.project?.viewAll || (currentLocale === 'es' ? 'Ver todos los proyectos' : 'View all portfolio projects')}
               />
             </FadeIn>
           </Container>
