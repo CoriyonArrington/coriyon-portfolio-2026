@@ -5,6 +5,7 @@ import type { Metadata, ResolvingMetadata } from "next"
 
 import { Block as ProjectsHero } from "@/components/blocks/heroes/projects-page/block"
 import { Block as CategoryGrid } from "@/components/blocks/product-categories/category-grid-02/block"
+import { Block as Faq } from "@/components/blocks/faqs/faq-with-inline-headline/block"
 import { Block as Cta } from "@/components/blocks/cta/cta-08/block"
 import { FadeIn } from "@/components/ui/fade-in"
 
@@ -59,10 +60,10 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
     title: p[`title_${currentLocale}`] || p.title_en || p.title,
     description: p[`description_${currentLocale}`] || p.description_en || p.description,
     image_url: p.featured_image_url, 
-    src: p.featured_image_url, 
+    src: p.featured_image_url,       
     videoUrl: p.featured_video_url, 
     link_url: `/${currentLocale}/projects/${p.slug}`, 
-    url: `/${currentLocale}/projects/${p.slug}`, 
+    url: `/${currentLocale}/projects/${p.slug}`,      
     bgColor: p.bg_color,
     mockupType: p.mockup_type,
     category: p.project_category,
@@ -75,39 +76,40 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
   const playgroundProjects = localizedProjects.filter((p: any) => p.projectType === 'playground')
   
   const featuredProject = localizedProjects.find((p: any) => p.featured === true)
+  
+  const pageFaqs = projectsContent.faqs?.items || []
 
   return (
     <Stack gap="0" w="full">
-      {/* FIX: Removed duplicate pt/pb so the Hero's internal spacing dictates the exact offset */}
-      <Box className="pattern-dots">
-        <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-          <ProjectsHero 
-            dict={{ 
-              ...projectsContent.hero, 
-              // Pulling strictly from DB dictionaries
-              exploreWork: projectsContent.hero?.exploreWork, 
-              showOverview: projectsContent.hero?.showOverview 
-            }}
-            title={projectsContent.hero?.title}
-            description={projectsContent.hero?.description}
-            tagline={projectsContent.hero?.tagline}
-            
-            imageUrl={featuredProject?.image_url || projectsContent.hero?.imageUrl}
-            videoUrl={featuredProject?.videoUrl || projectsContent.hero?.videoUrl}
-            mockupType={featuredProject?.mockupType || projectsContent.hero?.mockupType}
-            bgColor={featuredProject?.bgColor || projectsContent.hero?.bgColor || "green.600"}
-            
-            // Prioritize the featured project data, fallback to page dictionary stats
-            summary={featuredProject?.contentJson?.overview?.oneLiner || featuredProject?.description || projectsContent.hero?.description}
-            role={featuredProject?.contentJson?.overview?.myRole || projectsContent.hero?.stats?.role}
-            duration={featuredProject?.contentJson?.overview?.timeframe?.total || projectsContent.hero?.stats?.duration}
-            year={featuredProject?.contentJson?.overview?.year || projectsContent.hero?.stats?.year}
-            teamRoles={featuredProject?.contentJson?.overview?.teamRoles || projectsContent.hero?.stats?.teamRoles}
-            deliverables={featuredProject?.contentJson?.overview?.deliverables || projectsContent.hero?.stats?.deliverables}
-            industries={featuredProject?.contentJson?.overview?.industries || projectsContent.hero?.stats?.industries}
-          />
-        </Container>
-      </Box>
+      {(projectsContent.hero || featuredProject) && (
+        <Box className="pattern-dots">
+          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+            <ProjectsHero 
+              dict={{ 
+                ...projectsContent.hero, 
+                exploreWork: projectsContent.hero?.exploreWork, 
+                showOverview: projectsContent.hero?.showOverview 
+              }}
+              title={projectsContent.hero?.title}
+              description={projectsContent.hero?.description}
+              tagline={projectsContent.hero?.tagline}
+              
+              imageUrl={featuredProject?.image_url || projectsContent.hero?.imageUrl}
+              videoUrl={featuredProject?.videoUrl || projectsContent.hero?.videoUrl}
+              mockupType={featuredProject?.mockupType || projectsContent.hero?.mockupType}
+              bgColor={featuredProject?.bgColor || projectsContent.hero?.bgColor || "colorPalette.600"}
+              
+              summary={featuredProject?.contentJson?.overview?.oneLiner || featuredProject?.description || projectsContent.hero?.description}
+              role={featuredProject?.contentJson?.overview?.myRole || projectsContent.hero?.stats?.role}
+              duration={featuredProject?.contentJson?.overview?.timeframe?.total || projectsContent.hero?.stats?.duration}
+              year={featuredProject?.contentJson?.overview?.year || projectsContent.hero?.stats?.year}
+              teamRoles={featuredProject?.contentJson?.overview?.teamRoles || projectsContent.hero?.stats?.teamRoles}
+              deliverables={featuredProject?.contentJson?.overview?.deliverables || projectsContent.hero?.stats?.deliverables}
+              industries={featuredProject?.contentJson?.overview?.industries || projectsContent.hero?.stats?.industries}
+            />
+          </Container>
+        </Box>
+      )}
 
       {regularProjects.length > 0 && (
         <Box id="projects" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
@@ -123,8 +125,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
       )}
 
       {playgroundProjects.length > 0 && (
-        // FIX: Ripped out manual _dark="black" overrides and applied bg.subtle
-        <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.subtle" borderTopWidth="1px" borderColor="border.subtle">
+        <Box id="playground" py={{ base: "16", md: "24" }} bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
             <FadeIn>
               <CategoryGrid 
@@ -138,13 +139,23 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
         </Box>
       )}
 
-      <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
-        <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+      {pageFaqs.length > 0 && (
+        <Box id="faqs" w="full" borderTopWidth="1px" borderColor="border.subtle">
           <FadeIn>
-            <Cta dict={homeContent.contact} />
+            <Faq dict={projectsContent.faqs} faqs={pageFaqs} />
           </FadeIn>
-        </Container>
-      </Box>
+        </Box>
+      )}
+
+      {homeContent.contact && (
+        <Box id="contact" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
+          <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+            <FadeIn>
+              <Cta dict={homeContent.contact} />
+            </FadeIn>
+          </Container>
+        </Box>
+      )}
     </Stack>
   )
 }

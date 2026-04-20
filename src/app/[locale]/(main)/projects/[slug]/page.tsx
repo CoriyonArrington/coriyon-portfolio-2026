@@ -106,7 +106,7 @@ const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark
       className={className}
       pt={pt || { base: "16", md: "24" }} 
       pb={pb || { base: "16", md: "24" }} 
-      bg={isDark ? "bg.emphasized" : "bg.canvas"} 
+      bg={isDark ? "bg.canvas" : "bg.canvas"} 
       borderTopWidth={borderTopWidth !== undefined ? borderTopWidth : (isDark ? "0" : "1px")} 
       borderColor="border.subtle"
     >
@@ -114,7 +114,7 @@ const StoryHeroBlock = ({ id, badge, title, description, items, imageSrc, isDark
         <Stack gap={{ base: "10", md: "16" }} align="flex-start" w="full">
           
           <Stack gap="6" align="flex-start" textAlign="left" maxW="3xl" w="full">
-            {badge && <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">{badge}</Badge>}
+            {badge && <Badge size="lg" colorPalette="gray" variant="subtle" rounded="full" px="3" py="1">{badge}</Badge>}
             <Heading as="h2" size={{ base: "4xl", md: "5xl" }} fontWeight="bold" letterSpacing="tight">{title}</Heading>
             {description && <Text color="fg.muted" textStyle="xl">{description}</Text>}
           </Stack>
@@ -523,6 +523,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   ? "Por favor ingresa la contraseña para ver la estrategia, métricas y resultados." 
                   : "Please enter the password to view the strategic approach, metrics, and outcomes."
                 }
+                buttonText={t.unlockCaseStudy}
+                placeholderText={isEs ? "Ingresar contraseña" : "Enter password"}
               />
             </FadeIn>
           </Container>
@@ -659,7 +661,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <Box id="case-study" py={{ base: "16", md: "24" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
                 <Container maxW="7xl" px={{ base: "4", md: "8" }}>
                    <FadeIn>
-                     <CaseStudyAccordion badge={<Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">{t.caseStudy}</Badge>} title={t.behindProcess} description={caseStudyData.description || null} features={caseStudyFeatures} mockupType={mockupType} />
+                     <CaseStudyAccordion badge={<Badge size="lg" colorPalette="gray" variant="subtle" rounded="full" px="3" py="1">{t.caseStudy}</Badge>} title={t.behindProcess} description={caseStudyData.description || null} features={caseStudyFeatures} mockupType={mockupType} />
                    </FadeIn>
                 </Container>
               </Box>
@@ -681,18 +683,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           )}
 
           {hasFaqs && (
-            <Box py={{ base: "16", md: "24" }} bg="bg.canvas" borderTopWidth={localizedRemainingTestimonials.length === 0 ? "1px" : "0"} borderColor="border.subtle">
-              <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-                <FadeIn>
-                  <ProjectFaq dict={faqData} faqs={faqData.faqs} />
-                </FadeIn>
-              </Container>
+            <Box bg="bg.canvas" borderTopWidth={localizedRemainingTestimonials.length === 0 ? "1px" : "0"} borderColor="border.subtle">
+              <FadeIn>
+                <ProjectFaq dict={faqData} faqs={faqData.faqs} />
+              </FadeIn>
             </Box>
           )}
         </>
       )}
 
-      {/* Moved outside the isProtected conditional to always render; Solid background removed to reveal pattern-dots */}
       {globalContactData && globalContactData.title && (
         <Box py={{ base: "12", md: "20" }} className="pattern-dots" borderTopWidth="1px" borderColor="border.subtle">
           <Container maxW="7xl" px={{ base: "4", md: "8" }}>
@@ -703,15 +702,22 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </Box>
       )}
 
-      <Box py={{ base: "12", md: "20" }} bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
+      <Box pt={{ base: "6", md: "8" }} pb="0" bg="bg.canvas" borderTopWidth="1px" borderColor="border.subtle">
         <Container maxW="5xl" px={{ base: "4", md: "8" }}>
           <FadeIn>
-            <InterstitialNav prev={prevProject} next={nextProject} dict={content.interstitial} />
+            {/* FIX: Smart translation fallback passed into the nav! */}
+            <InterstitialNav 
+              prev={prevProject} 
+              next={nextProject} 
+              dict={{
+                previous: isEs ? "Proyecto Anterior" : "Previous Project",
+                next: isEs ? "Siguiente Proyecto" : "Next Project"
+              }} 
+              locale={currentLocale} 
+            />
           </FadeIn>
         </Container>
       </Box>
-
-      <Box h={{ base: "28", md: "16" }} w="full" />
       
     </Stack>
   )

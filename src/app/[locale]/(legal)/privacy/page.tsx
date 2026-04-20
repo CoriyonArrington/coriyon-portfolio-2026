@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase"
 import { cache } from "react"
 import type { Metadata, ResolvingMetadata } from "next"
 
-import MarkdownRenderer from "@/components/ui/markdown-renderer"
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 import { FadeIn } from "@/components/ui/fade-in"
 import { CenteredHeroLayout } from "@/components/blocks/heroes/centered-hero-layout/block"
 
@@ -59,11 +59,11 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           <FadeIn>
             <CenteredHeroLayout 
               badge={
-                <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">
+                <Badge size="lg" colorPalette="gray" variant="subtle" rounded="full" px="3" py="1">
                   {isEs ? "Legal" : "Legal"}
                 </Badge>
               }
-              title={pageData?.title || (isEs ? "Política de Privacidad" : "Privacy Policy")}
+              title={isEs ? (pageData?.title_es || "Política de Privacidad") : (pageData?.title || "Privacy Policy")}
               description={isEs 
                 ? "Cómo recopilamos, usamos y protegemos sus datos." 
                 : "How we collect, use, and protect your data."
@@ -114,8 +114,8 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 '& ol': { pl: 6, mb: 6, listStyleType: 'decimal', color: 'fg.muted', fontSize: { base: 'lg', md: 'xl' }, lineHeight: '1.8' },
                 '& li': { mb: 3 },
                 '& strong': { fontWeight: '600', color: 'fg.default' },
-                '& a': { color: 'green.600', textDecoration: 'underline', textUnderlineOffset: '4px', fontWeight: '500' },
-                '& a:hover': { color: 'green.700' },
+                '& a': { color: 'colorPalette.600', textDecoration: 'underline', textUnderlineOffset: '4px', fontWeight: '500' },
+                '& a:hover': { color: 'colorPalette.700' },
                 '& hr': { my: 12, borderColor: 'border.subtle' },
               }}
             >

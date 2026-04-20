@@ -16,12 +16,12 @@ import { Block as Footer } from "@/components/blocks/footers/footer-with-address
 import { Block as PageNav } from "@/components/blocks/marketing-navbars/page-nav/block";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.coriyon.com'), 
+  metadataBase: new URL('https://coriyon.com'), 
   title: {
-    template: '%s | Coriyon Arrington',
-    default: 'Coriyon Arrington | Senior Product Designer',
+    template: "%s | Coriyon Arrington",
+    default: "Coriyon Arrington | Senior Product Designer & Engineer",
   },
-  description: 'Portfolio of Coriyon Arrington, a Senior Product Designer based in Minneapolis helping early-stage founders and small business owners design better products.',
+  description: "The digital laboratory and portfolio of Coriyon Arrington.",
   icons: {
     icon: [
       { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
@@ -34,12 +34,12 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    siteName: 'Coriyon Arrington Portfolio',
+    siteName: "Coriyon Arrington",
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Coriyon Arrington | Senior Product Designer',
-    description: 'Portfolio of Coriyon Arrington, a Senior Product Designer based in Minneapolis.',
+    title: "Coriyon Arrington | Senior Product Designer & Engineer",
+    description: "The digital laboratory and portfolio of Coriyon Arrington.",
   },
 };
 
@@ -75,7 +75,6 @@ export default async function LocaleLayout({
 
   const homeContent = homeData?.[`content_${currentLocale}`] || homeData?.content_en || {};
 
-  // FIX: Include both menu types and pass the page_type down to the Navbar components
   const navLinks = pages
     .filter((p: any) => p.page_type === 'MAIN_MENU' || p.page_type === 'EXPLORE')
     .map((p: any) => ({
@@ -89,6 +88,10 @@ export default async function LocaleLayout({
     previous: homeContent.navbar?.previous || (currentLocale === 'es' ? 'Anterior' : 'Previous'),
     next: homeContent.navbar?.next || (currentLocale === 'es' ? 'Siguiente' : 'Up next') 
   };
+
+  // FIX: Pre-calculate if there are enough valid pages to justify rendering the PageNav wrapper
+  const validPages = pages?.filter((p: any) => p && ['MAIN_MENU', 'STANDARD', 'EXPLORE'].includes(p.page_type)) || [];
+  const showPageNav = validPages.length > 1;
 
   return (
     <html 
@@ -106,11 +109,14 @@ export default async function LocaleLayout({
               {children}
             </Box>
 
-            <Box w="full" bg="bg.canvas" pt={{ base: 12, md: 16 }} pb={{ base: 12, md: 16 }}>
-              <Container maxW="7xl" px={{ base: "4", md: "8" }}>
-                <PageNav dict={navDict} pages={pages} />
-              </Container>
-            </Box>
+            {/* FIX: Conditionally render this entire block so the padding isn't applied when the nav is hidden */}
+            {showPageNav && (
+              <Box w="full" bg="bg.canvas" pt={{ base: 12, md: 16 }} pb={{ base: 12, md: 16 }}>
+                <Container maxW="7xl" px={{ base: "4", md: "8" }}>
+                  <PageNav dict={navDict} pages={pages} />
+                </Container>
+              </Box>
+            )}
             
             <Footer dict={homeContent.footer} pages={pages} />
 
