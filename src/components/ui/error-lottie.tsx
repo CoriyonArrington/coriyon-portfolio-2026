@@ -2,8 +2,14 @@
 
 import dynamic from 'next/dynamic'
 
-// This file is a strictly client-side boundary, so Next.js allows ssr: false here
-const LottiePlayer = dynamic(
+interface LottiePlayerProps {
+  src: string;
+  loop?: boolean;
+  autoplay?: boolean;
+  style?: React.CSSProperties;
+}
+
+const LottiePlayer = dynamic<LottiePlayerProps>(
   () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact),
   { ssr: false }
 )

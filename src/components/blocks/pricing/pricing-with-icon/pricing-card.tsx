@@ -83,13 +83,13 @@ export const PricingCard = (props: PricingCardProps) => {
     <Card.Root 
       variant={data.recommended ? 'elevated' : 'outline'} 
       shadow={data.recommended ? 'xl' : 'sm'}
-      borderColor={data.recommended ? 'green.500' : 'border.subtle'}
+      borderColor={data.recommended ? 'colorPalette.500' : 'border.subtle'}
       borderWidth={data.recommended ? '2px' : '1px'}
       transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       _hover={{ 
         shadow: '2xl', 
         transform: 'translateY(-6px)',
-        borderColor: 'green.500'
+        borderColor: 'colorPalette.500'
       }}
       onMouseEnter={playHover}
       {...rest}
@@ -97,7 +97,7 @@ export const PricingCard = (props: PricingCardProps) => {
       <Card.Body>
         <Stack gap={{ base: '6', md: '8' }} pos="relative">
           <Stack gap="3">
-            <Icon size="2xl" color="green.600" _dark={{ color: "green.400" }}>
+            <Icon size="2xl" color="colorPalette.600" _dark={{ color: "colorPalette.400" }}>
               {iconMap[data.value] || <LuUsers />}
             </Icon>
             <Card.Title mt="2" fontSize="xl">{data.title}</Card.Title>
@@ -114,11 +114,11 @@ export const PricingCard = (props: PricingCardProps) => {
             </Span>
           </Stack>
 
-          {/* FIX: Forced explicit accessible text colors for the recommended primary button */}
+          {/* FIX: Inherits global color when recommended is true, defaults to gray when false */}
           <Button 
             size="lg" 
             variant={data.recommended ? 'solid' : 'outline'} 
-            colorPalette={data.recommended ? "green" : "gray"}
+            colorPalette={data.recommended ? undefined : "gray"}
             color={data.recommended ? "white" : undefined}
             _dark={data.recommended ? { color: "gray.900" } : undefined}
             alignSelf="flex-start" 
@@ -139,7 +139,7 @@ export const PricingCard = (props: PricingCardProps) => {
         <List.Root variant="plain" align="start" textStyle="md" gap="4">
           {data.features.map((item) => (
             <List.Item alignItems="flex-start" key={item} display="flex" gap="3">
-              <List.Indicator asChild color="green.600" _dark={{ color: "green.400" }} mt="1">
+              <List.Indicator asChild color="colorPalette.600" _dark={{ color: "colorPalette.400" }} mt="1">
                 <LuCheck />
               </List.Indicator>
               <Span>{item}</Span>

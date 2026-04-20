@@ -67,7 +67,6 @@ export function InteractiveSpline() {
             <VStack gap="3">
               <Button
                 size="xl"
-                colorPalette="green"
                 onClick={() => setIsStarted(true)}
                 rounded="full"
                 shadow="lg"

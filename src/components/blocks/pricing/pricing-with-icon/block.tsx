@@ -27,7 +27,7 @@ export const Block = ({ dict, plans = [] }: PricingProps) => {
         
         <Stack gap="4" align="center" textAlign="center">
           <Text textStyle={{ base: '4xl', md: '5xl' }} fontWeight="bold" letterSpacing="tight">
-            <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
+            <Highlight query={highlightQueries} styles={{ color: "colorPalette.600" }}>
               {displayTitle}
             </Highlight>
           </Text>
@@ -40,7 +40,8 @@ export const Block = ({ dict, plans = [] }: PricingProps) => {
             <Button
               size="sm"
               variant={billing === 'yearly' ? 'solid' : 'ghost'}
-              colorPalette={billing === 'yearly' ? 'green' : 'gray'}
+              // FIX: Uses undefined when active to inherit the global colorPalette
+              colorPalette={billing === 'yearly' ? undefined : 'gray'}
               rounded="full"
               onClick={() => setBilling('yearly')}
               transition="all 0.2s"
@@ -50,7 +51,8 @@ export const Block = ({ dict, plans = [] }: PricingProps) => {
             <Button
               size="sm"
               variant={billing === 'monthly' ? 'solid' : 'ghost'}
-              colorPalette={billing === 'monthly' ? 'green' : 'gray'}
+              // FIX: Uses undefined when active to inherit the global colorPalette
+              colorPalette={billing === 'monthly' ? undefined : 'gray'}
               rounded="full"
               onClick={() => setBilling('monthly')}
               transition="all 0.2s"
@@ -66,7 +68,7 @@ export const Block = ({ dict, plans = [] }: PricingProps) => {
               <PricingCard 
                 key={plan.value || id} 
                 data={plan} 
-                billing={billing} // Now dynamically passes the billing state to the card
+                billing={billing} 
               />
             ))}
           </SimpleGrid>

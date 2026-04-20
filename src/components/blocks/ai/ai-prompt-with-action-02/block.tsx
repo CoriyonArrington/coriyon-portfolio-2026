@@ -1,15 +1,33 @@
 'use client'
 
-import { useRef, useEffect, useState, useMemo } from 'react'
+import { useRef, useEffect, useState, useMemo, type ReactElement } from 'react'
 import { Badge, Box, Button, Center, Container, Flex, Heading, HStack, IconButton, SimpleGrid, Span, Stack, Text, Textarea, Highlight } from '@chakra-ui/react'
 import { HiBookOpen, HiLightBulb, HiTerminal, HiSparkles } from 'react-icons/hi'
 import { LuSendHorizontal, LuUser, LuBot } from 'react-icons/lu'
 import { PromptButton } from './prompt-button'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import MarkdownRenderer from '@/components/ui/markdown-renderer'
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer'
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface PromptItem {
+  text: string;
+  icon?: ReactElement; 
+}
 
 interface AIBlockProps {
-  dict?: any;
+  dict?: {
+    hero?: {
+      title?: string;
+      description?: string;
+      tagline?: string;
+    };
+    prompts?: PromptItem[];
+  };
   locale?: string;
   isHero?: boolean;
 }
@@ -17,7 +35,7 @@ interface AIBlockProps {
 export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => {
   const { playHover, playWhoosh } = useUiSounds()
   
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -47,7 +65,7 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
     const userMsgId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const assistantMsgId = `ai-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-    const userMsg = { id: userMsgId, role: 'user', content: text };
+    const userMsg: Message = { id: userMsgId, role: 'user', content: text };
     const newMessages = [...messages, userMsg];
     
     setMessages(newMessages);
@@ -97,16 +115,17 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
           )
         );
       }
-    } catch (error: any) {
-      if (error.message !== 'RATE_LIMIT_EXCEEDED') {
-        console.error('❌ Failed to send message:', error);
+    } catch (error: unknown) {
+      const err = error as Error;
+      if (err.message !== 'RATE_LIMIT_EXCEEDED') {
+        console.error('❌ Failed to send message:', err);
       }
       
       let fallbackMessage = locale === 'es' 
         ? 'Lo siento, encontré un error al conectarme al servidor. Por favor, inténtalo de nuevo más tarde.' 
         : 'Sorry, I encountered an error connecting to the server. Please try again later.';
 
-      if (error.message === 'RATE_LIMIT_EXCEEDED') {
+      if (err.message === 'RATE_LIMIT_EXCEEDED') {
         fallbackMessage = locale === 'es'
           ? '¡He alcanzado mi límite de mensajes por ahora! La IA está tomando un descanso. Mientras tanto, puedes **[ver los servicios](/services)** o contactar a Coriyon directamente.'
           : 'I have reached my message quota for right now! The AI is taking a quick nap. In the meantime, feel free to **[browse services](/services)** or contact Coriyon directly.';
@@ -124,7 +143,7 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
     }
   };
 
-  const handleSend = (e?: any) => {
+  const handleSend = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     sendMessage(input);
   };
@@ -133,7 +152,7 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
     sendMessage(text);
   };
 
-  const defaultPrompts = locale === 'es' ? [
+  const defaultPrompts: PromptItem[] = locale === 'es' ? [
     { text: "¿Cómo utilizas la IA en el diseño de productos?", icon: <HiSparkles /> },
     { text: "Cuéntame sobre tu caso de estudio más impactante", icon: <HiBookOpen /> },
     { text: "¿Cuál es tu enfoque para la estrategia de producto?", icon: <HiTerminal /> },
@@ -173,7 +192,7 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
                   mx={isHero ? "auto" : "0"}
                   pr={isHero ? "0" : "4"}
                 >
-                  <Highlight query={highlightQueries} styles={{ color: "green.600" }}>
+                  <Highlight query={highlightQueries} styles={{ color: "colorPalette.600" }}>
                     {displayTitle}
                   </Highlight>
                   <br />
@@ -184,10 +203,10 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
               </Box>
 
               <SimpleGrid columns={{ base: 1, sm: 2 }} gap="4" mt="2" w="full">
-                {prompts.map((prompt: any, index: number) => (
+                {prompts.map((prompt: PromptItem, index: number) => (
                   <PromptButton 
                     key={index} 
-                    icon={prompt.icon} 
+                    icon={prompt.icon ?? <HiSparkles />} 
                     onClick={() => handlePromptClick(prompt.text)}
                     onMouseEnter={() => playHover()}
                     isLarge={isHero}
@@ -199,7 +218,7 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
             </Stack>
           ) : (
             <Stack gap="8" justify="flex-end" flex="1">
-              {messages.map((msg: any, index: number) => {
+              {messages.map((msg: Message, index: number) => {
                 const isAssistant = msg.role === 'assistant';
                 const isLastMessage = index === messages.length - 1;
                 
@@ -226,10 +245,10 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
                   <Stack key={msg.id} gap="2" alignSelf={msg.role === 'user' ? 'flex-end' : 'flex-start'} maxW={isHero ? "3xl" : "full"}>
                     <HStack align="flex-start" gap="4">
                       {msg.role === 'assistant' && (
-                        <Box p="2" bg="green.600" rounded="lg" color="white" flexShrink={0} mt="1"><LuBot /></Box>
+                        <Box p="2" bg="colorPalette.600" rounded="lg" color="white" flexShrink={0} mt="1"><LuBot /></Box>
                       )}
                       <Box 
-                        bg={msg.role === 'user' ? 'green.600' : 'bg.panel'} 
+                        bg={msg.role === 'user' ? 'colorPalette.600' : 'bg.panel'} 
                         color={msg.role === 'user' ? 'white' : 'fg.default'}
                         borderWidth={msg.role === 'user' ? '0' : '1px'}
                         borderColor="border.subtle"
@@ -259,7 +278,8 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
                             key={i}
                             size="sm"
                             variant="outline"
-                            colorPalette="green"
+                            borderColor="colorPalette.500"
+                            color="colorPalette.600"
                             rounded="full"
                             onClick={() => handlePromptClick(suggestion)}
                             fontSize="xs"
@@ -269,7 +289,14 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
                             px="3"
                             whiteSpace="normal"
                             textAlign="left"
-                            _hover={{ bg: 'green.50', _dark: { bg: 'green.900' } }}
+                            _hover={{ 
+                              bg: 'colorPalette.50', 
+                              _dark: { 
+                                bg: 'colorPalette.900', 
+                                color: 'colorPalette.400', 
+                                borderColor: 'colorPalette.400' 
+                              } 
+                            }}
                           >
                             {suggestion}
                           </Button>
@@ -281,7 +308,7 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
               })}
               {isLoading && (
                 <HStack gap="4" align="center">
-                  <Box p="2" bg="green.600" rounded="lg" color="white"><LuBot /></Box>
+                  <Box p="2" bg="colorPalette.600" rounded="lg" color="white"><LuBot /></Box>
                   <Text color="fg.muted" fontStyle="italic" fontSize="sm">Coriyon AI is typing...</Text>
                 </HStack>
               )}
@@ -294,8 +321,8 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
         <Container maxW={isHero ? "5xl" : "full"} px={isHero ? "0" : "4"}>
           <form onSubmit={handleSend}>
             <Flex 
-              bg="bg.panel" // Solid base
-              _light={{ bg: "white" }} // Explicitly white for light mode
+              bg="bg.panel"
+              _light={{ bg: "white" }}
               borderRadius="2xl" 
               px="4" 
               py="3" 
@@ -332,7 +359,9 @@ export const Block = ({ dict, locale = 'en', isHero = false }: AIBlockProps) => 
                 <IconButton 
                   size="md" 
                   type="submit"
-                  colorPalette="green" 
+                  bg="colorPalette.600"
+                  color="white"
+                  _hover={{ bg: "colorPalette.700" }}
                   aria-label="Send" 
                   disabled={!input.trim() || isLoading}
                 >

@@ -40,7 +40,7 @@ export const Block = ({ dict, title, description, tagline, exploreText, secondar
       highlightQueries={highlightQueries}
       description={description || dict?.description}
       primaryAction={
-        <Button size="xl" h={{ base: 14, md: 16 }} px={{ base: 6, md: 8 }} fontSize="lg" colorPalette="green" variant="solid" onClick={handleScroll} onMouseEnter={playHover} w={{ base: 'full', md: 'auto' }}>
+        <Button size="xl" h={{ base: 14, md: 16 }} px={{ base: 6, md: 8 }} fontSize="lg" variant="solid" onClick={handleScroll} onMouseEnter={playHover} w={{ base: 'full', md: 'auto' }}>
           {exploreText || dict?.exploreText || "View services"} <LuChevronDown style={{ marginLeft: '8px' }} />
         </Button>
       }

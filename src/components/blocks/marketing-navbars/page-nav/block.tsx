@@ -4,7 +4,7 @@ import { Box, Flex, SimpleGrid, Stack, Text, Icon } from '@chakra-ui/react'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
 import NextLink from 'next/link'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useParams } from 'next/navigation'
 import { useEffect, useState, useMemo } from 'react'
 
 interface PageLink {
@@ -23,12 +23,13 @@ export const Block = ({ prev: propPrev, next: propNext, dict, pages = [] }: Page
   const { playHover, playClick } = useUiSounds()
   const pathname = usePathname() || '/'
   const router = useRouter()
+  const params = useParams()
+  
+  const currentLocale = (params?.locale as string) || 'en'
   
   const [currentHash, setCurrentHash] = useState('')
   const [isMounted, setIsMounted] = useState(false)
 
-  // Listen to hash changes, but explicitly add `pathname` so cross-page soft transitions
-  // (e.g., from /#process to /about#testimonials) force the hash to resync.
   useEffect(() => {
     setIsMounted(true)
     setCurrentHash(window.location.hash)
@@ -50,13 +51,18 @@ export const Block = ({ prev: propPrev, next: propNext, dict, pages = [] }: Page
   const links = useMemo(() => {
     if (!pages || pages.length === 0) return []
 
-    const validPages = pages.filter(p => p && ['MAIN_MENU', 'STANDARD', 'EXPLORE'].includes(p.page_type))
+    const validTypes = ['MAIN_MENU', 'STANDARD', 'EXPLORE', 'LEGAL', 'SUPPORT', 'RESOURCES']
+    const validPages = pages.filter(p => p && validTypes.includes(p.page_type))
     
-    // RESTORED: Group MAIN_MENU first, EXPLORE second. 
-    // This ensures your continuous "Explore" track (Process -> Testimonials -> FAQs) stays sequentially grouped.
     const sortedData = validPages.sort((a, b) => {
-      const aType = (a.page_type === 'MAIN_MENU' || a.page_type === 'STANDARD') ? 1 : 2
-      const bType = (b.page_type === 'MAIN_MENU' || b.page_type === 'STANDARD') ? 1 : 2
+      const getGroup = (type: string) => {
+        if (type === 'MAIN_MENU' || type === 'STANDARD') return 1;
+        if (type === 'EXPLORE') return 2;
+        return 3; 
+      }
+      
+      const aType = getGroup(a.page_type)
+      const bType = getGroup(b.page_type)
 
       if (aType !== bType) return aType - bType
       return (a.sort_order || 0) - (b.sort_order || 0)
@@ -65,8 +71,12 @@ export const Block = ({ prev: propPrev, next: propNext, dict, pages = [] }: Page
     const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
 
     return sortedData.map(p => {
+      if (!p) return { title: '', href: homePath };
+      
       let slug = p.slug || ''
-      if (slug.startsWith('/#')) slug = slug.substring(1)
+      const safeSlug = String(slug);
+      
+      if (safeSlug.startsWith('/#')) slug = safeSlug.substring(1)
 
       let href = homePath
       
@@ -76,20 +86,42 @@ export const Block = ({ prev: propPrev, next: propNext, dict, pages = [] }: Page
         href = homePath === '/' ? `/${slug}` : `${homePath}${slug}`
       } else if (slug.includes('#')) {
         const [pagePart, hashPart] = slug.split('#')
-        const cleanPage = pagePart.startsWith('/') ? pagePart : `/${pagePart}`
+        const cleanPage = pagePart?.startsWith('/') ? pagePart : `/${pagePart || ''}`
         const base = homePath === '/' ? cleanPage : `${homePath}${cleanPage}`
-        href = `${base}#${hashPart}`
+        href = `${base}#${hashPart || ''}`
       } else {
         const cleanPath = slug.startsWith('/') ? slug : `/${slug}`
         href = homePath === '/' ? cleanPath : `${homePath}${cleanPath}`
       }
 
+      let localizedTitle = p[`nav_title_${currentLocale}`] || p[`title_${currentLocale}`] || p.nav_title || p.title || '';
+      
+      if (currentLocale === 'es') {
+        const esFallbacks: Record<string, string> = {
+          'home': 'Inicio',
+          'projects': 'Trabajo',
+          'services': 'Servicios',
+          'about': 'Nosotros',
+          'contact': 'Contacto',
+          'playground': 'Laboratorio',
+          'privacy': 'Política de Privacidad',
+          'terms-of-service': 'Términos de Servicio',
+          'refund-policy': 'Política de Reembolso',
+          'security-policy': 'Política de Seguridad',
+          'accessibility-statement': 'Declaración de Accesibilidad'
+        };
+        const cleanSlug = (p.slug || '').replace(/^\/|\/$/g, '');
+        if (esFallbacks[cleanSlug]) {
+          localizedTitle = esFallbacks[cleanSlug];
+        }
+      }
+
       return {
-        title: p.nav_title || p.title || '',
+        title: localizedTitle,
         href
       }
-    })
-  }, [pages, pathname])
+    }).filter(link => link.title !== '');
+  }, [pages, pathname, currentLocale, segments])
 
   if (!isMounted || isProjectDetail || links.length === 0) return null;
 
@@ -106,12 +138,10 @@ export const Block = ({ prev: propPrev, next: propNext, dict, pages = [] }: Page
     const cleanFullPath = normalizePath(fullPath)
     const cleanPathname = normalizePath(pathname)
 
-    // 1. Try to match the exact hash path first
     let currentIndex = links.findIndex(link => normalizePath(link.href) === cleanFullPath)
     
-    // 2. If no hash match is found, fallback to matching the base pathname
     if (currentIndex === -1) {
-      currentIndex = links.findIndex(link => normalizePath(link.href.split('#')[0]) === cleanPathname)
+      currentIndex = links.findIndex(link => normalizePath(link.href.split('#')[0] || '') === cleanPathname)
     }
 
     if (currentIndex !== -1) {
@@ -123,28 +153,28 @@ export const Block = ({ prev: propPrev, next: propNext, dict, pages = [] }: Page
   const prev = propPrev !== undefined ? propPrev : computedPrev
   const next = propNext !== undefined ? propNext : computedNext
 
-  const checkIsSamePage = (href: string) => {
-    const basePath = href.split('#')[0]
+  const checkIsSamePage = (href?: string) => {
+    const safeHref = String(href || '');
+    const basePath = safeHref.split('#')[0] || '';
     const normalizePath = (p: string) => (p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : (p || '/'))
     return normalizePath(basePath) === normalizePath(pathname)
   }
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLElement>, href: string) => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLElement>, href?: string) => {
     playClick()
+    const safeHref = String(href || '');
     
-    if (href.includes('#') && checkIsSamePage(href)) {
-      const hashPart = `#${href.split('#')[1]}`
+    if (safeHref.includes('#') && checkIsSamePage(safeHref)) {
+      const hashPart = `#${safeHref.split('#')[1] || ''}`
       const elementId = hashPart.replace('#', '')
       const element = document.getElementById(elementId)
       
       if (element) {
         e.preventDefault()
         
-        // Safely push to the Next.js router without reloading or losing state
         router.push(`${pathname}${hashPart}`, { scroll: false })
         window.dispatchEvent(new Event('app-hash-change')) 
         
-        // Custom 120px offset smooth scroll
         setTimeout(() => {
           const offset = 120
           const elementPosition = element.getBoundingClientRect().top
@@ -166,7 +196,7 @@ export const Block = ({ prev: propPrev, next: propNext, dict, pages = [] }: Page
             href={prev.href} 
             onClick={(e) => handleLinkClick(e, prev.href)} 
             onMouseEnter={playHover} 
-            scroll={!(prev.href.includes('#') && checkIsSamePage(prev.href))}
+            scroll={!(String(prev.href || '').includes('#') && checkIsSamePage(prev.href))}
           >
             <Flex
               direction="column"
@@ -205,7 +235,7 @@ export const Block = ({ prev: propPrev, next: propNext, dict, pages = [] }: Page
             href={next.href} 
             onClick={(e) => handleLinkClick(e, next.href)} 
             onMouseEnter={playHover} 
-            scroll={!(next.href.includes('#') && checkIsSamePage(next.href))}
+            scroll={!(String(next.href || '').includes('#') && checkIsSamePage(next.href))}
           >
             <Flex
               direction="column"

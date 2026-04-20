@@ -4,8 +4,21 @@ import dynamic from 'next/dynamic';
 import { useColorMode } from '@/components/ui/color-mode';
 import { useEffect, useState } from 'react';
 
-// Dynamically import PopupModal to completely disable SSR and hydration errors
-const PopupModal = dynamic(
+interface PopupModalProps {
+  url: string;
+  pageSettings?: {
+    backgroundColor?: string;
+    hideEventTypeDetails?: boolean;
+    hideLandingPageDetails?: boolean;
+    primaryColor?: string;
+    textColor?: string;
+  };
+  onModalClose?: () => void;
+  open: boolean;
+  rootElement: HTMLElement | null;
+}
+
+const PopupModal = dynamic<PopupModalProps>(
   () => import('react-calendly').then((mod) => mod.PopupModal),
   { ssr: false }
 );
@@ -19,15 +32,12 @@ export function CalendlyPopup({ isOpen, onClose }: CalendlyPopupProps) {
   const { colorMode } = useColorMode();
   const [mounted, setMounted] = useState(false);
 
-  // Ensure we only render this strictly on the client
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // CRITICAL OPTIMIZATION: Do not render (or load) the modal chunk until it's actually opened.
   if (!mounted || !isOpen) return null;
 
-  // These hex codes (without the #) control the INTERNAL colors of the calendar card itself
   const isDark = colorMode === 'dark';
   const bgColor = isDark ? '000000' : 'ffffff'; 
   const textColor = isDark ? 'ffffff' : '1a202c';
@@ -36,11 +46,10 @@ export function CalendlyPopup({ isOpen, onClose }: CalendlyPopupProps) {
   return (
     <>
       <style>{`
-        /* Forces the outer wrappers to be completely transparent so the card floats cleanly */
         .calendly-overlay .calendly-popup,
         .calendly-overlay .calendly-popup-content,
         .calendly-overlay iframe {
-          color-scheme: light !important; /* Continues to prevent the browser's white-flash */
+          color-scheme: light !important; 
           background: transparent !important;
           background-color: transparent !important;
           box-shadow: none !important;

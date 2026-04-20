@@ -12,7 +12,7 @@ import {
   Box 
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useParams } from 'next/navigation'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { LuChevronDown } from 'react-icons/lu'
 
@@ -21,6 +21,7 @@ interface NavLink {
   slug: string;
   nav_title: string;
   page_type?: string; 
+  [key: string]: any; 
 }
 
 interface NavbarLinksProps extends StackProps {
@@ -33,6 +34,9 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
   const { playHover, playWhoosh } = useUiSounds()
   const pathname = usePathname() || ''
   const router = useRouter()
+  const params = useParams()
+  
+  const currentLocale = (params?.locale as string) || 'en'
   
   const segments = pathname.split('/').filter(Boolean)
   const homePath = (segments.length > 0 && segments[0].length === 2) ? `/${segments[0]}` : '/'
@@ -96,20 +100,52 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
     }
   }
 
+  const getLocalizedTitle = (page: NavLink) => {
+    let title = page[`nav_title_${currentLocale}`] || page[`title_${currentLocale}`] || page.nav_title || page.title || '';
+    if (currentLocale === 'es') {
+      const esFallbacks: Record<string, string> = {
+        'home': 'Inicio',
+        'projects': 'Trabajo',
+        'services': 'Servicios',
+        'about': 'Nosotros',
+        'contact': 'Contacto',
+        'playground': 'Laboratorio',
+        'privacy': 'Política de Privacidad',
+        'terms-of-service': 'Términos de Servicio',
+        'refund-policy': 'Política de Reembolso',
+        'security-policy': 'Política de Seguridad',
+        'accessibility-statement': 'Declaración de Accesibilidad'
+      };
+      const cleanSlug = (page.slug || '').replace(/^\/|\/$/g, '');
+      if (esFallbacks[cleanSlug]) title = esFallbacks[cleanSlug];
+    }
+    return title;
+  }
+
   const safeLinks = Array.isArray(links) ? links : [];
-  const filteredLinks = safeLinks.filter(l => l.slug !== 'home' && l.slug !== '/');
-
-  const fallbackPrimarySlugs = ['about', 'work', 'projects', 'services'];
   
-  const primaryLinks = filteredLinks.filter(l => 
-    l.page_type === 'MAIN_MENU' || (!l.page_type && fallbackPrimarySlugs.includes(l.slug))
-  );
+  const fallbackPrimarySlugs = ['home', '/', 'about', 'work', 'projects', 'services'];
   
-  const exploreLinks = filteredLinks.filter(l => 
-    l.page_type === 'EXPLORE' || (!l.page_type && !fallbackPrimarySlugs.includes(l.slug))
-  );
+  // 1. Initial sorting: Force 'contact' out of primary
+  const rawPrimaryLinks = safeLinks.filter(l => {
+    const isContact = l.slug === 'contact' || l.slug === '/contact';
+    if (isContact) return false; 
+    return l.page_type === 'MAIN_MENU' || (!l.page_type && fallbackPrimarySlugs.includes(l.slug));
+  });
+  
+  // 2. Initial sorting: Force 'contact' into explore
+  const rawExploreLinks = safeLinks.filter(l => {
+    const isContact = l.slug === 'contact' || l.slug === '/contact';
+    if (isContact) return true; 
+    return l.page_type === 'EXPLORE' || (!l.page_type && !fallbackPrimarySlugs.includes(l.slug));
+  });
 
-  if (filteredLinks.length === 0) return null;
+  // 3. Enforce max 4 items in primary nav, overflow the rest to the 'More' menu
+  const primaryLinks = rawPrimaryLinks.slice(0, 4);
+  const overflowLinks = rawPrimaryLinks.slice(4);
+  const exploreLinks = [...overflowLinks, ...rawExploreLinks];
+
+  if (safeLinks.length === 0) return null;
 
   if (isMobile) {
     const mobileOrderedLinks = [...primaryLinks, ...exploreLinks];
@@ -127,9 +163,9 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
               asChild
               fontWeight={isActive ? "bold" : "medium"}
               fontSize="2xl"
-              color={isActive ? "colorPalette.fg" : "fg.muted"}
+              color={isActive ? "colorPalette.500" : "fg.muted"}
               transition="color 0.2s"
-              _hover={{ color: 'colorPalette.fg', textDecoration: 'none' }}
+              _hover={{ color: 'colorPalette.500', textDecoration: 'none' }}
               onClick={(e) => handleScroll(e, href)}
               onMouseEnter={playHover}
               whiteSpace="nowrap"
@@ -138,7 +174,7 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
               w="full"
             >
               <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>
-                {page.nav_title}
+                {getLocalizedTitle(page)}
               </NextLink>
             </Link>
           )
@@ -160,15 +196,15 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
             key={page.id || page.slug}
             asChild
             fontWeight={isActive ? "bold" : "medium"}
-            color={isActive ? "colorPalette.fg" : "fg.muted"}
+            color={isActive ? "colorPalette.500" : "fg.muted"}
             transition="color 0.2s"
-            _hover={{ color: 'colorPalette.fg', textDecoration: 'none' }}
+            _hover={{ color: 'colorPalette.500', textDecoration: 'none' }}
             onClick={(e) => handleScroll(e, href)}
             onMouseEnter={playHover}
             whiteSpace="nowrap"
           >
             <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>
-              {page.nav_title}
+              {getLocalizedTitle(page)}
             </NextLink>
           </Link>
         )
@@ -185,12 +221,12 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
                 fontWeight="medium" 
                 color="fg.muted"
                 transition="color 0.2s"
-                _hover={{ color: "colorPalette.fg" }}
+                _hover={{ color: "colorPalette.500" }}
                 onMouseEnter={playHover}
                 px="0"
                 h="auto"
               >
-                More <LuChevronDown style={{ marginLeft: '4px', width: '14px' }} />
+                {currentLocale === 'es' ? 'Más' : 'More'} <LuChevronDown style={{ marginLeft: '4px', width: '14px' }} />
               </Button>
             </MenuTrigger>
             
@@ -211,6 +247,7 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
             >
               {exploreLinks.map((page) => {
                  const href = getHref(page.slug)
+                 
                  return (
                   <MenuItem 
                     key={page.id || page.slug} 
@@ -218,7 +255,7 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
                     asChild
                     borderRadius="md"
                     color="fg.muted"
-                    _hover={{ bg: "colorPalette.muted", color: "colorPalette.fg" }}
+                    _hover={{ bg: "bg.muted", color: "colorPalette.500" }}
                     onClick={(e) => { 
                       playWhoosh(); 
                       handleScroll(e as any, href); 
@@ -230,7 +267,7 @@ export const NavbarLinks = ({ links, onLinkClick, isMobile = false, ...props }: 
                       scroll={!(href.includes('#') && checkIsSamePage(href))} 
                       style={{ display: 'block', width: '100%', padding: '8px 12px', color: 'currentColor', textDecoration: 'none' }}
                     >
-                      {page.nav_title}
+                      {getLocalizedTitle(page)}
                     </NextLink>
                   </MenuItem>
                  )

@@ -19,7 +19,7 @@ export const CenteredHeroLayout = ({
   badge,
   title,
   highlightQueries = [],
-  highlightColor = "green.600",
+  highlightColor = "colorPalette.600",
   description,
   primaryAction,
   secondaryAction,

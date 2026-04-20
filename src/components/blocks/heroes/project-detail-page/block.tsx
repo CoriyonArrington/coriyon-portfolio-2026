@@ -24,7 +24,7 @@ export const Block = ({
 
   useEffect(() => {
     setMounted(true)
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    // FIX: Removed window.scrollTo({ top: 0, left: 0, behavior: 'instant' }) which caused the jump on language change!
   }, [])
 
   const handleScroll = () => {
@@ -83,14 +83,14 @@ export const Block = ({
         )
       }
       title={
-        <Highlight query={highlightQueries} styles={{ color: bgColor || "green.600", whiteSpace: 'normal' }}>
+        <Highlight query={highlightQueries} styles={{ color: bgColor || "colorPalette.600", whiteSpace: 'normal' }}>
           {displayTitle}
         </Highlight>
       }
       description={description || dict?.description || 'Project description goes here.'}
       actions={
         <Stack direction={{ base: 'column', md: 'row' }} gap="4" w={{ base: "full", md: "auto" }} align={{ base: 'stretch', md: 'center' }}>
-          <Button size="xl" h={{ base: 14, md: 16 }} px={{ base: 6, md: 8 }} fontSize="lg" bg={bgColor || "green.600"} color="white" _hover={{ opacity: 0.85 }} onClick={handleScroll} onMouseEnter={playHover} w={{ base: "full", md: "auto" }}>
+          <Button size="xl" h={{ base: 14, md: 16 }} px={{ base: 6, md: 8 }} fontSize="lg" bg={bgColor || "colorPalette.600"} color="white" _hover={{ opacity: 0.85 }} onClick={handleScroll} onMouseEnter={playHover} w={{ base: "full", md: "auto" }}>
             {primaryCtaText || "Read case study"} <LuChevronDown />
           </Button>
           

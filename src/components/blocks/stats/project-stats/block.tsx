@@ -98,7 +98,7 @@ export const Block = ({ tagline, headline, description, stats }: Props) => {
       <SectionHeader
         tagline={
           tagline ? (
-            <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">
+            <Badge size="lg" colorPalette="gray" variant="subtle" rounded="full" px="3" py="1">
               {tagline}
             </Badge>
           ) : undefined
@@ -121,14 +121,14 @@ export const Block = ({ tagline, headline, description, stats }: Props) => {
                 rounded="3xl"
                 transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                 _hover={{
-                  borderColor: 'green.500',
+                  borderColor: 'colorPalette.500',
                   transform: 'translateY(-4px)',
                   bg: 'bg.muted/50',
                   shadow: 'md'
                 }}
               >
                 <Card.Body gap="4">
-                  <Icon size="xl" color="green.600"><IconComponent /></Icon>
+                  <Icon size="xl" color="colorPalette.600"><IconComponent /></Icon>
                   <Stack gap="1" flex="1" justify="flex-end">
                     <Text textStyle={{ base: '4xl', md: '5xl' }} fontWeight="bold" letterSpacing="tight">
                       <AnimatedNumber text={item.value} />

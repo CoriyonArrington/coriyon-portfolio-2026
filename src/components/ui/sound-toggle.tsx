@@ -12,8 +12,7 @@ export const SoundToggle = () => {
       aria-label={isMuted ? "Enable sounds" : "Disable sounds"}
       variant="ghost"
       size="sm"
-      colorPalette="green"
-      // Show as subtle grey when muted, but vibrant green when active
+      // Show as subtle grey when muted, but vibrant brand color when active
       color={isMuted ? "fg.muted" : "colorPalette.fg"}
       _hover={{ color: 'colorPalette.fg', bg: 'colorPalette.subtle' }}
       onClick={toggleMute}

@@ -1,15 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Box, Container, HStack, Stack, Text, IconButton, Link as ChakraLink, Avatar, SimpleGrid, Separator } from '@chakra-ui/react'
-import { LuLinkedin, LuGithub, LuYoutube, LuCopy, LuCheck, LuDownload } from 'react-icons/lu'
-import { LanguageSwitcher } from '@/components/blocks/marketing-navbars/navbar-island/language-switcher'
+import { Box, Container, HStack, Stack, Text, IconButton, Link as ChakraLink, Avatar, Flex, Separator, SimpleGrid } from '@chakra-ui/react'
+import { LuLinkedin, LuGithub, LuYoutube, LuCopy, LuCheck, LuPhone } from 'react-icons/lu'
+import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { ColorModeButton } from '@/components/ui/color-mode'
+import { ColorPaletteToggle } from '@/components/ui/color-palette-toggle'
 import NextLink from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { SoundToggle } from '../../marketing-navbars/navbar-island/sound-toggle'
+import { usePathname, useRouter, useParams } from 'next/navigation'
+import { SoundToggle } from '@/components/ui/sound-toggle'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
-import { DownloadTrigger } from '@/components/ui/download-trigger'
 
 interface FooterProps {
   dict?: any;
@@ -17,13 +17,26 @@ interface FooterProps {
 }
 
 export const Block = ({ dict, pages = [] }: FooterProps) => {
-  const { playHover, playWhoosh, playClick, playSuccess } = useUiSounds()
-  const [hasCopied, setHasCopied] = useState(false)
+  const { playHover, playWhoosh, playClick } = useUiSounds()
+  const [hasCopiedEmail, setHasCopiedEmail] = useState(false)
   const pathname = usePathname() || ''
   const router = useRouter()
+  const params = useParams()
   const [year, setYear] = useState<number | null>(null) 
 
-  const emailAddress = "coriyonarrington@gmail.com"
+  const currentLocale = (params?.locale as string) || 'en'
+
+  // --- DYNAMIC CONTACT INFO EXTRACTION ---
+  const contactInfo = dict?.contact_info || {}
+
+  const emailAddress = contactInfo.email || "hi@coriyon.studio"
+  const phoneNumber = contactInfo.phone || "(612) 217-4482"
+  const rawPhoneNumber = phoneNumber.replace(/[^0-9+]/g, '')
+  
+  const addressLine1 = contactInfo.address || "7970 Brooklyn Blvd #V-144,"
+  const addressLine2 = contactInfo.city_state_zip || "Brooklyn Park, MN 55445"
+  const mapUrl = contactInfo.map_url || "https://maps.google.com/?q=7970+Brooklyn+Blvd+%23V-144,+Brooklyn+Park,+MN+55445"
+  // ---------------------------------------
 
   useEffect(() => {
     setYear(new Date().getFullYear())
@@ -31,13 +44,16 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
 
   const mainMenuPages = pages.filter(p => p.page_type === 'MAIN_MENU' || p.page_type === 'STANDARD')
   const explorePages = pages.filter(p => p.page_type === 'EXPLORE')
+  const resourcesPages = pages.filter(p => p.page_type === 'RESOURCES')
+  const supportPages = pages.filter(p => p.page_type === 'SUPPORT')
+  const legalPages = pages.filter(p => p.page_type === 'LEGAL')
 
   const handleCopyEmail = (e: React.MouseEvent) => {
     e.preventDefault()
     playClick()
     navigator.clipboard.writeText(emailAddress)
-    setHasCopied(true)
-    setTimeout(() => setHasCopied(false), 2000)
+    setHasCopiedEmail(true)
+    setTimeout(() => setHasCopiedEmail(false), 2000)
   }
 
   const segments = pathname.split('/').filter(Boolean)
@@ -62,7 +78,6 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
     return homePath === '/' ? cleanPath : `${homePath}${cleanPath}`;
   }
 
-  // Ensures we only disable Next.js scroll if we are staying on the exact same page
   const checkIsSamePage = (href: string) => {
     const basePath = href.split('#')[0]
     const normalizePath = (p: string) => (p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : (p || '/'))
@@ -83,11 +98,9 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
       
       const element = document.getElementById(hashPart)
       if (element) {
-        // Safely update Next router without reloading
         router.push(`${pathname}#${hashPart}`, { scroll: false })
         window.dispatchEvent(new Event('app-hash-change')) 
         
-        // Custom 120px offset smooth scroll decoupled from router
         setTimeout(() => {
           const offset = 120 
           const elementPosition = element.getBoundingClientRect().top
@@ -113,16 +126,38 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
     }, 10)
   }
 
+  const getLocalizedTitle = (page: any) => {
+    let title = page[`nav_title_${currentLocale}`] || page[`title_${currentLocale}`] || page.nav_title || page.title || '';
+    if (currentLocale === 'es' && !page[`nav_title_es`]) {
+      const esFallbacks: Record<string, string> = {
+        'home': 'Inicio',
+        'projects': 'Trabajo',
+        'services': 'Servicios',
+        'about': 'Nosotros',
+        'contact': 'Contacto',
+        'playground': 'Laboratorio',
+        'privacy': 'Política de Privacidad',
+        'terms-of-service': 'Términos de Servicio',
+        'refund-policy': 'Política de Reembolso',
+        'security-policy': 'Política de Seguridad',
+        'accessibility-statement': 'Declaración de Accesibilidad'
+      };
+      const cleanSlug = (page.slug || '').replace(/^\/|\/$/g, '');
+      if (esFallbacks[cleanSlug]) title = esFallbacks[cleanSlug];
+    }
+    return title;
+  }
+
   return (
     <Box as="footer" bg="bg.panel" borderTopWidth="1px" borderColor="border.subtle">
       <Container maxW="7xl" textStyle="sm">
-        <Stack
-          direction={{ base: 'column', md: 'row' }}
-          gap={{ base: '8', md: '12' }}
+        <Flex
+          direction={{ base: 'column', lg: 'row' }}
+          gap={{ base: '12', lg: '16' }}
           justify="space-between"
-          py={{ base: '10', md: '12' }}
+          py={{ base: '12', md: '16' }}
         >
-          <Stack alignItems="start" gap="8">
+          <Stack alignItems="start" gap="8" flex="1" maxW={{ lg: "sm" }}>
             <ChakraLink 
               asChild
               variant="plain" 
@@ -137,157 +172,230 @@ export const Block = ({ dict, pages = [] }: FooterProps) => {
                     <Avatar.Fallback name="Coriyon Arrington" />
                   </Avatar.Root>
                   <Text fontWeight="bold" fontSize="xl" color="fg" letterSpacing="tight">
-                    {dict?.logo || "Coriyon"}
+                    {dict?.logo || "Coriyon's Studio"}
                   </Text>
                 </HStack>
               </NextLink>
             </ChakraLink>
 
-            <Stack gap="5">
-              <Stack gap="1">
+            <Box textAlign="left" w="full">
+              <Text fontSize="sm" color="fg.muted" lineHeight="relaxed">
+                <Text as="span" fontWeight="bold" color="fg">{dict?.disclaimerLabel || "Disclaimer:"} </Text>
+                {dict?.clarityDisclosure || "We partner with Microsoft Clarity to capture how you use and interact with our website through behavioral metrics, heatmaps, and session replay to improve the user experience. By using this site, you agree that we and Microsoft can collect and use this data. "}
+                <ChakraLink asChild color="fg" textDecoration="underline" _hover={{ color: "colorPalette.600" }}>
+                  <a href="https://privacy.microsoft.com/en-US/privacystatement" target="_blank" rel="noopener noreferrer">
+                    {dict?.microsoftPrivacy || "Microsoft Privacy Statement"}
+                  </a>
+                </ChakraLink>.
+              </Text>
+            </Box>
+          </Stack>
+
+          {/* FIX: Added justifyContent={{ lg: "flex-end" }} to push columns to the right */}
+          <Flex flex="2" justifyContent={{ base: "flex-start", lg: "flex-end" }} w="full">
+            <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={{ base: "10", lg: "12" }} w={{ base: "full", lg: "auto" }}>
+              
+              {mainMenuPages.length > 0 && (
+                <Stack gap="4">
+                  <Text fontWeight="medium" color="fg">{dict?.mainMenu || "Main Menu"}</Text>
+                  <Stack gap="3" alignItems="start">
+                    {mainMenuPages.map((page) => {
+                      const href = getHref(page.slug);
+                      const label = getLocalizedTitle(page);
+                      
+                      return (
+                        <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
+                          <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
+                        </ChakraLink>
+                      )
+                    })}
+                  </Stack>
+                </Stack>
+              )}
+
+              {explorePages.length > 0 && (
+                <Stack gap="4">
+                  <Text fontWeight="medium" color="fg">{dict?.explore || "Explore"}</Text>
+                  <Stack gap="3" alignItems="start">
+                    {explorePages.map((page) => {
+                      const href = getHref(page.slug);
+                      const label = getLocalizedTitle(page);
+
+                      return (
+                        <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
+                          <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
+                        </ChakraLink>
+                      )
+                    })}
+                  </Stack>
+                </Stack>
+              )}
+
+              {resourcesPages.length > 0 && (
+                <Stack gap="4">
+                  <Text fontWeight="medium" color="fg">{dict?.resources || "Resources"}</Text>
+                  <Stack gap="3" alignItems="start">
+                    {resourcesPages.map((page) => {
+                      const href = getHref(page.slug);
+                      const label = getLocalizedTitle(page);
+
+                      return (
+                        <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
+                          <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
+                        </ChakraLink>
+                      )
+                    })}
+                  </Stack>
+                </Stack>
+              )}
+
+              {supportPages.length > 0 && (
+                <Stack gap="4">
+                  <Text fontWeight="medium" color="fg">{dict?.support || "Support"}</Text>
+                  <Stack gap="3" alignItems="start">
+                    {supportPages.map((page) => {
+                      const href = getHref(page.slug);
+                      const label = getLocalizedTitle(page);
+
+                      return (
+                        <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
+                          <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
+                        </ChakraLink>
+                      )
+                    })}
+                  </Stack>
+                </Stack>
+              )}
+
+              {legalPages.length > 0 && (
+                <Stack gap="4">
+                  <Text fontWeight="medium" color="fg">{dict?.legal || "Legal"}</Text>
+                  <Stack gap="3" alignItems="start">
+                    {legalPages.map((page) => {
+                      const href = getHref(page.slug);
+                      const label = getLocalizedTitle(page);
+
+                      return (
+                        <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
+                          <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
+                        </ChakraLink>
+                      )
+                    })}
+                  </Stack>
+                </Stack>
+              )}
+
+              <Stack gap="4" maxW="xs">
                 <Text fontWeight="medium" color="fg">{dict?.location || "Location"}</Text>
-                <Text color="fg.muted">Minneapolis, MN</Text>
+                <Stack gap="3" alignItems="start">
+                  <Text 
+                    asChild
+                    color="fg.muted"
+                    _hover={{ color: "fg" }}
+                    whiteSpace="normal"
+                    lineHeight="tall"
+                    display="inline-block"
+                    transition="all 0.2s"
+                  >
+                    <a href={mapUrl} target="_blank" rel="noopener noreferrer" onMouseEnter={playHover}>
+                      {addressLine1}<br/>{addressLine2}
+                    </a>
+                  </Text>
+                </Stack>
               </Stack>
-              <Stack gap="1">
+
+              <Stack gap="4">
                 <Text fontWeight="medium" color="fg">{dict?.contactHeading || "Contact"}</Text>
-                <Stack gap="2" alignItems="flex-start">
+                <Stack gap="3" alignItems="flex-start">
                   <HStack 
                     as="button"
                     onClick={handleCopyEmail}
-                    color={hasCopied ? "green.500" : "fg.muted"}
-                    _hover={{ color: hasCopied ? "green.600" : "fg" }}
+                    color={hasCopiedEmail ? "colorPalette.600" : "fg.muted"}
+                    _hover={{ color: hasCopiedEmail ? "colorPalette.700" : "fg" }}
                     onMouseEnter={playHover}
                     transition="all 0.2s"
                     cursor="pointer"
                     gap="2"
                   >
-                    <Text>{hasCopied ? (dict?.emailCopied || "Email copied!") : (dict?.copyEmail || "Copy Email")}</Text>
-                    {hasCopied ? <LuCheck size="16" /> : <LuCopy size="16" />}
+                    <Text>{hasCopiedEmail ? (dict?.emailCopied || "Email copied!") : emailAddress}</Text>
+                    {hasCopiedEmail ? <LuCheck size="16" /> : <LuCopy size="16" />}
                   </HStack>
 
-                  <DownloadTrigger 
-                    value="/Resume-Coriyon Arrington-Senior Product Designer.pdf"
-                    fileName="Coriyon_Arrington_Resume.pdf"
+                  <HStack 
+                    asChild
+                    color="fg.muted"
+                    _hover={{ color: "fg" }}
+                    transition="all 0.2s"
+                    gap="2"
                   >
-                    <HStack 
-                      as="button"
-                      color="fg.muted"
-                      _hover={{ color: "fg" }}
-                      onClick={playSuccess}
-                      onMouseEnter={playHover}
-                      transition="all 0.2s"
-                      cursor="pointer"
-                      gap="2"
-                    >
-                      <Text>{dict?.downloadResume || "Download Resume"}</Text>
-                      <LuDownload size="16" />
+                    <a href={`tel:${rawPhoneNumber}`} onMouseEnter={playHover} onClick={playClick}>
+                      <Text>{phoneNumber}</Text>
+                      <LuPhone size="16" />
+                    </a>
+                  </HStack>
+
+                  {contactInfo.linkedin && (
+                    <HStack asChild color="fg.muted" _hover={{ color: "fg" }} transition="all 0.2s" gap="2">
+                      <NextLink href={contactInfo.linkedin} target="_blank" onMouseEnter={playHover} onClick={playClick}>
+                        <Text>LinkedIn</Text>
+                        <LuLinkedin size="16" />
+                      </NextLink>
                     </HStack>
-                  </DownloadTrigger>
+                  )}
+
+                  {contactInfo.github && (
+                    <HStack asChild color="fg.muted" _hover={{ color: "fg" }} transition="all 0.2s" gap="2">
+                      <NextLink href={contactInfo.github} target="_blank" onMouseEnter={playHover} onClick={playClick}>
+                        <Text>GitHub</Text>
+                        <LuGithub size="16" />
+                      </NextLink>
+                    </HStack>
+                  )}
+
+                  {contactInfo.youtube && (
+                    <HStack asChild color="fg.muted" _hover={{ color: "fg" }} transition="all 0.2s" gap="2">
+                      <NextLink href={contactInfo.youtube} target="_blank" onMouseEnter={playHover} onClick={playClick}>
+                        <Text>YouTube</Text>
+                        <LuYoutube size="16" />
+                      </NextLink>
+                    </HStack>
+                  )}
+
                 </Stack>
               </Stack>
-            </Stack>
-          </Stack>
 
-          <SimpleGrid columns={2} gap="8" width={{ base: 'full', md: 'auto' }}>
-            
-            <Stack gap="4" minW={{ md: '40' }}>
-              <Text fontWeight="medium" color="fg">{dict?.mainMenu || "Main Menu"}</Text>
-              <Stack gap="3" alignItems="start">
-                {mainMenuPages.map((page) => {
-                  const href = getHref(page.slug);
-                  const dictKey = page.slug.includes('#') ? page.slug.split('#')[1] : page.slug;
-                  const label = dict?.[`${dictKey}Link`] || page.nav_title || page.title;
-                  
-                  return (
-                    <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
-                      {/* FIXED: Dynamic scroll prop */}
-                      <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
-                    </ChakraLink>
-                  )
-                })}
-              </Stack>
-            </Stack>
-
-            <Stack gap="4" minW={{ md: '40' }}>
-              <Text fontWeight="medium" color="fg">{dict?.explore || "Explore"}</Text>
-              <Stack gap="3" alignItems="start">
-                {explorePages.map((page) => {
-                  const href = getHref(page.slug);
-                  const dictKey = page.slug.includes('#') ? page.slug.split('#')[1] : page.slug;
-                  const label = dict?.[`${dictKey}Link`] || page.nav_title || page.title;
-
-                  return (
-                    <ChakraLink key={page.id} asChild color="fg.muted" _hover={{ color: "fg", textDecoration: "none" }} onClick={(e) => handleScroll(e, href)} onMouseEnter={playHover}>
-                      {/* FIXED: Dynamic scroll prop */}
-                      <NextLink href={href} scroll={!(href.includes('#') && checkIsSamePage(href))}>{label}</NextLink>
-                    </ChakraLink>
-                  )
-                })}
-              </Stack>
-            </Stack>
-
-          </SimpleGrid>
-        </Stack>
+            </SimpleGrid>
+          </Flex>
+        </Flex>
 
         <Separator borderColor="border.subtle" />
 
         <Stack
           direction={{ base: 'column-reverse', lg: 'row' }}
-          alignItems="center"
+          alignItems={{ base: "flex-start", lg: "center" }}
           justify="space-between"
           pt="6"
-          pb="4" 
+          pb={{ base: '28', md: '20' }}
           gap={{ base: '6', lg: '8' }}
         >
-          <Box flex={{ lg: 1 }} textAlign="left" w="full">
+          <Stack gap="1" flex={{ lg: 1 }} textAlign="left" w="full">
             <Text fontSize="sm" color="fg.subtle">
-              {dict?.copyright || `© ${year || 2026} Coriyon Arrington. Based in Minneapolis.`}
+              {dict?.builtWithLove || "Designed with intention. Built with love."}
             </Text>
-          </Box>
-
-          <Box flex={{ lg: 1 }} textAlign={{ base: "left", lg: "center" }} w="full">
             <Text fontSize="sm" color="fg.subtle">
-              {dict?.builtWithLove || "Designed with intention. Built with love 💚"}
+              {dict?.copyright || `© ${year || 2026} Coriyon's Studio. Based in Minneapolis.`}
             </Text>
-          </Box>
+          </Stack>
 
-          <Stack direction={{ base: 'column', md: 'row' }} gap={{ base: '4', md: '6' }} alignItems={{ base: "flex-start", lg: "center" }} flex={{ lg: 1 }} justify={{ lg: "flex-end" }} w="full">
-            <HStack gap="2">
-              <IconButton variant="ghost" size="sm" aria-label="LinkedIn" asChild onMouseEnter={playHover} onClick={playClick}>
-                <NextLink href="https://linkedin.com/in/coriyon" target="_blank">
-                  <LuLinkedin />
-                </NextLink>
-              </IconButton>
-              <IconButton variant="ghost" size="sm" aria-label="GitHub" asChild onMouseEnter={playHover} onClick={playClick}>
-                <NextLink href="https://github.com/CoriyonArrington" target="_blank">
-                  <LuGithub />
-                </NextLink>
-              </IconButton>
-              <IconButton variant="ghost" size="sm" aria-label="YouTube" asChild onMouseEnter={playHover} onClick={playClick}>
-                <NextLink href="https://www.youtube.com/@uxcoriyon" target="_blank">
-                  <LuYoutube />
-                </NextLink>
-              </IconButton>
-            </HStack>
-            
-            <HStack gap="1" borderLeftWidth={{ md: "1px" }} borderColor="border.subtle" ps={{ md: "4" }}>
+          <Flex flex={{ lg: 1 }} justify={{ base: "flex-start", lg: "flex-end" }} w="full">
+            <HStack gap="1">
               <SoundToggle />
               <ColorModeButton />
+              <ColorPaletteToggle />
               <LanguageSwitcher />
             </HStack>
-          </Stack>
+          </Flex>
         </Stack>
-
-        <Box pb={{ base: '28', md: '20' }} textAlign="left" w="full">
-          <Text fontSize="sm" color="fg.subtle" maxW="4xl">
-            {dict?.clarityDisclosure || "I partner with Microsoft Clarity to capture how you use and interact with my website through behavioral metrics, heatmaps, and session replay to improve the user experience. By using this site, you agree that I and Microsoft can collect and use this data. "}
-            <ChakraLink asChild color="fg.muted" textDecoration="underline" _hover={{ color: "fg" }}>
-              <a href="https://privacy.microsoft.com/en-US/privacystatement" target="_blank" rel="noopener noreferrer">
-                {dict?.microsoftPrivacy || "Microsoft Privacy Statement"}
-              </a>
-            </ChakraLink>.
-          </Text>
-        </Box>
       </Container>
     </Box>
   )

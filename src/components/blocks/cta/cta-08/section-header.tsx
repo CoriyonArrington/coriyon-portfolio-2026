@@ -13,7 +13,7 @@ export const SectionHeader = (props: SectionHeaderProps) => {
   return (
     <Stack gap="4" align="flex-start" {...rootProps}>
       {tagline && (
-        <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">
+        <Badge size="lg" variant="subtle" rounded="full" px="3" py="1">
           {tagline}
         </Badge>
       )}

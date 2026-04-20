@@ -10,15 +10,28 @@ import {
   Drawer,
   IconButton,
   Flex,
-  Link
+  Text,
+  Popover,
+  Portal
 } from '@chakra-ui/react'
 import { ColorModeButton } from "@/components/ui/color-mode"
-import { LuCalendar, LuMenu, LuX, LuLinkedin, LuGithub, LuYoutube, LuInstagram } from 'react-icons/lu'
+import { 
+  LuCalendar, 
+  LuMenu, 
+  LuX, 
+  LuLinkedin, 
+  LuGithub, 
+  LuYoutube, 
+  LuInstagram, 
+  LuSettings,
+  LuChevronDown
+} from 'react-icons/lu'
 import { useState } from 'react'
-import { Logo } from './logo'
 import { NavbarLinks } from './navbar-links'
-import { LanguageSwitcher } from './language-switcher'
-import { SoundToggle } from './sound-toggle'
+import { LanguageSwitcher } from '@/components/ui/language-switcher'
+import { SoundToggle } from '@/components/ui/sound-toggle'
+import { ColorPaletteToggle } from '@/components/ui/color-palette-toggle'
+import { useThemeColor } from '@/components/ui/provider'
 import { useUiSounds } from '@/hooks/use-ui-sounds'
 import { CalendlyPopup } from '@/components/ui/calendly-popup'
 import NextLink from 'next/link'
@@ -37,8 +50,10 @@ interface NavbarBlockProps {
 
 export const Block = ({ dict, links }: NavbarBlockProps) => {
   const { playHover, playClick } = useUiSounds()
+  const { colorPalette } = useThemeColor()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isCalendlyOpen, setIsCalendlyOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const openCalendly = (e: React.MouseEvent) => {
     playClick()
@@ -47,13 +62,30 @@ export const Block = ({ dict, links }: NavbarBlockProps) => {
   }
 
   const socialLinks = [
-    { icon: <LuLinkedin />, href: "https://www.linkedin.com/in/coriyonarrington", label: "LinkedIn" },
-    { icon: <LuGithub />, href: "https://github.com/coriyon", label: "GitHub" },
+    { icon: <LuLinkedin />, href: "https://www.linkedin.com/in/coriyon", label: "LinkedIn" },
+    { icon: <LuGithub />, href: "https://github.com/CoriyonArrington", label: "GitHub" },
     { icon: <LuYoutube />, href: "https://www.youtube.com/@uxcoriyon", label: "YouTube" },
-    { icon: <LuInstagram />, href: "https://www.instagram.com/uxcoriyon", label: "Instagram" },
   ]
 
   const bookCallText = dict?.cta || "Book an intro call"
+  const logoText = dict?.logoText || "Coriyon's Studio"
+
+  const CustomTextLogo = () => (
+    <NextLink href="/">
+      <HStack gap="2" align="center" onClick={playClick} onMouseEnter={playHover} cursor="pointer">
+        <Box boxSize="8" rounded="full" overflow="hidden" position="relative">
+          <img 
+            src="https://kkegducuyzwdmxlzhxcm.supabase.co/storage/v1/object/public/images/avatars/coriyon-arrington.png" 
+            alt="Coriyon Arrington" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
+        </Box>
+        <Text fontWeight="bold" fontSize="lg" letterSpacing="tight">
+          {logoText}
+        </Text>
+      </HStack>
+    </NextLink>
+  )
 
   return (
     <>
@@ -71,17 +103,66 @@ export const Block = ({ dict, links }: NavbarBlockProps) => {
           maxW={{ base: 'full', md: 'fit-content' }} px="4" py="3" border="1px solid" borderColor="border.subtle"
         >
           <HStack gap={{ base: '3', md: '8' }} w="full">
-            <Logo />
+            <CustomTextLogo />
+            
             <Spacer hideFrom="md" />
+            
             <NavbarLinks links={links} hideBelow="md" isMobile={false} />
-            <HStack gap="1" hideBelow="md">
-              <SoundToggle />
-              <ColorModeButton />
-              <LanguageSwitcher />
+            
+            {/* Desktop Settings & CTA */}
+            <HStack gap="2" hideBelow="md">
+              
+              <Popover.Root 
+                open={settingsOpen}
+                onOpenChange={(e) => setSettingsOpen(e.open)}
+                positioning={{ placement: 'bottom-end', offset: { mainAxis: 16 } }}
+              >
+                <Popover.Trigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="md" 
+                    px="3"
+                    color={settingsOpen ? "colorPalette.500" : "fg.muted"}
+                    bg={settingsOpen ? "bg.muted" : "transparent"}
+                    _hover={{ color: "colorPalette.500", bg: "bg.muted" }}
+                    aria-label="Preferences"
+                    onMouseEnter={playHover}
+                    onClick={playClick}
+                  >
+                    <LuSettings size="18" />
+                    <LuChevronDown size="14" style={{ marginLeft: '4px' }} />
+                  </Button>
+                </Popover.Trigger>
+                
+                <Portal>
+                  <Popover.Positioner zIndex={2000}>
+                    <Popover.Content 
+                      width="fit-content" 
+                      p="2" 
+                      borderRadius="xl" 
+                      boxShadow="xl" 
+                      bg="bg.panel"
+                      borderWidth="1px"
+                      borderColor="border.subtle"
+                      outline="none"
+                    >
+                      <HStack gap="1" colorPalette={colorPalette} color="colorPalette.500">
+                        <SoundToggle />
+                        <ColorModeButton />
+                        <ColorPaletteToggle />
+                        <LanguageSwitcher />
+                      </HStack>
+                    </Popover.Content>
+                  </Popover.Positioner>
+                </Portal>
+              </Popover.Root>
+
+              <Button size="md" onClick={openCalendly} onMouseEnter={playHover}>
+                {bookCallText} <LuCalendar />
+              </Button>
             </HStack>
-            <Button hideBelow="md" size="md" onClick={openCalendly} onMouseEnter={playHover}>
-              {bookCallText} <LuCalendar />
-            </Button>
+            
+            {/* Mobile Menu Trigger */}
             <IconButton aria-label="Open Menu" variant="ghost" size="md" hideFrom="md" onClick={() => { playClick(); setDrawerOpen(true); }} onMouseEnter={playHover}>
               <LuMenu />
             </IconButton>
@@ -94,7 +175,7 @@ export const Block = ({ dict, links }: NavbarBlockProps) => {
           <Drawer.Content bg="bg.panel" boxShadow="none">
             <Drawer.Header p="0" pt="7" px="8">
               <Flex justify="space-between" align="center" w="full">
-                <Logo />
+                <CustomTextLogo />
                 <Drawer.CloseTrigger asChild>
                   <IconButton variant="subtle" bg="bg.muted" colorPalette="gray" size="md" borderRadius="md" onClick={() => { playClick(); setDrawerOpen(false); }}>
                     <LuX />
@@ -116,9 +197,10 @@ export const Block = ({ dict, links }: NavbarBlockProps) => {
                   ))}
                 </HStack>
 
-                <HStack gap="3" mb="8" justify="center" w="full">
+                <HStack gap="3" mb="8" justify="center" w="full" colorPalette={colorPalette} color="colorPalette.500">
                   <SoundToggle />
                   <ColorModeButton />
+                  <ColorPaletteToggle />
                   <LanguageSwitcher />
                 </HStack>
                 

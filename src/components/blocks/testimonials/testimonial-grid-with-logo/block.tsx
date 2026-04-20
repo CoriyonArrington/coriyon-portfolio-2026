@@ -29,7 +29,6 @@ export const Block = ({ dict, testimonials }: BlockProps) => {
         {(dict?.badge || dict?.tagline || dict?.tag || "Trusted by colleagues") && (
           <Badge 
             size="lg" 
-            colorPalette="green" 
             variant="subtle" 
             rounded="full" 
             px="3" 

@@ -69,7 +69,7 @@ export const Block = ({ dict, projects, viewAllHref, viewAllText }: BlockProps) 
         <Stack gap={{ base: '4', md: '6' }} align="flex-start" maxW="2xl" mb={{ base: '10', md: '16' }}>
           <Stack gap="3" align="flex-start">
             {(dict?.badge || dict?.tagline || dict?.tag) && (
-              <Badge variant="subtle" colorPalette="green" size="lg" rounded="full" px="3" py="1">
+              <Badge variant="subtle" size="lg" rounded="full" px="3" py="1">
                 {dict?.badge || dict?.tagline || dict?.tag}
               </Badge>
             )}
@@ -94,7 +94,6 @@ export const Block = ({ dict, projects, viewAllHref, viewAllText }: BlockProps) 
                   key={filterName}
                   size="sm"
                   variant={activeFilter === filterName ? "solid" : "subtle"}
-                  colorPalette="green"
                   rounded="full"
                   onClick={() => handleFilterChange(filterName)}
                   onMouseEnter={playHover}
@@ -140,7 +139,7 @@ export const Block = ({ dict, projects, viewAllHref, viewAllText }: BlockProps) 
 
       <Stack mt="10" align="flex-start">
         {viewAllHref && (
-          <Button variant="ghost" colorPalette="green" asChild size="lg" onClick={playClick} onMouseEnter={playHover}>
+          <Button variant="ghost" asChild size="lg" onClick={playClick} onMouseEnter={playHover}>
             <Link href={viewAllHref}>
               {viewAllText || "View all"} <LuArrowRight />
             </Link>

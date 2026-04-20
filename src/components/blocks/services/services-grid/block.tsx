@@ -52,7 +52,7 @@ export const Block = ({ dict, services }: BlockProps) => {
         
         {/* Left-Aligned Header */}
         <Stack gap="4" align="flex-start" textAlign="left" w="full">
-          <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">
+          <Badge size="lg" variant="subtle" rounded="full" px="3" py="1">
             {dict?.badge || "How I can help"}
           </Badge>
           <Heading as="h2" size="4xl" fontWeight="bold">

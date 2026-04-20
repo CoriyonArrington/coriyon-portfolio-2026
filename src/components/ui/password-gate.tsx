@@ -10,12 +10,16 @@ interface PasswordGateProps {
   slug: string
   title?: string
   description?: string
+  buttonText?: string
+  placeholderText?: string
 }
 
 export function PasswordGate({ 
   slug, 
   title = "Protected Case Study", 
-  description = "Please enter the password to view the strategic approach, metrics, and outcomes for this project." 
+  description = "Please enter the password to view the strategic approach, metrics, and outcomes for this project.",
+  buttonText = "Unlock Case Study",
+  placeholderText = "Enter password"
 }: PasswordGateProps) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -66,14 +70,14 @@ export function PasswordGate({
           <Stack gap="4" mt="4">
             <Input 
               type="password" 
-              placeholder="Enter password" 
+              placeholder={placeholderText} 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               size="xl"
               rounded="xl"
               textAlign="center"
               bg="bg.canvas"
-              _focus={{ borderColor: "green.500", ringColor: "green.500" }}
+              _focus={{ borderColor: "colorPalette.500", ringColor: "colorPalette.500" }}
             />
             {error && <Text color="red.500" fontSize="sm">{error}</Text>}
             
@@ -86,7 +90,7 @@ export function PasswordGate({
               colorPalette="gray"
               variant="solid"
             >
-              Unlock Case Study
+              {buttonText}
             </Button>
           </Stack>
         </form>

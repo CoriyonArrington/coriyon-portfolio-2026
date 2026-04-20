@@ -4,8 +4,14 @@ import { Badge, Box, Card, Container, Grid, GridItem, Heading, Stack, Text } fro
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 
-// Dynamically import Lottie to prevent blocking the main thread
-const LottiePlayer = dynamic(
+interface LottiePlayerProps {
+  src: string;
+  loop?: boolean;
+  autoplay?: boolean;
+  style?: React.CSSProperties;
+}
+
+const LottiePlayer = dynamic<LottiePlayerProps>(
   () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact),
   { ssr: false }
 )
@@ -33,7 +39,7 @@ export const Block = ({ badge, title, description, features }: BentoGridProps) =
       {(badge || title || description) && (
         <Stack gap="4" align="flex-start" maxW="3xl">
           {badge && (
-            <Badge size="lg" colorPalette="green" variant="subtle" rounded="full" px="3" py="1">
+            <Badge size="lg" colorPalette="gray" variant="subtle" rounded="full" px="3" py="1">
               {badge}
             </Badge>
           )}
